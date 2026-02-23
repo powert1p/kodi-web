@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../bloc/auth_bloc.dart';
+import '../../../shared/utils/responsive.dart';
 
 class PhoneLoginPage extends StatefulWidget {
   const PhoneLoginPage({super.key});
@@ -96,7 +97,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             filled: true, fillColor: Colors.grey[50],
           ),
-          style: const TextStyle(fontSize: 18, letterSpacing: 1),
+          style: TextStyle(fontSize: rs(context, 18), letterSpacing: 1),
           onSubmitted: !_phoneChecked ? (_) => _checkPhone() : null,
         ),
 
@@ -168,7 +169,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               prefixIcon: const Icon(Icons.lock_rounded),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               filled: true, fillColor: Colors.grey[50]),
-            style: const TextStyle(fontSize: 24, letterSpacing: 12),
+            style: TextStyle(fontSize: rs(context, 24), letterSpacing: rs(context, 12)),
             onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 16),

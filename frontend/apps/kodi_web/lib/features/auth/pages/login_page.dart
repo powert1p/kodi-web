@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/auth_bloc.dart';
 import '../../dashboard/pages/dashboard_page.dart';
 import 'phone_login_page.dart';
+import '../../../shared/utils/responsive.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -64,17 +65,16 @@ class _LoginPageState extends State<LoginPage> {
               constraints: const BoxConstraints(maxWidth: 420),
               child: Card(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
+                  padding: EdgeInsets.symmetric(horizontal: rp(context, 40), vertical: rp(context, 48)),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Logo
                       Container(
-                        width: 72, height: 72,
+                        width: rs(context, 72), height: rs(context, 72),
                         decoration: BoxDecoration(
                           color: const Color(0xFF2563EB),
                           borderRadius: BorderRadius.circular(20)),
-                        child: const Icon(Icons.school_rounded, color: Colors.white, size: 40)),
+                        child: Icon(Icons.school_rounded, color: Colors.white, size: rs(context, 40))),
                       const SizedBox(height: 24),
                       Text('NIS Math',
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),

@@ -7,6 +7,7 @@ import '../../../shared/widgets/problem_card.dart';
 import '../../../shared/widgets/answer_input.dart';
 import '../../../shared/widgets/result_card.dart';
 import '../../../shared/widgets/report_sheet.dart';
+import '../../../shared/utils/responsive.dart';
 
 class PracticePage extends StatefulWidget {
   const PracticePage({super.key, this.tag, this.tagName, this.nodeId, this.embedded = false});
@@ -156,8 +157,8 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
     final pct = n > 0 ? (_correct / n * 100).round() : 0;
     showModalBottomSheet(context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text('Статистика сессии', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      builder: (sheetCtx) => Padding(padding: EdgeInsets.all(rp(sheetCtx, 24)), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text('Статистика сессии', style: TextStyle(fontSize: rs(sheetCtx, 18), fontWeight: FontWeight.bold)),
         const SizedBox(height: 20),
         Row(children: [
           _StatTile(label: 'Решено', value: '$n', icon: Icons.check_circle_outline),
@@ -171,7 +172,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
           _StatTile(label: 'Всего', value: _fmtTime(_totalTimeSpent.round()), icon: Icons.schedule),
         ]),
         const SizedBox(height: 20),
-        SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Продолжить'))),
+        SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(sheetCtx), child: const Text('Продолжить'))),
       ])));
   }
 
@@ -335,9 +336,9 @@ class _StatTile extends StatelessWidget {
   final IconData icon;
   @override
   Widget build(BuildContext context) => Expanded(child: Column(children: [
-    Icon(icon, size: 22, color: const Color(0xFF64748B)),
+    Icon(icon, size: rs(context, 22), color: const Color(0xFF64748B)),
     const SizedBox(height: 6),
-    Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-    Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+    Text(value, style: TextStyle(fontSize: rs(context, 18), fontWeight: FontWeight.bold)),
+    Text(label, style: TextStyle(fontSize: rs(context, 11), color: Colors.grey[500])),
   ]));
 }

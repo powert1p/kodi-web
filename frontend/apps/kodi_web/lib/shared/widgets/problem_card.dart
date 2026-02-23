@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'math_text.dart';
+import '../utils/responsive.dart';
 
 /// Shared problem display card used by Practice, Diagnostic, and Exam pages.
 /// Shows text always via MathText. No dark images.
@@ -20,17 +21,16 @@ class ProblemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Topic + difficulty + counter row
       Row(children: [
         if (nodeName != null && nodeName!.isNotEmpty)
-          Expanded(child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          Flexible(child: Container(
+            padding: EdgeInsets.symmetric(horizontal: rp(context, 12), vertical: 6),
             decoration: BoxDecoration(
               color: const Color(0xFFEFF6FF),
               borderRadius: BorderRadius.circular(8)),
             child: Text(nodeName!,
-              style: const TextStyle(color: Color(0xFF2563EB),
-                fontWeight: FontWeight.w600, fontSize: 13),
+              style: TextStyle(color: const Color(0xFF2563EB),
+                fontWeight: FontWeight.w600, fontSize: rs(context, 13)),
               overflow: TextOverflow.ellipsis))),
         if (difficulty != null) ...[
           const SizedBox(width: 8),
@@ -39,21 +39,20 @@ class ProblemCard extends StatelessWidget {
         if (counter != null) ...[
           const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: rp(context, 10), vertical: 4),
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(20)),
             child: Text(counter!,
               style: TextStyle(color: Colors.grey[600],
-                fontSize: 13, fontWeight: FontWeight.w600))),
+                fontSize: rs(context, 13), fontWeight: FontWeight.w600))),
         ],
       ]),
       const SizedBox(height: 12),
 
-      // Card with text
       Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.all(rp(context, 20)),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -61,8 +60,8 @@ class ProblemCard extends StatelessWidget {
             color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8, offset: const Offset(0, 2))]),
         child: MathText(text,
-          style: const TextStyle(
-            fontSize: 17, height: 1.6, color: Color(0xFF1E293B))),
+          style: TextStyle(
+            fontSize: rs(context, 17), height: 1.6, color: const Color(0xFF1E293B))),
       ),
     ]);
   }

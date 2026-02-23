@@ -7,6 +7,7 @@ import '../../../shared/widgets/problem_card.dart';
 import '../../../shared/widgets/answer_input.dart';
 import '../../../shared/widgets/result_card.dart';
 import '../../../shared/widgets/report_sheet.dart';
+import '../../../shared/utils/responsive.dart';
 
 class DiagnosticPage extends StatefulWidget {
   const DiagnosticPage({super.key});
@@ -302,14 +303,14 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     return Column(children: [
       const SizedBox(height: 40),
       Container(
-        width: 80, height: 80,
+        width: rs(context, 80), height: rs(context, 80),
         decoration: BoxDecoration(
           color: const Color(0xFFFFA726),
           borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: 44)),
+        child: Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      const Text('Незавершённая диагностика',
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+      Text('Незавершённая диагностика',
+        style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
       const SizedBox(height: 12),
       Text('$modeName — $_activeTopicsTested из $_activeMaxTopics тем · $_activeQuestionsAsked вопросов',
         style: TextStyle(fontSize: 15, color: Colors.grey[600], height: 1.5),
@@ -350,14 +351,14 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     return Column(children: [
       const SizedBox(height: 40),
       Container(
-        width: 80, height: 80,
+        width: rs(context, 80), height: rs(context, 80),
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [Color(0xFF667EEA), Color(0xFF764BA2)]),
           borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.psychology_rounded, color: Colors.white, size: 44)),
+        child: Icon(Icons.psychology_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      const Text('Диагностика знаний',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+      Text('Диагностика знаний',
+        style: TextStyle(fontSize: rs(context, 24), fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
       const SizedBox(height: 12),
       Text('15 тем — адаптивный алгоритм подберёт задачи под тебя.',
         style: TextStyle(fontSize: 15, color: Colors.grey[600], height: 1.5),
@@ -478,25 +479,25 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
     return Column(children: [
       const SizedBox(height: 20),
       Container(
-        width: 80, height: 80,
+        width: rs(context, 80), height: rs(context, 80),
         decoration: BoxDecoration(
           color: const Color(0xFF10B981),
           borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.check_rounded, color: Colors.white, size: 44)),
+        child: Icon(Icons.check_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      const Text('Диагностика завершена!',
-        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+      Text('Диагностика завершена!',
+        style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
       const SizedBox(height: 8),
-      Text(summary, style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+      Text(summary, style: TextStyle(fontSize: rs(context, 14), color: Colors.grey[600]),
         textAlign: TextAlign.center),
       const SizedBox(height: 24),
 
       Row(children: [
-        _ResultStat(label: 'Освоено', value: '$mastered', color: const Color(0xFF10B981)),
+        Expanded(child: _ResultStat(label: 'Освоено', value: '$mastered', color: const Color(0xFF10B981))),
         const SizedBox(width: 10),
-        _ResultStat(label: 'Пробелы', value: '$failed', color: const Color(0xFFEF4444)),
+        Expanded(child: _ResultStat(label: 'Пробелы', value: '$failed', color: const Color(0xFFEF4444))),
         const SizedBox(width: 10),
-        _ResultStat(label: 'Правильно', value: '$_correctCount',  color: const Color(0xFF2563EB)),
+        Expanded(child: _ResultStat(label: 'Правильно', value: '$_correctCount',  color: const Color(0xFF2563EB))),
       ]),
       const SizedBox(height: 20),
 
@@ -545,23 +546,23 @@ class _ModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity, padding: const EdgeInsets.all(20),
+      width: double.infinity, padding: EdgeInsets.all(rp(context, 20)),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))]),
       child: Row(children: [
-        Container(width: 48, height: 48,
+        Container(width: rs(context, 48), height: rs(context, 48),
           decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 26)),
-        const SizedBox(width: 16),
+          child: Icon(icon, color: color, size: rs(context, 26))),
+        SizedBox(width: rp(context, 16)),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-          Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          Text(title, style: TextStyle(fontWeight: FontWeight.w600, fontSize: rs(context, 15))),
+          Text(subtitle, style: TextStyle(fontSize: rs(context, 12), color: Colors.grey[500])),
           const SizedBox(height: 2),
-          Text(description, style: TextStyle(fontSize: 12, color: Colors.grey[400])),
+          Text(description, style: TextStyle(fontSize: rs(context, 12), color: Colors.grey[400])),
         ])),
         FilledButton(onPressed: onStart,
-          style: FilledButton.styleFrom(backgroundColor: color, padding: const EdgeInsets.symmetric(horizontal: 16)),
-          child: const Text('Начать')),
+          style: FilledButton.styleFrom(backgroundColor: color, padding: EdgeInsets.symmetric(horizontal: rp(context, 16))),
+          child: Text('Начать', style: TextStyle(fontSize: rs(context, 14)))),
       ]));
   }
 }
@@ -572,14 +573,14 @@ class _ResultStat extends StatelessWidget {
   final Color color;
   @override
   Widget build(BuildContext context) {
-    return Expanded(child: Container(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      padding: EdgeInsets.all(rp(context, 16)),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(14)),
       child: Column(children: [
-        Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+        Text(value, style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: color)),
         const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-      ])));
+        Text(label, style: TextStyle(fontSize: rs(context, 12), color: Colors.grey[600])),
+      ]));
   }
 }
 

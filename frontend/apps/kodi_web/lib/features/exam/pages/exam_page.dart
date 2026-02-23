@@ -7,6 +7,7 @@ import '../../../shared/widgets/problem_card.dart';
 import '../../../shared/widgets/answer_input.dart';
 import '../../../shared/widgets/result_card.dart';
 import '../../../shared/widgets/report_sheet.dart';
+import '../../../shared/utils/responsive.dart';
 
 class ExamPage extends StatefulWidget {
   const ExamPage({super.key});
@@ -236,27 +237,27 @@ class _ExamPageState extends State<ExamPage> {
   Widget _buildSetup() {
     return Column(children: [
       const SizedBox(height: 40),
-      Container(width: 80, height: 80,
+      Container(width: rs(context, 80), height: rs(context, 80),
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [Color(0xFFEF4444), Color(0xFFF97316)]),
           borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.timer_rounded, color: Colors.white, size: 44)),
+        child: Icon(Icons.timer_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      const Text('Экзамен', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+      Text('Экзамен', style: TextStyle(fontSize: rs(context, 24), fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
       const SizedBox(height: 8),
       Text('Реши задачи на время — как на настоящем НИШ',
-        style: TextStyle(fontSize: 15, color: Colors.grey[600]), textAlign: TextAlign.center),
+        style: TextStyle(fontSize: rs(context, 15), color: Colors.grey[600]), textAlign: TextAlign.center),
       const SizedBox(height: 32),
       Container(
-        width: double.infinity, padding: const EdgeInsets.all(20),
+        width: double.infinity, padding: EdgeInsets.all(rp(context, 20)),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))]),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Настройки', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           const SizedBox(height: 16),
           Row(children: [
-            const Icon(Icons.assignment_rounded, size: 20, color: Color(0xFF64748B)),
-            const SizedBox(width: 8), const Text('Задач:'), const Spacer(),
+            Icon(Icons.assignment_rounded, size: rs(context, 20), color: const Color(0xFF64748B)),
+            const SizedBox(width: 8), Text('Задач:', style: TextStyle(fontSize: rs(context, 14))), const Spacer(),
             SegmentedButton<int>(
               segments: const [
                 ButtonSegment(value: 10, label: Text('10')),
@@ -349,25 +350,25 @@ class _ExamPageState extends State<ExamPage> {
 
     return Column(children: [
       const SizedBox(height: 20),
-      Container(width: 80, height: 80,
+      Container(width: rs(context, 80), height: rs(context, 80),
         decoration: BoxDecoration(
           color: pct >= 70 ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
           borderRadius: BorderRadius.circular(20)),
-        child: Icon(pct >= 70 ? Icons.emoji_events_rounded : Icons.assessment_rounded, color: Colors.white, size: 44)),
+        child: Icon(pct >= 70 ? Icons.emoji_events_rounded : Icons.assessment_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
       Text(pct >= 70 ? 'Отлично!' : 'Можно лучше!',
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+        style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: const Color(0xFF1E293B))),
       const SizedBox(height: 8),
       Text('Время: ${_formatTime(timeUsed)}',
-        style: TextStyle(fontSize: 15, color: Colors.grey[600])),
+        style: TextStyle(fontSize: rs(context, 15), color: Colors.grey[600])),
       const SizedBox(height: 24),
       Row(children: [
-        _StatCard(label: 'Результат', value: '$pct%',
-          color: pct >= 70 ? const Color(0xFF10B981) : const Color(0xFFF59E0B)),
+        Expanded(child: _StatCard(label: 'Результат', value: '$pct%',
+          color: pct >= 70 ? const Color(0xFF10B981) : const Color(0xFFF59E0B))),
         const SizedBox(width: 10),
-        _StatCard(label: 'Правильно', value: '$_correct/$total', color: const Color(0xFF2563EB)),
+        Expanded(child: _StatCard(label: 'Правильно', value: '$_correct/$total', color: const Color(0xFF2563EB))),
         const SizedBox(width: 10),
-        _StatCard(label: 'Пропущено', value: '${total - _answered}', color: const Color(0xFF64748B)),
+        Expanded(child: _StatCard(label: 'Пропущено', value: '${total - _answered}', color: const Color(0xFF64748B))),
       ]),
       const SizedBox(height: 24),
       SizedBox(width: double.infinity, child: FilledButton.icon(
@@ -404,13 +405,13 @@ class _StatCard extends StatelessWidget {
   final Color color;
   @override
   Widget build(BuildContext context) {
-    return Expanded(child: Container(
-      padding: const EdgeInsets.all(16),
+    return Container(
+      padding: EdgeInsets.all(rp(context, 16)),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(14)),
       child: Column(children: [
-        Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+        Text(value, style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: color)),
         const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-      ])));
+        Text(label, style: TextStyle(fontSize: rs(context, 12), color: Colors.grey[600])),
+      ]));
   }
 }

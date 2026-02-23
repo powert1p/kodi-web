@@ -5,6 +5,7 @@ import 'package:kodi_core/kodi_core.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../practice/pages/practice_page.dart';
+import '../../../shared/utils/responsive.dart';
 import 'graph_page.dart';
 import 'leaderboard_page.dart';
 import '../../diagnostic/pages/diagnostic_page.dart';
@@ -183,7 +184,7 @@ class _BodyState extends State<_Body> {
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(rp(context, 16)),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -202,52 +203,61 @@ class _BodyState extends State<_Body> {
                 const SizedBox(height: 16),
                 _StatsRow(stats: stats),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(DiagnosticPage.routeName)
-                            .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                        icon: const Icon(Icons.psychology_rounded, size: 20),
-                        label: const Text('Диагностика',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            backgroundColor: const Color(0xFF7C3AED)),
+                LayoutBuilder(builder: (context, constraints) {
+                  final small = constraints.maxWidth < 360;
+                  final btnFontSize = rs(context, small ? 12 : 14);
+                  final iconSize = rs(context, small ? 18 : 20);
+                  final btnHeight = rs(context, 48);
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      SizedBox(
+                        width: small ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
+                        child: FilledButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(DiagnosticPage.routeName)
+                              .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                          icon: Icon(Icons.psychology_rounded, size: iconSize),
+                          label: Text('Диагностика',
+                              style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
+                          style: FilledButton.styleFrom(
+                              minimumSize: Size(0, btnHeight),
+                              backgroundColor: const Color(0xFF7C3AED)),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(PracticePage.routeName)
-                            .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                        icon: const Icon(Icons.play_arrow_rounded, size: 20),
-                        label: const Text('Практика',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            backgroundColor: const Color(0xFF2563EB)),
+                      SizedBox(
+                        width: small ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
+                        child: FilledButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(PracticePage.routeName)
+                              .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                          icon: Icon(Icons.play_arrow_rounded, size: iconSize),
+                          label: Text('Практика',
+                              style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
+                          style: FilledButton.styleFrom(
+                              minimumSize: Size(0, btnHeight),
+                              backgroundColor: const Color(0xFF2563EB)),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(LeaderboardPage.routeName,
-                                arguments: leaderboard)
-                            .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                        icon: const Icon(Icons.emoji_events_rounded, size: 20),
-                        label: const Text('Рейтинг',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            backgroundColor: const Color(0xFFFF8F00)),
+                      SizedBox(
+                        width: small ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
+                        child: FilledButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(LeaderboardPage.routeName,
+                                  arguments: leaderboard)
+                              .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                          icon: Icon(Icons.emoji_events_rounded, size: iconSize),
+                          label: Text('Рейтинг',
+                              style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
+                          style: FilledButton.styleFrom(
+                              minimumSize: Size(0, btnHeight),
+                              backgroundColor: const Color(0xFFFF8F00)),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  );
+                }),
                 const SizedBox(height: 24),
                 // ── Tab switcher ──
                 Row(
@@ -631,7 +641,7 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = stats.masteryPercent;
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(rp(context, 24)),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
             colors: [Color(0xFF1D4ED8), Color(0xFF3B82F6)],
@@ -646,13 +656,13 @@ class _HeroCard extends StatelessWidget {
               children: [
                 Text(
                     'Привет, ${student.displayName.split(' ').first}! 👋',
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 15)),
+                    style: TextStyle(
+                        color: Colors.white70, fontSize: rs(context, 15))),
                 const SizedBox(height: 4),
-                const Text('Твой прогресс',
+                Text('Твой прогресс',
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 22,
+                        fontSize: rs(context, 22),
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 Text(
@@ -694,19 +704,22 @@ class _RingChart extends StatelessWidget {
   const _RingChart({required this.percent});
   final double percent;
   @override
-  Widget build(BuildContext context) => SizedBox(
-        width: 80,
-        height: 80,
+  Widget build(BuildContext context) {
+    final s = rs(context, 80);
+    return SizedBox(
+        width: s,
+        height: s,
         child: Stack(alignment: Alignment.center, children: [
           CustomPaint(
-              size: const Size(80, 80), painter: _RingPainter(percent)),
+              size: Size(s, s), painter: _RingPainter(percent)),
           Text('${(percent * 100).toStringAsFixed(0)}%',
-              style: const TextStyle(
+              style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 16)),
+                  fontSize: rs(context, 16))),
         ]),
       );
+  }
 }
 
 class _RingPainter extends CustomPainter {
@@ -739,32 +752,36 @@ class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.stats});
   final Stats stats;
   @override
-  Widget build(BuildContext context) => Wrap(
+  Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final cardWidth = (w < 400) ? (w - 50) / 2 : 140.0;
+    return Wrap(
         spacing: 10,
         runSpacing: 10,
         children: [
-          _StatCard(
+          SizedBox(width: cardWidth, child: _StatCard(
               label: 'Освоено',
               value: '${stats.masteredCount}/${stats.totalNodes}',
               icon: Icons.school_rounded,
-              color: const Color(0xFF10B981)),
-          _StatCard(
+              color: const Color(0xFF10B981))),
+          SizedBox(width: cardWidth, child: _StatCard(
               label: 'Решено',
               value: '${stats.solved}',
               icon: Icons.check_circle_outline,
-              color: const Color(0xFF2563EB)),
-          _StatCard(
+              color: const Color(0xFF2563EB))),
+          SizedBox(width: cardWidth, child: _StatCard(
               label: 'Точность',
               value: '${stats.accuracy}%',
               icon: Icons.analytics_outlined,
-              color: const Color(0xFFF59E0B)),
-          _StatCard(
+              color: const Color(0xFFF59E0B))),
+          SizedBox(width: cardWidth, child: _StatCard(
               label: 'Ср. время',
               value: '${stats.avgTimeS.toStringAsFixed(0)}с',
               icon: Icons.timer_outlined,
-              color: const Color(0xFF8B5CF6)),
+              color: const Color(0xFF8B5CF6))),
         ],
       );
+  }
 }
 
 class _StatCard extends StatelessWidget {
@@ -778,8 +795,7 @@ class _StatCard extends StatelessWidget {
   final Color color;
   @override
   Widget build(BuildContext context) => Container(
-        width: 140,
-        padding: const EdgeInsets.all(14),
+        padding: EdgeInsets.all(rp(context, 14)),
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(14),
@@ -791,21 +807,22 @@ class _StatCard extends StatelessWidget {
             ]),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
-              width: 36,
-              height: 36,
+              width: rs(context, 36),
+              height: rs(context, 36),
               decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10)),
-              child: Icon(icon, color: color, size: 20)),
+              child: Icon(icon, color: color, size: rs(context, 20))),
           const SizedBox(height: 10),
           Text(value,
-              style: const TextStyle(
-                  fontSize: 18,
+              style: TextStyle(
+                  fontSize: rs(context, 18),
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B))),
+                  color: const Color(0xFF1E293B))),
           Text(label,
-              style:
-                  const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+              style: TextStyle(
+                  fontSize: rs(context, 11),
+                  color: const Color(0xFF64748B))),
         ]),
       );
 }
@@ -819,7 +836,7 @@ class _OnboardingView extends StatelessWidget {
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(rp(context, 24)),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
@@ -827,23 +844,23 @@ class _OnboardingView extends StatelessWidget {
             children: [
               const SizedBox(height: 40),
               Container(
-                width: 100,
-                height: 100,
+                width: rs(context, 100),
+                height: rs(context, 100),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                       colors: [Color(0xFF667EEA), Color(0xFF764BA2)]),
                   borderRadius: BorderRadius.circular(28),
                 ),
-                child: const Icon(Icons.school_rounded,
-                    color: Colors.white, size: 52),
+                child: Icon(Icons.school_rounded,
+                    color: Colors.white, size: rs(context, 52)),
               ),
               const SizedBox(height: 28),
               Text(
                 'Привет, ${student.displayName.split(' ').first}! 👋',
-                style: const TextStyle(
-                    fontSize: 26,
+                style: TextStyle(
+                    fontSize: rs(context, 26),
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B)),
+                    color: const Color(0xFF1E293B)),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -851,7 +868,7 @@ class _OnboardingView extends StatelessWidget {
                 'Добро пожаловать в NIS Math!\n'
                 'Здесь ты подготовишься к экзамену по математике в НИШ.',
                 style: TextStyle(
-                    fontSize: 16, color: Colors.grey[600], height: 1.5),
+                    fontSize: rs(context, 16), color: Colors.grey[600], height: 1.5),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
@@ -941,7 +958,7 @@ class _StepCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(rp(context, 16)),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -954,12 +971,12 @@ class _StepCard extends StatelessWidget {
         ),
         child: Row(children: [
           Container(
-            width: 44,
-            height: 44,
+            width: rs(context, 44),
+            height: rs(context, 44),
             decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: rs(context, 24)),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -967,11 +984,11 @@ class _StepCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 15)),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: rs(context, 15))),
                 Text(subtitle,
                     style: TextStyle(
-                        fontSize: 12, color: Colors.grey[500])),
+                        fontSize: rs(context, 12), color: Colors.grey[500])),
               ],
             ),
           ),

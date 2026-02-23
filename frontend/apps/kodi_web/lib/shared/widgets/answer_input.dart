@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/responsive.dart';
 
 /// Shared answer input card used by Practice, Diagnostic, and Exam pages.
 class AnswerInput extends StatelessWidget {
@@ -30,18 +31,18 @@ class AnswerInput extends StatelessWidget {
         boxShadow: [BoxShadow(
           color: Colors.black.withValues(alpha: 0.04),
           blurRadius: 6, offset: const Offset(0, 2))]),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(rp(context, 16)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         if (showHints)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(children: [
               Text('Ваш ответ',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                style: TextStyle(fontSize: rs(context, 13), fontWeight: FontWeight.w600,
                   color: Colors.grey[600])),
               const Spacer(),
               Text('Enter — ответить',
-                style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+                style: TextStyle(fontSize: rs(context, 11), color: Colors.grey[400])),
             ]),
           ),
         TextField(
@@ -60,38 +61,44 @@ class AnswerInput extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: accentColor, width: 2)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: EdgeInsets.symmetric(horizontal: rp(context, 16), vertical: 14),
             suffixIcon: IconButton(
               icon: Icon(Icons.send_rounded, color: accentColor),
               onPressed: onSubmit)),
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: rs(context, 16)),
           onSubmitted: (_) => onSubmit()),
         const SizedBox(height: 12),
-        Row(children: [
-          Expanded(child: FilledButton(
-            onPressed: onSubmit,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(0, 48),
-              backgroundColor: accentColor),
-            child: const Text('Ответить',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)))),
-          if (onSkip != null) ...[
-            const SizedBox(width: 10),
-            SizedBox(height: 48, child: OutlinedButton(
-              onPressed: onSkip,
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFE2E8F0))),
-              child: const Text('Пропустить',
-                style: TextStyle(color: Color(0xFF64748B))))),
-          ],
-          if (onReport != null) ...[
-            const SizedBox(width: 6),
-            SizedBox(height: 48, child: IconButton(
-              onPressed: onReport,
-              icon: const Icon(Icons.flag_outlined, color: Color(0xFFCBD5E1), size: 20),
-              tooltip: 'Пожаловаться')),
-          ],
-        ]),
+        LayoutBuilder(builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 320;
+          final btnHeight = rs(context, 48);
+          final children = <Widget>[
+            Expanded(child: FilledButton(
+              onPressed: onSubmit,
+              style: FilledButton.styleFrom(
+                minimumSize: Size(0, btnHeight),
+                backgroundColor: accentColor),
+              child: Text('Ответить',
+                style: TextStyle(fontSize: rs(context, 15), fontWeight: FontWeight.w600)))),
+            if (onSkip != null) ...[
+              SizedBox(width: narrow ? 6 : 10),
+              SizedBox(height: btnHeight, child: OutlinedButton(
+                onPressed: onSkip,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  padding: EdgeInsets.symmetric(horizontal: rp(context, 16))),
+                child: Text('Пропустить',
+                  style: TextStyle(color: const Color(0xFF64748B), fontSize: rs(context, 14))))),
+            ],
+            if (onReport != null) ...[
+              const SizedBox(width: 6),
+              SizedBox(height: btnHeight, child: IconButton(
+                onPressed: onReport,
+                icon: Icon(Icons.flag_outlined, color: const Color(0xFFCBD5E1), size: rs(context, 20)),
+                tooltip: 'Пожаловаться')),
+            ],
+          ];
+          return Row(children: children);
+        }),
       ]));
   }
 }

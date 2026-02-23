@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'math_text.dart';
+import '../utils/responsive.dart';
 
 /// Shared answer result display used across Practice, Diagnostic, Exam.
 class ResultCard extends StatelessWidget {
@@ -26,7 +27,7 @@ class ResultCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ok = isCorrect;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(rp(context, 20)),
       decoration: BoxDecoration(
         color: ok ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
         borderRadius: BorderRadius.circular(16),
@@ -36,11 +37,12 @@ class ResultCard extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Icon(ok ? Icons.check_circle_rounded : Icons.cancel_rounded,
-            color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444), size: 24),
+            color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444), size: rs(context, 24)),
           const SizedBox(width: 8),
-          Text(ok ? 'Правильно! 🎉' : 'Неправильно',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold,
-              color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444))),
+          Flexible(child: Text(ok ? 'Правильно! 🎉' : 'Неправильно',
+            style: TextStyle(fontSize: rs(context, 17), fontWeight: FontWeight.bold,
+              color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+            overflow: TextOverflow.ellipsis)),
           const Spacer(),
           if (isMastered)
             Container(
@@ -48,12 +50,12 @@ class ResultCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF10B981),
                 borderRadius: BorderRadius.circular(20)),
-              child: const Text('✨ Освоено',
-                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600))),
+              child: Text('✨ Освоено',
+                style: TextStyle(color: Colors.white, fontSize: rs(context, 11), fontWeight: FontWeight.w600))),
           if (onReport != null && !ok)
             IconButton(
               onPressed: onReport,
-              icon: const Icon(Icons.flag_outlined, size: 18),
+              icon: Icon(Icons.flag_outlined, size: rs(context, 18)),
               color: Colors.grey[400],
               tooltip: 'Пожаловаться',
               padding: EdgeInsets.zero,
@@ -71,31 +73,30 @@ class ResultCard extends StatelessWidget {
         if (!ok && correctAnswer != null && correctAnswer!.isNotEmpty) ...[
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(rp(context, 12)),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(10)),
             child: Row(children: [
-              Text('Ответ: ', style: TextStyle(color: Colors.grey[500])),
+              Text('Ответ: ', style: TextStyle(color: Colors.grey[500], fontSize: rs(context, 14))),
               Expanded(child: MathText(correctAnswer!,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)))),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: rs(context, 16), color: const Color(0xFF1E293B)))),
             ])),
         ],
 
-        // Solution
         if (solution != null && solution!.isNotEmpty) ...[
           const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(rp(context, 14)),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(10)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('💡 Решение:',
-                style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1E293B), fontSize: 14)),
+              Text('💡 Решение:',
+                style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontSize: rs(context, 14))),
               const SizedBox(height: 6),
               MathText(solution!,
-                style: const TextStyle(color: Color(0xFF475569), height: 1.5, fontSize: 14)),
+                style: TextStyle(color: const Color(0xFF475569), height: 1.5, fontSize: rs(context, 14))),
             ])),
         ],
 
