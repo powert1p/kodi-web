@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Войти через Telegram</title>
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh;
+           margin:0; background:#f0f2f5; font-family:sans-serif; }
+    .box { text-align:center; padding:40px; background:#fff; border-radius:16px;
+           box-shadow:0 4px 24px rgba(0,0,0,.1); }
+    h2 { margin-bottom:24px; color:#1a1a2e; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Войти через Telegram</h2>
+    <div id="tg-widget"></div>
+    <script>
+      // Get bot name from URL param or default to production bot
+      var params = new URLSearchParams(window.location.search);
+      var botName = params.get('bot') || 'nis_math_test_bot';
+
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.setAttribute('data-telegram-login', botName);
+      script.setAttribute('data-size', 'large');
+      script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+      script.setAttribute('data-request-access', 'write');
+      document.getElementById('tg-widget').appendChild(script);
+
+      function onTelegramAuth(user) {
+        if (window.opener) {
+          window.opener.postMessage(JSON.stringify({ type: 'tg_auth', data: user }), '*');
+          window.close();
+        }
+      }
+    </script>
+  </div>
+</body>
+</html>

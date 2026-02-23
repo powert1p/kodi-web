@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="NIS Math — подготовка к экзамену">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="NIS Math">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <title>NIS Math</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body { margin: 0; background: #FAF9F6; }
+    .loading {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; font-family: -apple-system, sans-serif;
+    }
+    .loading-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: #2563EB; display: flex; align-items: center;
+      justify-content: center; margin-bottom: 16px;
+    }
+    .loading-icon svg { width: 28px; height: 28px; fill: white; }
+    .loading-text { color: #64748B; font-size: 14px; }
+    .loading-bar {
+      width: 120px; height: 4px; background: #E2E8F0;
+      border-radius: 2px; margin-top: 12px; overflow: hidden;
+    }
+    .loading-bar::after {
+      content: ''; display: block; width: 40%; height: 100%;
+      background: #2563EB; border-radius: 2px;
+      animation: slide 1.2s ease-in-out infinite;
+    }
+    @keyframes slide {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(350%); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">
+    <div class="loading-icon">
+      <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
+    </div>
+    <div class="loading-text">NIS Math</div>
+    <div class="loading-bar"></div>
+  </div>
+  <script>
+    window.addEventListener('flutter-first-frame', function() {
+      var el = document.getElementById('loading');
+      if (el) el.remove();
+    });
+  </script>
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

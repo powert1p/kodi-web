@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+venv/
+.venv/
+
+# Flutter
+frontend/apps/kodi_web/build/
+frontend/apps/kodi_web/.dart_tool/
+frontend/apps/kodi_web/.flutter-plugins
+frontend/apps/kodi_web/.flutter-plugins-dependencies
+frontend/packages/kodi_core/.dart_tool/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Build outputs
+backend/web_static/
+backend/static/

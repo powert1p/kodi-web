@@ -1,0 +1,1753 @@
+{
+  "metadata": {
+    "title": "НИШ Math Knowledge Graph v0.1",
+    "description": "Flat DAG for NIS 7th grade math entrance exam preparation. Covers grades 3-6 prerequisite skills decomposed from 40 exam questions across 29 test variants.",
+    "total_nodes": 142,
+    "total_edges": 247,
+    "format": "Each node has prerequisite edges (list of node IDs that must be mastered before this node). Tags are for human filtering only - the algorithm traverses edges regardless of tags.",
+    "difficulty_scale": "1=grade 3 basics, 2=grade 4, 3=grade 5, 4=grade 6, 5=olympiad/NIS-specific",
+    "mastery_threshold": "BKT P(mastery) >= 0.95 with consistent performance across varied problems"
+  },
+  "nodes": [
+    {
+      "id": "AR01",
+      "name_ru": "Сложение и вычитание в пределах 100",
+      "name_kz": "100 шегінде қосу және азайту",
+      "prerequisites": [],
+      "tag": "arithmetic",
+      "exam_questions": [
+        8
+      ],
+      "difficulty": 1,
+      "description": "Базовые операции сложения и вычитания"
+    },
+    {
+      "id": "AR02",
+      "name_ru": "Таблица умножения",
+      "name_kz": "Көбейту кестесі",
+      "prerequisites": [
+        "AR01"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        8
+      ],
+      "difficulty": 1,
+      "description": "Все факты умножения до 9x9. Критично: 6x7, 6x8, 7x8 — самые трудные"
+    },
+    {
+      "id": "AR03",
+      "name_ru": "Деление целых чисел",
+      "name_kz": "Бүтін сандарды бөлу",
+      "prerequisites": [
+        "AR02"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        8
+      ],
+      "difficulty": 1,
+      "description": "Деление как обратная операция к умножению"
+    },
+    {
+      "id": "AR04",
+      "name_ru": "Деление с остатком",
+      "name_kz": "Қалдықпен бөлу",
+      "prerequisites": [
+        "AR03"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        8,
+        17
+      ],
+      "difficulty": 1,
+      "description": "Понимание остатка, связь с делимостью"
+    },
+    {
+      "id": "AR05",
+      "name_ru": "Порядок действий (скобки, приоритеты)",
+      "name_kz": "Амалдар реті (жақшалар)",
+      "prerequisites": [
+        "AR02",
+        "AR03"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        8
+      ],
+      "difficulty": 2,
+      "description": "PEMDAS/порядок операций со скобками"
+    },
+    {
+      "id": "AR06",
+      "name_ru": "Действия с многозначными числами",
+      "name_kz": "Көпмәнді сандармен амалдар",
+      "prerequisites": [
+        "AR05"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        8
+      ],
+      "difficulty": 2,
+      "description": "Сложение, вычитание, умножение, деление многозначных чисел столбиком"
+    },
+    {
+      "id": "AR07",
+      "name_ru": "Округление чисел",
+      "name_kz": "Сандарды дөңгелектеу",
+      "prerequisites": [
+        "AR06"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        7
+      ],
+      "difficulty": 2,
+      "description": "Округление до заданного разряда"
+    },
+    {
+      "id": "AR08",
+      "name_ru": "Вычисление выгодным способом",
+      "name_kz": "Тиімді тәсілмен есептеу",
+      "prerequisites": [
+        "AR05",
+        "AR06"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        5
+      ],
+      "difficulty": 3,
+      "description": "Распределительный, сочетательный, переместительный законы для упрощения"
+    },
+    {
+      "id": "AR09",
+      "name_ru": "Степень натурального числа",
+      "name_kz": "Натурал санның дәрежесі",
+      "prerequisites": [
+        "AR02"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        5,
+        32
+      ],
+      "difficulty": 3,
+      "description": "Понятие степени, вычисление степеней, свойства степеней"
+    },
+    {
+      "id": "AR10",
+      "name_ru": "Цифры числа (разряды, количество)",
+      "name_kz": "Санның цифрлары (разрядтар)",
+      "prerequisites": [
+        "AR06"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        17
+      ],
+      "difficulty": 3,
+      "description": "Работа с цифрами числа, разрядный состав"
+    },
+    {
+      "id": "AR11",
+      "name_ru": "Последняя цифра степени/произведения",
+      "name_kz": "Дәреженің/көбейтіндінің соңғы цифры",
+      "prerequisites": [
+        "AR09",
+        "AR10",
+        "AR04"
+      ],
+      "tag": "arithmetic",
+      "exam_questions": [
+        17
+      ],
+      "difficulty": 4,
+      "description": "Нахождение последней цифры через цикличность"
+    },
+    {
+      "id": "DV01",
+      "name_ru": "Понятие делителя и кратного",
+      "name_kz": "Бөлгіш пен еселік ұғымы",
+      "prerequisites": [
+        "AR03",
+        "AR04"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        16
+      ],
+      "difficulty": 2,
+      "description": "Делители числа, кратные числа"
+    },
+    {
+      "id": "DV02",
+      "name_ru": "Признаки делимости (2,3,4,5,6,8,9,10,11)",
+      "name_kz": "Бөлінгіштік белгілері",
+      "prerequisites": [
+        "DV01"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        15
+      ],
+      "difficulty": 2,
+      "description": "Все основные признаки делимости"
+    },
+    {
+      "id": "DV03",
+      "name_ru": "Простые и составные числа",
+      "name_kz": "Жай және құрама сандар",
+      "prerequisites": [
+        "DV01"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        6
+      ],
+      "difficulty": 2,
+      "description": "Определение, распознавание, решето Эратосфена"
+    },
+    {
+      "id": "DV04",
+      "name_ru": "Разложение на простые множители",
+      "name_kz": "Жай көбейткіштерге жіктеу",
+      "prerequisites": [
+        "DV03",
+        "AR03"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        6,
+        34
+      ],
+      "difficulty": 3,
+      "description": "Каноническое разложение числа"
+    },
+    {
+      "id": "DV05",
+      "name_ru": "Взаимно простые числа",
+      "name_kz": "Өзара жай сандар",
+      "prerequisites": [
+        "DV04"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        34
+      ],
+      "difficulty": 3,
+      "description": "Определение, проверка, применение"
+    },
+    {
+      "id": "DV06",
+      "name_ru": "НОД (наибольший общий делитель)",
+      "name_kz": "ЕҮОБ",
+      "prerequisites": [
+        "DV04"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        28
+      ],
+      "difficulty": 3,
+      "description": "Нахождение НОД через разложение и алгоритм Евклида"
+    },
+    {
+      "id": "DV07",
+      "name_ru": "НОК (наименьшее общее кратное)",
+      "name_kz": "ЕКОЕ",
+      "prerequisites": [
+        "DV04",
+        "DV06"
+      ],
+      "tag": "divisibility",
+      "exam_questions": [
+        28
+      ],
+      "difficulty": 3,
+      "description": "Нахождение НОК, связь с НОД"
+    },
+    {
+      "id": "FR01",
+      "name_ru": "Понятие обыкновенной дроби",
+      "name_kz": "Жай бөлшек ұғымы",
+      "prerequisites": [
+        "AR03"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 2,
+      "description": "Дробь как часть целого, числитель/знаменатель, визуализация"
+    },
+    {
+      "id": "FR02",
+      "name_ru": "Правильные и неправильные дроби, смешанные числа",
+      "name_kz": "Дұрыс және бұрыс бөлшектер, аралас сандар",
+      "prerequisites": [
+        "FR01"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 2,
+      "description": "Перевод между формами"
+    },
+    {
+      "id": "FR03",
+      "name_ru": "Сокращение дробей",
+      "name_kz": "Бөлшектерді қысқарту",
+      "prerequisites": [
+        "FR01",
+        "DV06"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 2,
+      "description": "Деление числителя и знаменателя на НОД"
+    },
+    {
+      "id": "FR04",
+      "name_ru": "Приведение дробей к общему знаменателю",
+      "name_kz": "Бөлшектерді ортақ бөлімге келтіру",
+      "prerequisites": [
+        "FR01",
+        "DV07"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 3,
+      "description": "Использование НОК для общего знаменателя"
+    },
+    {
+      "id": "FR05",
+      "name_ru": "Сравнение дробей",
+      "name_kz": "Бөлшектерді салыстыру",
+      "prerequisites": [
+        "FR04"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 3,
+      "description": "Сравнение через общий знаменатель, крест-накрест"
+    },
+    {
+      "id": "FR06",
+      "name_ru": "Сложение и вычитание дробей",
+      "name_kz": "Бөлшектерді қосу және азайту",
+      "prerequisites": [
+        "FR04",
+        "FR02"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 3,
+      "description": "С одинаковыми и разными знаменателями, со смешанными числами"
+    },
+    {
+      "id": "FR07",
+      "name_ru": "Умножение дробей",
+      "name_kz": "Бөлшектерді көбейту",
+      "prerequisites": [
+        "FR01",
+        "AR02",
+        "FR03"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 3,
+      "description": "Умножение числителей и знаменателей, сокращение до умножения"
+    },
+    {
+      "id": "FR08",
+      "name_ru": "Деление дробей",
+      "name_kz": "Бөлшектерді бөлу",
+      "prerequisites": [
+        "FR07"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 3,
+      "description": "Деление как умножение на обратную дробь"
+    },
+    {
+      "id": "FR09",
+      "name_ru": "Все действия с дробями (комбинированные)",
+      "name_kz": "Бөлшектерге барлық амалдар",
+      "prerequisites": [
+        "FR06",
+        "FR08",
+        "AR05"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        1
+      ],
+      "difficulty": 4,
+      "description": "Сложные выражения с дробями, порядок действий"
+    },
+    {
+      "id": "FR10",
+      "name_ru": "Нахождение дроби от числа",
+      "name_kz": "Санның бөлігін табу",
+      "prerequisites": [
+        "FR07"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        12,
+        27
+      ],
+      "difficulty": 3,
+      "description": "Нахождение 2/5 от 60 и т.д."
+    },
+    {
+      "id": "FR11",
+      "name_ru": "Нахождение числа по его дроби",
+      "name_kz": "Бөлігі бойынша санды табу",
+      "prerequisites": [
+        "FR08"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        27
+      ],
+      "difficulty": 3,
+      "description": "Обратная задача к FR10"
+    },
+    {
+      "id": "FR12",
+      "name_ru": "Этажные (многоэтажные) дроби",
+      "name_kz": "Сатылы бөлшектер",
+      "prerequisites": [
+        "FR09"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        7,
+        31
+      ],
+      "difficulty": 4,
+      "description": "Дробь в числителе/знаменателе другой дроби"
+    },
+    {
+      "id": "FR13",
+      "name_ru": "Закрашенная часть фигуры (доля)",
+      "name_kz": "Фигураның боялған бөлігі",
+      "prerequisites": [
+        "FR01",
+        "GE02"
+      ],
+      "tag": "fractions",
+      "exam_questions": [
+        33
+      ],
+      "difficulty": 3,
+      "description": "Определение дроби по визуальному представлению"
+    },
+    {
+      "id": "DC01",
+      "name_ru": "Понятие десятичной дроби",
+      "name_kz": "Ондық бөлшек ұғымы",
+      "prerequisites": [
+        "FR01",
+        "AR06"
+      ],
+      "tag": "decimals",
+      "exam_questions": [
+        10
+      ],
+      "difficulty": 2,
+      "description": "Запись, разряды после запятой, связь с обыкновенными дробями"
+    },
+    {
+      "id": "DC02",
+      "name_ru": "Сравнение десятичных дробей",
+      "name_kz": "Ондық бөлшектерді салыстыру",
+      "prerequisites": [
+        "DC01"
+      ],
+      "tag": "decimals",
+      "exam_questions": [
+        10
+      ],
+      "difficulty": 2,
+      "description": "Поразрядное сравнение. Misconception: 0.123 > 0.5"
+    },
+    {
+      "id": "DC03",
+      "name_ru": "Действия с десятичными дробями",
+      "name_kz": "Ондық бөлшектермен амалдар",
+      "prerequisites": [
+        "DC01",
+        "AR06"
+      ],
+      "tag": "decimals",
+      "exam_questions": [
+        10
+      ],
+      "difficulty": 3,
+      "description": "Сложение, вычитание, умножение, деление десятичных дробей"
+    },
+    {
+      "id": "DC04",
+      "name_ru": "Перевод между обыкновенными и десятичными дробями",
+      "name_kz": "Жай және ондық бөлшектер арасында ауыстыру",
+      "prerequisites": [
+        "DC01",
+        "FR01",
+        "AR03"
+      ],
+      "tag": "decimals",
+      "exam_questions": [
+        10
+      ],
+      "difficulty": 3,
+      "description": "Ключевой мост: 1/4 = 0.25 и обратно"
+    },
+    {
+      "id": "DC05",
+      "name_ru": "Периодические дроби",
+      "name_kz": "Периодты бөлшектер",
+      "prerequisites": [
+        "DC04",
+        "FR08"
+      ],
+      "tag": "decimals",
+      "exam_questions": [
+        19
+      ],
+      "difficulty": 4,
+      "description": "Перевод обыкновенных дробей в бесконечные периодические десятичные"
+    },
+    {
+      "id": "PC01",
+      "name_ru": "Понятие процента",
+      "name_kz": "Процент ұғымы",
+      "prerequisites": [
+        "FR01",
+        "DC01"
+      ],
+      "tag": "percent",
+      "exam_questions": [
+        12
+      ],
+      "difficulty": 3,
+      "description": "Процент = 1/100 = 0.01. Мост дроби-десятичные-проценты"
+    },
+    {
+      "id": "PC02",
+      "name_ru": "Нахождение процента от числа",
+      "name_kz": "Санның процентін табу",
+      "prerequisites": [
+        "PC01",
+        "FR10"
+      ],
+      "tag": "percent",
+      "exam_questions": [
+        12
+      ],
+      "difficulty": 3,
+      "description": "Нахождение X% от Y"
+    },
+    {
+      "id": "PC03",
+      "name_ru": "Нахождение числа по проценту",
+      "name_kz": "Процент бойынша санды табу",
+      "prerequisites": [
+        "PC01",
+        "FR11"
+      ],
+      "tag": "percent",
+      "exam_questions": [
+        12
+      ],
+      "difficulty": 3,
+      "description": "Обратная задача"
+    },
+    {
+      "id": "PC04",
+      "name_ru": "Процентное отношение двух чисел",
+      "name_kz": "Екі санның пайыздық қатынасы",
+      "prerequisites": [
+        "PC01",
+        "FR08"
+      ],
+      "tag": "percent",
+      "exam_questions": [
+        12
+      ],
+      "difficulty": 3,
+      "description": "Какой процент A от B"
+    },
+    {
+      "id": "PC05",
+      "name_ru": "Текстовые задачи на проценты",
+      "name_kz": "Процентке мәтін есептер",
+      "prerequisites": [
+        "PC02",
+        "PC03",
+        "PC04",
+        "EQ02"
+      ],
+      "tag": "percent",
+      "exam_questions": [
+        23
+      ],
+      "difficulty": 4,
+      "description": "Скидки, наценки, сплавы, смеси, изменение на процент"
+    },
+    {
+      "id": "PC06",
+      "name_ru": "Концентрация (задачи на смеси)",
+      "name_kz": "Концентрация (қоспа есептері)",
+      "prerequisites": [
+        "PC05",
+        "EQ02"
+      ],
+      "tag": "percent",
+      "exam_questions": [
+        15
+      ],
+      "difficulty": 5,
+      "description": "Смешивание растворов разной концентрации"
+    },
+    {
+      "id": "PR01",
+      "name_ru": "Понятие отношения двух чисел",
+      "name_kz": "Екі санның қатынасы",
+      "prerequisites": [
+        "FR01",
+        "AR03"
+      ],
+      "tag": "proportion",
+      "exam_questions": [
+        22
+      ],
+      "difficulty": 3,
+      "description": "Отношение a:b, упрощение, свойства"
+    },
+    {
+      "id": "PR02",
+      "name_ru": "Пропорция (определение, основное свойство)",
+      "name_kz": "Пропорция (анықтамасы, негізгі қасиеті)",
+      "prerequisites": [
+        "PR01",
+        "FR07"
+      ],
+      "tag": "proportion",
+      "exam_questions": [
+        24
+      ],
+      "difficulty": 3,
+      "description": "a/b = c/d, произведение крайних = произведение средних"
+    },
+    {
+      "id": "PR03",
+      "name_ru": "Выражение члена пропорции, решение уравнений",
+      "name_kz": "Пропорция мүшесін өрнектеу, теңдеу шешу",
+      "prerequisites": [
+        "PR02",
+        "EQ01"
+      ],
+      "tag": "proportion",
+      "exam_questions": [
+        24
+      ],
+      "difficulty": 3,
+      "description": "Нахождение неизвестного в пропорции"
+    },
+    {
+      "id": "PR04",
+      "name_ru": "Прямая пропорциональность",
+      "name_kz": "Тура пропорция",
+      "prerequisites": [
+        "PR02"
+      ],
+      "tag": "proportion",
+      "exam_questions": [
+        21,
+        31
+      ],
+      "difficulty": 3,
+      "description": "Больше-больше, меньше-меньше"
+    },
+    {
+      "id": "PR05",
+      "name_ru": "Обратная пропорциональность",
+      "name_kz": "Кері пропорция",
+      "prerequisites": [
+        "PR02"
+      ],
+      "tag": "proportion",
+      "exam_questions": [
+        21
+      ],
+      "difficulty": 3,
+      "description": "Больше-меньше, меньше-больше"
+    },
+    {
+      "id": "PR06",
+      "name_ru": "Сложная (составная) пропорциональность",
+      "name_kz": "Күрделі пропорция",
+      "prerequisites": [
+        "PR04",
+        "PR05"
+      ],
+      "tag": "proportion",
+      "exam_questions": [
+        21
+      ],
+      "difficulty": 4,
+      "description": "Задачи с тремя и более величинами"
+    },
+    {
+      "id": "EQ01",
+      "name_ru": "Простые уравнения (нахождение неизвестного)",
+      "name_kz": "Қарапайым теңдеулер (белгісізді табу)",
+      "prerequisites": [
+        "AR05",
+        "AR03"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        39
+      ],
+      "difficulty": 2,
+      "description": "x + 5 = 12, 3x = 15, x/4 = 7"
+    },
+    {
+      "id": "EQ02",
+      "name_ru": "Линейные уравнения",
+      "name_kz": "Сызықтық теңдеулер",
+      "prerequisites": [
+        "EQ01",
+        "AL01"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        39
+      ],
+      "difficulty": 3,
+      "description": "ax + b = cx + d, раскрытие скобок, приведение подобных"
+    },
+    {
+      "id": "EQ03",
+      "name_ru": "Уравнения с дробями",
+      "name_kz": "Бөлшекті теңдеулер",
+      "prerequisites": [
+        "EQ02",
+        "FR09"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        39
+      ],
+      "difficulty": 4,
+      "description": "Уравнения, содержащие обыкновенные дроби"
+    },
+    {
+      "id": "EQ04",
+      "name_ru": "Текстовые задачи на составление уравнения",
+      "name_kz": "Теңдеуге мәтін есептер",
+      "prerequisites": [
+        "EQ02",
+        "FR09"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        8,
+        25
+      ],
+      "difficulty": 4,
+      "description": "Перевод текста в уравнение и решение"
+    },
+    {
+      "id": "EQ05",
+      "name_ru": "Система уравнений (метод подстановки, сложения)",
+      "name_kz": "Теңдеулер жүйесі (орынға қою, қосу)",
+      "prerequisites": [
+        "EQ02"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        33
+      ],
+      "difficulty": 4,
+      "description": "Системы двух линейных уравнений с двумя неизвестными"
+    },
+    {
+      "id": "EQ06",
+      "name_ru": "Текстовые задачи на систему уравнений",
+      "name_kz": "Теңдеулер жүйесіне мәтін есептер",
+      "prerequisites": [
+        "EQ05",
+        "EQ04"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        4
+      ],
+      "difficulty": 5,
+      "description": "Составление и решение систем по текстовым условиям"
+    },
+    {
+      "id": "EQ07",
+      "name_ru": "Нахождение неизвестного по двум разностям",
+      "name_kz": "Екі айырма бойынша белгісізді табу",
+      "prerequisites": [
+        "EQ01",
+        "AR06"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        18
+      ],
+      "difficulty": 3,
+      "description": "Классический тип задач на разности"
+    },
+    {
+      "id": "EQ08",
+      "name_ru": "Верное равенство (подбор знаков/чисел)",
+      "name_kz": "Дұрыс теңдік",
+      "prerequisites": [
+        "AR05",
+        "EQ01"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        25
+      ],
+      "difficulty": 3,
+      "description": "Расставить знаки/числа чтобы равенство стало верным"
+    },
+    {
+      "id": "MD01",
+      "name_ru": "Модуль числа (понятие)",
+      "name_kz": "Санның модулі (ұғым)",
+      "prerequisites": [
+        "RN01"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        37
+      ],
+      "difficulty": 3,
+      "description": "Определение модуля, геометрический смысл на числовой прямой"
+    },
+    {
+      "id": "MD02",
+      "name_ru": "Модульные уравнения",
+      "name_kz": "Модуль теңдеулер",
+      "prerequisites": [
+        "MD01",
+        "EQ02"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        6
+      ],
+      "difficulty": 4,
+      "description": "|ax + b| = c и подобные"
+    },
+    {
+      "id": "MD03",
+      "name_ru": "Модульные неравенства",
+      "name_kz": "Модуль теңсіздіктер",
+      "prerequisites": [
+        "MD02"
+      ],
+      "tag": "equations",
+      "exam_questions": [
+        6
+      ],
+      "difficulty": 5,
+      "description": "|ax + b| < c, |ax + b| > c"
+    },
+    {
+      "id": "AL01",
+      "name_ru": "Алгебраические выражения (буквенные)",
+      "name_kz": "Алгебралық өрнектер (әріпті)",
+      "prerequisites": [
+        "AR05"
+      ],
+      "tag": "algebra",
+      "exam_questions": [
+        9,
+        38
+      ],
+      "difficulty": 3,
+      "description": "Запись, упрощение, подстановка значений"
+    },
+    {
+      "id": "AL02",
+      "name_ru": "Раскрытие скобок, приведение подобных",
+      "name_kz": "Жақшаларды ашу, ұқсас мүшелерді келтіру",
+      "prerequisites": [
+        "AL01"
+      ],
+      "tag": "algebra",
+      "exam_questions": [
+        9,
+        38
+      ],
+      "difficulty": 3,
+      "description": "Распределительный закон, группировка"
+    },
+    {
+      "id": "AL03",
+      "name_ru": "Двойные неравенства",
+      "name_kz": "Қос теңсіздіктер",
+      "prerequisites": [
+        "EQ02",
+        "RN02"
+      ],
+      "tag": "algebra",
+      "exam_questions": [
+        6
+      ],
+      "difficulty": 4,
+      "description": "a < x < b, решение цепочкой"
+    },
+    {
+      "id": "AL04",
+      "name_ru": "Система неравенств",
+      "name_kz": "Теңсіздіктер жүйесі",
+      "prerequisites": [
+        "AL03"
+      ],
+      "tag": "algebra",
+      "exam_questions": [
+        27
+      ],
+      "difficulty": 5,
+      "description": "Решение систем неравенств, пересечение множеств решений"
+    },
+    {
+      "id": "RN01",
+      "name_ru": "Координатная прямая, отрицательные числа",
+      "name_kz": "Координаталық түзу, теріс сандар",
+      "prerequisites": [
+        "AR01",
+        "FR01"
+      ],
+      "tag": "numbers",
+      "exam_questions": [
+        9
+      ],
+      "difficulty": 2,
+      "description": "Расположение чисел на прямой, понятие отрицательного числа"
+    },
+    {
+      "id": "RN02",
+      "name_ru": "Рациональные числа (действия)",
+      "name_kz": "Рационал сандармен амалдар",
+      "prerequisites": [
+        "RN01",
+        "FR09",
+        "DC03"
+      ],
+      "tag": "numbers",
+      "exam_questions": [
+        26
+      ],
+      "difficulty": 3,
+      "description": "Сложение, вычитание, умножение, деление рациональных чисел"
+    },
+    {
+      "id": "RN03",
+      "name_ru": "Координатная плоскость",
+      "name_kz": "Координаталық жазықтық",
+      "prerequisites": [
+        "RN01"
+      ],
+      "tag": "numbers",
+      "exam_questions": [
+        27
+      ],
+      "difficulty": 3,
+      "description": "Пара координат (x,y), построение точек"
+    },
+    {
+      "id": "RN04",
+      "name_ru": "Понятие чисел (виды, классификация)",
+      "name_kz": "Сандар ұғымы (түрлері)",
+      "prerequisites": [
+        "RN02",
+        "FR01",
+        "DC01"
+      ],
+      "tag": "numbers",
+      "exam_questions": [
+        32
+      ],
+      "difficulty": 3,
+      "description": "Натуральные, целые, рациональные; классификация"
+    },
+    {
+      "id": "GE01",
+      "name_ru": "Периметр прямоугольника, квадрата, треугольника",
+      "name_kz": "Тіктөртбұрыш, шаршы, үшбұрыш периметрі",
+      "prerequisites": [
+        "AR01"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        25
+      ],
+      "difficulty": 2,
+      "description": "Формулы периметров основных фигур"
+    },
+    {
+      "id": "GE02",
+      "name_ru": "Площадь прямоугольника, квадрата, треугольника",
+      "name_kz": "Тіктөртбұрыш, шаршы, үшбұрыш ауданы",
+      "prerequisites": [
+        "AR02"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        14
+      ],
+      "difficulty": 2,
+      "description": "S = a*b, S = a*h/2"
+    },
+    {
+      "id": "GE03",
+      "name_ru": "Площадь комбинированных (составных) фигур",
+      "name_kz": "Құрама фигуралардың ауданы",
+      "prerequisites": [
+        "GE02",
+        "FR09"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        14
+      ],
+      "difficulty": 4,
+      "description": "Разбиение на простые фигуры, вычитание, сложение площадей"
+    },
+    {
+      "id": "GE04",
+      "name_ru": "Углы (виды, измерение, смежные, вертикальные)",
+      "name_kz": "Бұрыштар (түрлері, өлшеу)",
+      "prerequisites": [
+        "AR06"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        27
+      ],
+      "difficulty": 3,
+      "description": "Градусная мера, виды углов, часовая стрелка"
+    },
+    {
+      "id": "GE05",
+      "name_ru": "Длина окружности",
+      "name_kz": "Шеңбердің ұзындығы",
+      "prerequisites": [
+        "DC03",
+        "AR02"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        35
+      ],
+      "difficulty": 3,
+      "description": "C = 2πr = πd"
+    },
+    {
+      "id": "GE06",
+      "name_ru": "Площадь круга",
+      "name_kz": "Дөңгелектің ауданы",
+      "prerequisites": [
+        "GE05",
+        "AR09"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        35
+      ],
+      "difficulty": 3,
+      "description": "S = πr²"
+    },
+    {
+      "id": "GE07",
+      "name_ru": "Окружность и круг (комбинированные задачи)",
+      "name_kz": "Шеңбер мен дөңгелек (құрамалы есептер)",
+      "prerequisites": [
+        "GE05",
+        "GE06",
+        "GE03"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        7,
+        35
+      ],
+      "difficulty": 4,
+      "description": "Вписанные фигуры, сектора, сегменты"
+    },
+    {
+      "id": "GE08",
+      "name_ru": "Масштаб",
+      "name_kz": "Масштаб",
+      "prerequisites": [
+        "PR02",
+        "DC03"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        20
+      ],
+      "difficulty": 3,
+      "description": "Связь масштаба и пропорции, перевод единиц"
+    },
+    {
+      "id": "GE09",
+      "name_ru": "Симметрия",
+      "name_kz": "Симметрия",
+      "prerequisites": [
+        "RN03"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        16
+      ],
+      "difficulty": 3,
+      "description": "Осевая и центральная симметрия"
+    },
+    {
+      "id": "GE10",
+      "name_ru": "Развёртка куба и прямоугольного параллелепипеда",
+      "name_kz": "Куб пен тіктөртбұрышты параллелепипедтің жазбасы",
+      "prerequisites": [
+        "GE02"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        34
+      ],
+      "difficulty": 3,
+      "description": "Распознавание развёрток, подсчёт площади поверхности"
+    },
+    {
+      "id": "GE11",
+      "name_ru": "Кубик (задачи на грани, рёбра, раскраску)",
+      "name_kz": "Кубик (қырлар, жақтар есептері)",
+      "prerequisites": [
+        "GE10",
+        "AR02"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        4
+      ],
+      "difficulty": 4,
+      "description": "Подсчёт граней/рёбер, раскраска куба, разрезание"
+    },
+    {
+      "id": "GE12",
+      "name_ru": "Количество фигур на чертеже",
+      "name_kz": "Суреттегі фигуралар саны",
+      "prerequisites": [
+        "GE01",
+        "CB01"
+      ],
+      "tag": "geometry",
+      "exam_questions": [
+        3
+      ],
+      "difficulty": 4,
+      "description": "Подсчёт треугольников, прямоугольников на сложном чертеже"
+    },
+    {
+      "id": "CV01",
+      "name_ru": "Конвертация единиц времени",
+      "name_kz": "Уақыт бірліктерін ауыстыру",
+      "prerequisites": [
+        "AR02",
+        "AR03"
+      ],
+      "tag": "conversion",
+      "exam_questions": [
+        2
+      ],
+      "difficulty": 2,
+      "description": "Часы↔минуты↔секунды"
+    },
+    {
+      "id": "CV02",
+      "name_ru": "Конвертация единиц длины",
+      "name_kz": "Ұзындық бірліктерін ауыстыру",
+      "prerequisites": [
+        "AR06",
+        "DC03"
+      ],
+      "tag": "conversion",
+      "exam_questions": [
+        2
+      ],
+      "difficulty": 2,
+      "description": "мм↔см↔дм↔м↔км"
+    },
+    {
+      "id": "CV03",
+      "name_ru": "Конвертация единиц массы",
+      "name_kz": "Масса бірліктерін ауыстыру",
+      "prerequisites": [
+        "AR06",
+        "DC03"
+      ],
+      "tag": "conversion",
+      "exam_questions": [
+        2
+      ],
+      "difficulty": 2,
+      "description": "г↔кг↔ц↔т"
+    },
+    {
+      "id": "CV04",
+      "name_ru": "Конвертация единиц площади",
+      "name_kz": "Аудан бірліктерін ауыстыру",
+      "prerequisites": [
+        "GE02",
+        "AR09"
+      ],
+      "tag": "conversion",
+      "exam_questions": [
+        2
+      ],
+      "difficulty": 3,
+      "description": "см²↔дм²↔м²↔га↔км². Квадрат единицы!"
+    },
+    {
+      "id": "CV05",
+      "name_ru": "Конвертация единиц объёма",
+      "name_kz": "Көлем бірліктерін ауыстыру",
+      "prerequisites": [
+        "CV04",
+        "AR09"
+      ],
+      "tag": "conversion",
+      "exam_questions": [
+        2
+      ],
+      "difficulty": 3,
+      "description": "см³↔дм³↔м³, литры"
+    },
+    {
+      "id": "CV06",
+      "name_ru": "Конвертация единиц скорости",
+      "name_kz": "Жылдамдық бірліктерін ауыстыру",
+      "prerequisites": [
+        "CV01",
+        "CV02",
+        "FR08"
+      ],
+      "tag": "conversion",
+      "exam_questions": [
+        2
+      ],
+      "difficulty": 3,
+      "description": "км/ч↔м/с↔м/мин"
+    },
+    {
+      "id": "WP01",
+      "name_ru": "Задачи на скорость-время-расстояние (базовые)",
+      "name_kz": "Жылдамдық-уақыт-қашықтық есептері (базалық)",
+      "prerequisites": [
+        "AR02",
+        "AR03",
+        "CV01"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        13
+      ],
+      "difficulty": 2,
+      "description": "S = v*t, одно движущееся тело"
+    },
+    {
+      "id": "WP02",
+      "name_ru": "Встречное и противоположное движение",
+      "name_kz": "Қарама-қарсы қозғалыс",
+      "prerequisites": [
+        "WP01",
+        "EQ01"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        13
+      ],
+      "difficulty": 3,
+      "description": "Два тела, сумма/разность скоростей"
+    },
+    {
+      "id": "WP03",
+      "name_ru": "Движение по воде (по/против течения)",
+      "name_kz": "Судағы қозғалыс",
+      "prerequisites": [
+        "WP02",
+        "EQ02",
+        "FR06"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        13,
+        36
+      ],
+      "difficulty": 4,
+      "description": "Собственная скорость ± скорость течения"
+    },
+    {
+      "id": "WP04",
+      "name_ru": "Производительность (задачи на работу)",
+      "name_kz": "Өнімділік (жұмыс есептері)",
+      "prerequisites": [
+        "FR08",
+        "AR03"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        3
+      ],
+      "difficulty": 3,
+      "description": "Работа = производительность × время"
+    },
+    {
+      "id": "WP05",
+      "name_ru": "Совместная работа",
+      "name_kz": "Бірлескен жұмыс",
+      "prerequisites": [
+        "WP04",
+        "FR06",
+        "FR08",
+        "EQ02"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        29
+      ],
+      "difficulty": 4,
+      "description": "1/a + 1/b = 1/t, сложение производительностей"
+    },
+    {
+      "id": "WP06",
+      "name_ru": "Урожайность",
+      "name_kz": "Түсімділік",
+      "prerequisites": [
+        "WP04",
+        "PR02"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        3
+      ],
+      "difficulty": 3,
+      "description": "Аналог производительности для сельского хозяйства"
+    },
+    {
+      "id": "WP07",
+      "name_ru": "Арифметическое среднее",
+      "name_kz": "Арифметикалық орта",
+      "prerequisites": [
+        "AR06",
+        "AR03"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        5,
+        13
+      ],
+      "difficulty": 2,
+      "description": "Сумма / количество"
+    },
+    {
+      "id": "WP08",
+      "name_ru": "Распилы, разрезы",
+      "name_kz": "Кесулер",
+      "prerequisites": [
+        "AR01",
+        "EQ01"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        18
+      ],
+      "difficulty": 3,
+      "description": "n разрезов = n+1 частей, задачи на бревно/верёвку"
+    },
+    {
+      "id": "WP09",
+      "name_ru": "Количество страниц (цифр в нумерации)",
+      "name_kz": "Бет саны (нөмірлеудегі цифрлар)",
+      "prerequisites": [
+        "AR10",
+        "AR06"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        18
+      ],
+      "difficulty": 3,
+      "description": "Сколько цифр нужно для нумерации 1–N страниц"
+    },
+    {
+      "id": "WP10",
+      "name_ru": "Дни недели (циклические задачи)",
+      "name_kz": "Апта күндері (циклдік есептер)",
+      "prerequisites": [
+        "AR04"
+      ],
+      "tag": "word_problems",
+      "exam_questions": [
+        18
+      ],
+      "difficulty": 3,
+      "description": "Остаток от деления на 7 → день недели"
+    },
+    {
+      "id": "CB01",
+      "name_ru": "Комбинаторика: правило суммы и произведения",
+      "name_kz": "Комбинаторика: қосу және көбейту ережесі",
+      "prerequisites": [
+        "AR02"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        11
+      ],
+      "difficulty": 3,
+      "description": "ИЛИ → сумма, И → произведение"
+    },
+    {
+      "id": "CB02",
+      "name_ru": "Комбинаторика: метод спирали",
+      "name_kz": "Комбинаторика: спираль әдісі",
+      "prerequisites": [
+        "CB01"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        11
+      ],
+      "difficulty": 4,
+      "description": "Систематический перебор вариантов"
+    },
+    {
+      "id": "CB03",
+      "name_ru": "Комбинаторика: с повторяющимися цифрами",
+      "name_kz": "Комбинаторика: қайталанатын цифрлармен",
+      "prerequisites": [
+        "CB01"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        11
+      ],
+      "difficulty": 4,
+      "description": "Составление чисел, когда цифры могут повторяться"
+    },
+    {
+      "id": "CB04",
+      "name_ru": "Комбинаторика: с неповторяющимися цифрами",
+      "name_kz": "Комбинаторика: қайталанбайтын цифрлармен",
+      "prerequisites": [
+        "CB01"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        11
+      ],
+      "difficulty": 4,
+      "description": "Перестановки, размещения без повторений"
+    },
+    {
+      "id": "CB05",
+      "name_ru": "Перестановки (формула P)",
+      "name_kz": "Алмастыру (P формуласы)",
+      "prerequisites": [
+        "CB04",
+        "CB06"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        11
+      ],
+      "difficulty": 4,
+      "description": "P(n) = n!"
+    },
+    {
+      "id": "CB06",
+      "name_ru": "Факториал",
+      "name_kz": "Факториал",
+      "prerequisites": [
+        "AR02"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        25
+      ],
+      "difficulty": 3,
+      "description": "n! определение и вычисление"
+    },
+    {
+      "id": "CB07",
+      "name_ru": "Вероятность (базовая)",
+      "name_kz": "Ықтималдық (базалық)",
+      "prerequisites": [
+        "CB01",
+        "FR01"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        34
+      ],
+      "difficulty": 4,
+      "description": "P = благоприятные / все исходы"
+    },
+    {
+      "id": "LG01",
+      "name_ru": "Закономерности (числовые и фигурные)",
+      "name_kz": "Заңдылықтар (сандық және фигуралық)",
+      "prerequisites": [
+        "AR05"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        9,
+        40
+      ],
+      "difficulty": 3,
+      "description": "Найти следующий элемент последовательности/узора"
+    },
+    {
+      "id": "LG02",
+      "name_ru": "Последовательности (арифметическая и другие)",
+      "name_kz": "Тізбектер (арифметикалық және басқа)",
+      "prerequisites": [
+        "LG01",
+        "EQ01"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        30
+      ],
+      "difficulty": 3,
+      "description": "Формула n-го члена, сумма"
+    },
+    {
+      "id": "LG03",
+      "name_ru": "Метод Гаусса (сумма арифметической прогрессии)",
+      "name_kz": "Гаусс әдісі",
+      "prerequisites": [
+        "LG02",
+        "AR08"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        3
+      ],
+      "difficulty": 4,
+      "description": "S = n(a₁+aₙ)/2, применение к задачам"
+    },
+    {
+      "id": "LG04",
+      "name_ru": "Числовые ребусы (буквенные)",
+      "name_kz": "Сандық ребустар (әріпті)",
+      "prerequisites": [
+        "AR06",
+        "DV02"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        7
+      ],
+      "difficulty": 4,
+      "description": "SEND+MORE=MONEY типа, подбор цифр вместо букв"
+    },
+    {
+      "id": "LG05",
+      "name_ru": "Новое логическое действие",
+      "name_kz": "Жаңа логикалық амал",
+      "prerequisites": [
+        "AR05"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        9
+      ],
+      "difficulty": 4,
+      "description": "Определяется новая операция a*b = ..., нужно вычислить"
+    },
+    {
+      "id": "LG06",
+      "name_ru": "Логические вопросы (истина/ложь)",
+      "name_kz": "Логикалық сұрақтар",
+      "prerequisites": [
+        "AR05"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        3,
+        16
+      ],
+      "difficulty": 4,
+      "description": "Определить верность утверждений о числах"
+    },
+    {
+      "id": "LG07",
+      "name_ru": "Таблицы (логические задачи)",
+      "name_kz": "Кестелер (логикалық есептер)",
+      "prerequisites": [
+        "AR05"
+      ],
+      "tag": "logic",
+      "exam_questions": [
+        31
+      ],
+      "difficulty": 3,
+      "description": "Заполнение таблиц по условиям"
+    },
+    {
+      "id": "ST01",
+      "name_ru": "Множества (объединение, пересечение)",
+      "name_kz": "Жиындар (бірігу, қиылысу)",
+      "prerequisites": [
+        "AR01"
+      ],
+      "tag": "sets",
+      "exam_questions": [
+        32
+      ],
+      "difficulty": 3,
+      "description": "Операции над множествами, формула включений-исключений"
+    },
+    {
+      "id": "ST02",
+      "name_ru": "Круги Эйлера",
+      "name_kz": "Эйлер шеңберлері",
+      "prerequisites": [
+        "ST01"
+      ],
+      "tag": "sets",
+      "exam_questions": [
+        31
+      ],
+      "difficulty": 3,
+      "description": "Визуальное представление множеств, решение задач"
+    },
+    {
+      "id": "DA01",
+      "name_ru": "Диаграммы (столбчатые, круговые)",
+      "name_kz": "Диаграммалар",
+      "prerequisites": [
+        "PC01",
+        "FR01"
+      ],
+      "tag": "data",
+      "exam_questions": [
+        9,
+        34
+      ],
+      "difficulty": 3,
+      "description": "Чтение и интерпретация диаграмм"
+    },
+    {
+      "id": "DA02",
+      "name_ru": "Графики (чтение, построение)",
+      "name_kz": "Графиктер",
+      "prerequisites": [
+        "RN03"
+      ],
+      "tag": "data",
+      "exam_questions": [
+        16
+      ],
+      "difficulty": 3,
+      "description": "Интерпретация графиков зависимостей"
+    },
+    {
+      "id": "DA03",
+      "name_ru": "Медиана, мода, размах",
+      "name_kz": "Медиана, мода, өзгеріс ауқымы",
+      "prerequisites": [
+        "WP07",
+        "AR06"
+      ],
+      "tag": "data",
+      "exam_questions": [
+        13
+      ],
+      "difficulty": 3,
+      "description": "Статистические характеристики набора данных"
+    },
+    {
+      "id": "NM01",
+      "name_ru": "Отрицательные числа и модуль",
+      "name_kz": "Теріс сандар және модуль",
+      "prerequisites": [
+        "AR01"
+      ],
+      "tag": "numbers",
+      "exam_questions": [],
+      "difficulty": 2,
+      "description": "Понятие отрицательного числа, модуль, сравнение, расположение на числовой прямой"
+    },
+    {
+      "id": "NM02",
+      "name_ru": "Действия с отрицательными числами",
+      "name_kz": "Теріс сандармен амалдар",
+      "prerequisites": [
+        "NM01",
+        "AR02"
+      ],
+      "tag": "numbers",
+      "exam_questions": [],
+      "difficulty": 2,
+      "description": "Сложение, вычитание, умножение, деление отрицательных чисел"
+    },
+    {
+      "id": "NM03",
+      "name_ru": "Координатная прямая",
+      "name_kz": "Координаталық түзу",
+      "prerequisites": [
+        "NM01"
+      ],
+      "tag": "numbers",
+      "exam_questions": [],
+      "difficulty": 3,
+      "description": "Координаты точек, середина отрезка, расстояние на координатной прямой"
+    },
+    {
+      "id": "ALG01",
+      "name_ru": "Алгебраические выражения",
+      "name_kz": "Алгебралық өрнектер",
+      "prerequisites": [
+        "AR05",
+        "NM02"
+      ],
+      "tag": "algebra",
+      "exam_questions": [],
+      "difficulty": 3,
+      "description": "Упрощение и вычисление значений буквенных выражений"
+    }
+  ]
+}
