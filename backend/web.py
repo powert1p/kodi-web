@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import time
 import uuid
 from pathlib import Path
@@ -12,6 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from api.routes import router as api_router
 
@@ -26,29 +31,51 @@ PROBLEM_IMAGES_DIR = Path(__file__).resolve().parent / "static"
 MAX_AGE_SECONDS = 3600
 
 
-class NoCacheMiddleware(BaseHTTPMiddleware):
-    """Disable CDN caching for API routes."""
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """Add security headers and disable CDN caching for API routes."""
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
             response.headers["Pragma"] = "no-cache"
         return response
 
 
-app = FastAPI(docs_url="/docs", redoc_url=None)
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 
-app.add_middleware(NoCacheMiddleware)
+app = FastAPI(docs_url="/docs", redoc_url=None)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(SecurityHeadersMiddleware)
+
+_ALLOWED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("CORS_ORIGINS", "").split(",")
+    if o.strip()
+] or [
+    "https://kodi-web-production.up.railway.app",
+    "http://localhost:8000",
+    "http://localhost:5000",
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 app.include_router(api_router)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 if PROBLEM_IMAGES_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(PROBLEM_IMAGES_DIR)), name="problem_images")
@@ -60,7 +87,7 @@ def _cleanup_old_files() -> None:
         for f in STATS_DIR.iterdir():
             if f.suffix == ".html" and (now - f.stat().st_mtime) > MAX_AGE_SECONDS:
                 f.unlink(missing_ok=True)
-    except Exception:
+    except OSError:
         pass
 
 

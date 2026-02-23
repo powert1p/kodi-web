@@ -410,8 +410,8 @@ async def _check_with_claude(
     except asyncio.TimeoutError:
         logger.warning("Claude timeout (%.1fs)", _CLAUDE_TIMEOUT)
         return False, ""
-    except Exception:
-        logger.exception("Claude LLM check failed")
+    except (RuntimeError, ValueError, AttributeError, IndexError) as exc:
+        logger.warning("Claude LLM check failed: %s", exc)
         return False, ""
 
 

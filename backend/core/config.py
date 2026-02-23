@@ -48,6 +48,7 @@ class Settings:
         f"https://{d}" if (d := os.getenv("RAILWAY_PUBLIC_DOMAIN")) else "http://localhost:8000"
     )
     port: int = int(os.getenv("PORT", "8000"))
+    jwt_secret: str = os.getenv("JWT_SECRET", "") or os.getenv("BOT_TOKEN", "")
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
 

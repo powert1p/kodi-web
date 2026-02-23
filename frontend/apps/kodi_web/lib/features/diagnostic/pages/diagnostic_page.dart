@@ -78,7 +78,9 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         });
         return;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Diagnostic status check failed: $e');
+    }
 
     setState(() => _loading = false);
   }

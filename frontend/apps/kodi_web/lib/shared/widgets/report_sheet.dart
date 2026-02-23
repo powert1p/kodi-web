@@ -36,5 +36,10 @@ Future<void> showReportSheet(BuildContext context, NisApiClient api, int problem
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Спасибо! Мы проверим.')));
     }
-  } catch (_) {}
+  } catch (_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Не удалось отправить. Попробуйте позже.')));
+    }
+  }
 }

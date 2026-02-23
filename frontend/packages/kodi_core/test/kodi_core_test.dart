@@ -1,12 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:kodi_core/kodi_core.dart';
 
 void main() {
-  test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
+  group('NisApiClient', () {
+    test('can be instantiated', () {
+      final client = NisApiClient(baseUrl: 'http://localhost:8000');
+      expect(client, isNotNull);
+    });
   });
 }

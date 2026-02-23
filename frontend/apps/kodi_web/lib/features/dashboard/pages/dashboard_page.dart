@@ -8,6 +8,7 @@ import '../../practice/pages/practice_page.dart';
 import 'graph_page.dart';
 import 'leaderboard_page.dart';
 import '../../diagnostic/pages/diagnostic_page.dart';
+import '../../exam/pages/exam_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -477,7 +478,7 @@ class _SectionCardState extends State<_SectionCard>
                     width: double.infinity,
                     child: OutlinedButton.icon(
                       onPressed: () => Navigator.of(context).pushNamed(
-                        '/practice',
+                        PracticePage.routeName,
                         arguments: {'tag': s.tag, 'tagName': s.nameRu},
                       ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                       icon: const Icon(Icons.play_arrow_rounded, size: 18),
@@ -579,7 +580,7 @@ class _TopicsList extends StatelessWidget {
 
             return InkWell(
               onTap: () => Navigator.of(context).pushNamed(
-                '/practice',
+                PracticePage.routeName,
                 arguments: {'nodeId': t.id, 'tagName': t.nameRu},
               ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
               child: Padding(
@@ -883,7 +884,7 @@ class _OnboardingView extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () => Navigator.of(context)
-                      .pushNamed('/diagnostic')
+                      .pushNamed(DiagnosticPage.routeName)
                       .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                   icon: const Icon(Icons.play_arrow_rounded),
                   label: const Text('Начать диагностику',
@@ -899,7 +900,7 @@ class _OnboardingView extends StatelessWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () => Navigator.of(context)
-                      .pushNamed('/exam')
+                      .pushNamed(ExamPage.routeName)
                       .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                   icon: const Icon(Icons.timer_rounded, color: Color(0xFFEF4444)),
                   label: const Text('Экзамен с таймером',
@@ -912,7 +913,7 @@ class _OnboardingView extends StatelessWidget {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => Navigator.of(context)
-                    .pushNamed('/practice')
+                    .pushNamed(PracticePage.routeName)
                     .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                 child: Text('Или просто порешать задачи →',
                     style: TextStyle(
@@ -1179,7 +1180,7 @@ class _ProblemTopicsList extends StatelessWidget {
 
             return InkWell(
               onTap: () => Navigator.of(context).pushNamed(
-                '/practice',
+                PracticePage.routeName,
                 arguments: {'nodeId': t.id, 'tagName': t.nameRu},
               ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
               child: Padding(

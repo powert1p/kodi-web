@@ -8,7 +8,7 @@ Parameters per node (stored in `nodes` table):
     P(G) — bkt_p_g — probability of guessing correctly
     P(S) — bkt_p_s — probability of slipping (careless error)
 
-Mastery threshold: P(mastery) >= 0.95 → skill is considered mastered.
+Mastery threshold: P(mastery) >= 0.7 → skill is considered mastered.
 """
 
 from __future__ import annotations
@@ -46,8 +46,9 @@ def bkt_update(p_l: float, is_correct: bool, p_t: float, p_g: float, p_s: float)
 
     P(L_{n+1}) = P(L_n|obs) + (1 - P(L_n|obs)) * P(T)
     """
+    p_l = max(0.001, min(0.999, p_l))
     p_post = _posterior(p_l, is_correct, p_g, p_s)
-    return p_post + (1 - p_post) * p_t
+    return max(0.001, min(0.999, p_post + (1 - p_post) * p_t))
 
 
 def difficulty_adjusted_params(
@@ -131,9 +132,9 @@ async def record_attempt(
 
     # 2. Fetch node BKT params
     node = await session.get(Node, problem.node_id)
-    p_t = node.bkt_p_t if node else 0.3
-    p_g = node.bkt_p_g if node else 0.05
-    p_s = node.bkt_p_s if node else 0.1
+    p_t = max(0.001, min(0.999, node.bkt_p_t if node else 0.3))
+    p_g = max(0.001, min(0.5, node.bkt_p_g if node else 0.05))
+    p_s = max(0.001, min(0.5, node.bkt_p_s if node else 0.1))
 
     # 2b. Difficulty-aware P(G)/P(S) when raw_score is available
     if problem.raw_score is not None:

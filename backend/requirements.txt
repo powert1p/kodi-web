@@ -7,4 +7,5 @@ pydantic>=2.10,<3
 graphviz>=0.20,<1
 Pillow>=10.0,<11
 PyJWT>=2.8,<3
-python-multipart
+python-multipart>=0.0.9,<1
+slowapi>=0.1.9,<1

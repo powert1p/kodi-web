@@ -23,20 +23,27 @@ Endpoints:
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
 import logging
+import random
 import time
 from datetime import datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
 from core.bkt import MASTERY_THRESHOLD, is_mastered, record_attempt
 from core.config import settings
+
+limiter = Limiter(key_func=get_remote_address)
 from core.grading import check_answer
 from core.selector import select_next_problem
 from db.base import async_session
@@ -46,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
 
-JWT_SECRET = settings.bot_token
+JWT_SECRET = settings.jwt_secret
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_DAYS = 30
 
@@ -164,9 +171,11 @@ def _verify_telegram_hash(data: dict) -> bool:
 # ══════════════════════════════════════════════════════════════
 
 @router.post("/auth/telegram")
-async def auth_telegram(body: TelegramLoginBody):
+@limiter.limit("10/minute")
+async def auth_telegram(request: Request, body: TelegramLoginBody):
     tg_data = body.model_dump(exclude_none=True)
-    _verify_telegram_hash(tg_data)
+    if not _verify_telegram_hash(tg_data):
+        raise HTTPException(status_code=401, detail="Invalid Telegram authentication")
 
     async with async_session() as session:
         student = await session.get(Student, body.id)
@@ -185,7 +194,8 @@ async def auth_telegram(body: TelegramLoginBody):
 
 
 @router.post("/auth/phone/check")
-async def auth_phone_check(body: PhoneCheckBody):
+@limiter.limit("10/minute")
+async def auth_phone_check(request: Request, body: PhoneCheckBody):
     phone = body.phone.strip().replace(" ", "").replace("-", "")
     async with async_session() as session:
         result = await session.execute(
@@ -196,7 +206,8 @@ async def auth_phone_check(body: PhoneCheckBody):
 
 
 @router.post("/auth/phone/register")
-async def auth_phone_register(body: PhoneRegisterBody):
+@limiter.limit("5/minute")
+async def auth_phone_register(request: Request, body: PhoneRegisterBody):
     phone = body.phone.strip().replace(" ", "").replace("-", "")
     if not phone or len(phone) < 10:
         raise HTTPException(status_code=400, detail="Некорректный номер телефона")
@@ -211,7 +222,7 @@ async def auth_phone_register(body: PhoneRegisterBody):
             raise HTTPException(status_code=409, detail="Этот номер уже зарегистрирован")
 
         student = Student(
-            id=int(time.time() * 1000) % (2**53),
+            id=int(time.time() * 1_000_000) + random.randint(0, 999_999),
             first_name=body.name,
             full_name=body.name,
             phone=phone,
@@ -225,7 +236,8 @@ async def auth_phone_register(body: PhoneRegisterBody):
 
 
 @router.post("/auth/phone/login")
-async def auth_phone_login(body: PhoneLoginBody):
+@limiter.limit("5/minute")
+async def auth_phone_login(request: Request, body: PhoneLoginBody):
     phone = body.phone.strip().replace(" ", "").replace("-", "")
     async with async_session() as session:
         result = await session.execute(
@@ -434,6 +446,7 @@ async def graph_me(request: Request, lang: str = "ru"):
 # ══════════════════════════════════════════════════════════════
 
 _practice_counters: dict[int, int] = {}
+_practice_lock = asyncio.Lock()
 
 @router.get("/practice/next")
 async def practice_next(
@@ -445,8 +458,9 @@ async def practice_next(
 ):
     session, student = await _get_current_student(request)
     try:
-        counter = _practice_counters.get(student.id, 0) + 1
-        _practice_counters[student.id] = counter
+        async with _practice_lock:
+            counter = _practice_counters.get(student.id, 0) + 1
+            _practice_counters[student.id] = counter
 
         if node_id:
             from core.selector import _pick_problem_for_node
@@ -607,6 +621,7 @@ async def practice_exam_start(request: Request, body: ExamStartBody):
 # ══════════════════════════════════════════════════════════════
 
 _diagnostic_states: dict[int, object] = {}
+_diagnostic_lock = asyncio.Lock()
 
 
 async def _format_question(session: AsyncSession, problem: Problem, state) -> dict:
@@ -675,8 +690,8 @@ async def _restore_state(session: AsyncSession, student: Student):
             state = DiagnosticState.from_dict(blob)
         _diagnostic_states[student.id] = state
         return state
-    except Exception:
-        logger.warning("Failed to restore diagnostic state for %s", student.id, exc_info=True)
+    except (KeyError, ValueError, TypeError) as exc:
+        logger.warning("Failed to restore diagnostic state for %s: %s", student.id, exc)
         return None
 
 
@@ -755,7 +770,7 @@ async def diagnostic_answer(request: Request, body: DiagnosticAnswerBody):
         if isinstance(state, ExamState):
             await exam_handle_answer(
                 session, state, problem.node_id, is_correct,
-                elapsed_ms, problem.sub_difficulty or 3,
+                body.elapsed_sec, problem.sub_difficulty or 3,
             )
         elif isinstance(state, DiagnosticState):
             if is_correct:

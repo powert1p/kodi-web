@@ -33,6 +33,18 @@ class GraphPage extends StatelessWidget {
         ),
         body: switch (state) {
           DashboardLoaded(:final nodes, :final student) => _GraphBody(nodes: nodes, lang: student.lang),
+          DashboardError(:final message) => Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.error_outline, size: 48, color: Color(0xFFEF4444)),
+              const SizedBox(height: 12),
+              Text(message, textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () => context.read<DashboardBloc>().add(DashboardLoad()),
+                child: const Text('Повторить'),
+              ),
+            ]),
+          ),
           _ => const Center(child: CircularProgressIndicator()),
         },
       ),

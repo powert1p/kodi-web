@@ -32,6 +32,9 @@ COPY --from=flutter-build /frontend/apps/kodi_web/build/web /app/web_static
 RUN python scripts/generate_images.py --lang ru && \
     python scripts/generate_images.py --lang kz
 
+RUN useradd -m -s /bin/bash app && chown -R app:app /app
+USER app
+
 EXPOSE 8000
 
 CMD ["python", "run.py"]
