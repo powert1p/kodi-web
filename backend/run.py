@@ -24,6 +24,15 @@ logger = logging.getLogger(__name__)
 async def on_startup():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Add columns that may be missing in existing DB
+        for stmt in [
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS practice_count INTEGER DEFAULT 0",
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS current_practice_node VARCHAR(10)",
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS problems_on_current_node INTEGER DEFAULT 0",
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS pin_hash VARCHAR(128)",
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS paused_diagnostic JSONB",
+        ]:
+            await conn.execute(text(stmt))
     logger.info("DB tables ensured.")
 
     async with async_session() as session:
