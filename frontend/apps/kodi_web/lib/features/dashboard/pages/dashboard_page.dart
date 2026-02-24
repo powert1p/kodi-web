@@ -75,19 +75,24 @@ class _DashboardPageState extends State<DashboardPage> {
             BlocBuilder<LocaleBloc, LocaleState>(
               builder: (context, localeState) {
                 final isRu = localeState.locale.languageCode == 'ru';
-                return TextButton(
-                  onPressed: () {
-                    final next = isRu ? const Locale('kk') : const Locale('ru');
-                    context.read<LocaleBloc>().add(LocaleChanged(next));
-                    context.read<DashboardBloc>().add(DashboardLoad());
-                  },
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: const Size(0, 36),
-                  ),
-                  child: Text(
-                    isRu ? 'ҚК' : 'РУ',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: OutlinedButton(
+                    onPressed: () {
+                      final next = isRu ? const Locale('kk') : const Locale('ru');
+                      context.read<LocaleBloc>().add(LocaleChanged(next));
+                      context.read<DashboardBloc>().add(DashboardLoad());
+                    },
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(0, 34),
+                      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: Text(
+                      isRu ? 'ҚАЗ' : 'РУС',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.primary),
+                    ),
                   ),
                 );
               },
