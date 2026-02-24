@@ -45,7 +45,7 @@ from core.bkt import MASTERY_THRESHOLD, is_mastered, record_attempt
 from core.config import settings
 
 limiter = Limiter(key_func=get_remote_address)
-from core.grading import check_answer
+from core.grading import check_answer, check_with_claude
 from core.selector import select_next_problem
 from db.base import async_session
 from db.models import Attempt, Edge, Mastery, Node, Problem, ProblemReport, Student
@@ -610,7 +610,7 @@ async def practice_skip(request: Request, body: SkipBody):
         await session.close()
 
 
-async def _notify_report(report_id, problem_text, correct_answer, student_answer, reason):
+async def _notify_report(report_id, problem_text, correct_answer, student_answer, reason, ai_verdict=None):
     """Send report notification to admin Telegram."""
     import httpx
 
@@ -625,6 +625,14 @@ async def _notify_report(report_id, problem_text, correct_answer, student_answer
         f"Ответ ученика: {student_answer or '—'}\n"
         f"Причина: {reason}\n"
     )
+    if ai_verdict:
+        action, explanation = ai_verdict
+        if action == "fixed":
+            text += f"\n\u2705 AI автоматически исправил ответ на: {student_answer}\n"
+            text += f"Причина: {explanation}\n"
+        elif action == "rejected":
+            text += f"\n\U0001f916 AI проверил — ответ ученика неверен.\n"
+            text += f"Причина: {explanation}\n"
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     async with httpx.AsyncClient() as client:
         try:
@@ -653,13 +661,37 @@ async def practice_report(request: Request, body: ReportBody):
         )
         session.add(report)
         await session.flush()  # get report.id
-
         await session.commit()
+
+        # AI auto-check: verify if student's answer is actually correct
+        ai_verdict = None
+        if body.student_answer:
+            try:
+                is_correct, explanation = await check_with_claude(
+                    body.student_answer, problem.answer, problem.text_ru
+                )
+                if is_correct:
+                    problem.answer = body.student_answer
+                    report.status = "auto_fixed"
+                    report.resolved_by = "AI (Claude)"
+                    report.resolved_at = datetime.now(timezone.utc)
+                    report.comment = f"AI: {explanation}"
+                    await session.commit()
+                    ai_verdict = ("fixed", explanation)
+                    logger.info("Report #%d auto-fixed by AI: problem #%d answer -> '%s'",
+                                report.id, problem.id, body.student_answer)
+                else:
+                    report.comment = f"AI: ответ ученика неверен. {explanation}"
+                    await session.commit()
+                    ai_verdict = ("rejected", explanation)
+                    logger.info("Report #%d AI-rejected: %s", report.id, explanation)
+            except Exception as exc:
+                logger.warning("AI auto-check failed for report #%d: %s", report.id, exc)
 
         # Fire-and-forget Telegram notification
         asyncio.ensure_future(_notify_report(
             report.id, problem.text_ru, problem.answer,
-            body.student_answer, body.reason,
+            body.student_answer, body.reason, ai_verdict,
         ))
 
         return {"ok": True}

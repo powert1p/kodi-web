@@ -441,7 +441,7 @@ def _get_anthropic_client():
     return _anthropic_client
 
 
-async def _check_with_claude(
+async def check_with_claude(
     student_answer: str, correct_answer: str, problem_text: str
 ) -> tuple[bool, str]:
     """Ask Claude whether the student's answer is equivalent.
@@ -462,7 +462,7 @@ async def _check_with_claude(
     try:
         response = await asyncio.wait_for(
             client.messages.create(
-                model="claude-3-5-haiku-latest",
+                model="claude-sonnet-4-5-20241022",
                 max_tokens=150,
                 messages=[{"role": "user", "content": prompt}],
             ),
