@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../../app/colors.dart';
 import '../../../../shared/utils/responsive.dart';
@@ -14,6 +15,8 @@ class OnboardingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final firstName = student.displayName.split(' ').first;
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: EdgeInsets.all(rp(context, 24)),
@@ -36,7 +39,7 @@ class OnboardingView extends StatelessWidget {
               ),
               const SizedBox(height: 28),
               Text(
-                'Привет, ${student.displayName.split(' ').first}! 👋',
+                l.onboardingHello(firstName),
                 style: TextStyle(
                     fontSize: rs(context, 26),
                     fontWeight: FontWeight.bold,
@@ -45,8 +48,7 @@ class OnboardingView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Text(
-                'Добро пожаловать в NIS Math!\n'
-                'Здесь ты подготовишься к экзамену по математике в НИШ.',
+                l.onboardingWelcome,
                 style: TextStyle(
                     fontSize: rs(context, 16), color: Colors.grey[600], height: 1.5),
                 textAlign: TextAlign.center,
@@ -55,24 +57,24 @@ class OnboardingView extends StatelessWidget {
               // Step cards
               StepCard(
                 number: '1',
-                title: 'Пройди диагностику',
-                subtitle: '5-10 минут · система определит твой уровень',
+                title: l.onboardingStep1Title,
+                subtitle: l.onboardingStep1Subtitle,
                 icon: Icons.psychology_rounded,
                 color: AppColors.purple,
               ),
               const SizedBox(height: 12),
               StepCard(
                 number: '2',
-                title: 'Узнай свои пробелы',
-                subtitle: 'AI покажет где у тебя слабые места',
+                title: l.onboardingStep2Title,
+                subtitle: l.onboardingStep2Subtitle,
                 icon: Icons.analytics_rounded,
                 color: AppColors.primary,
               ),
               const SizedBox(height: 12),
               StepCard(
                 number: '3',
-                title: 'Тренируйся по темам',
-                subtitle: '2525 задач с решениями и картинками',
+                title: l.onboardingStep3Title,
+                subtitle: l.onboardingStep3Subtitle,
                 icon: Icons.fitness_center_rounded,
                 color: AppColors.success,
               ),
@@ -84,8 +86,8 @@ class OnboardingView extends StatelessWidget {
                       .pushNamed(DiagnosticPage.routeName)
                       .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                   icon: const Icon(Icons.play_arrow_rounded),
-                  label: const Text('Начать диагностику',
-                      style: TextStyle(
+                  label: Text(l.startDiagnostic,
+                      style: const TextStyle(
                           fontSize: 17, fontWeight: FontWeight.w700)),
                   style: FilledButton.styleFrom(
                       minimumSize: const Size(0, 56),
@@ -100,8 +102,8 @@ class OnboardingView extends StatelessWidget {
                       .pushNamed(ExamPage.routeName)
                       .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                   icon: const Icon(Icons.timer_rounded, color: AppColors.error),
-                  label: const Text('Экзамен с таймером',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  label: Text(l.examWithTimer,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 48),
                       side: const BorderSide(color: AppColors.error)),
@@ -112,7 +114,7 @@ class OnboardingView extends StatelessWidget {
                 onPressed: () => Navigator.of(context)
                     .pushNamed(PracticePage.routeName)
                     .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                child: Text('Или просто порешать задачи →',
+                child: Text(l.orJustSolve,
                     style: TextStyle(
                         color: Colors.grey[500], fontSize: 14)),
               ),

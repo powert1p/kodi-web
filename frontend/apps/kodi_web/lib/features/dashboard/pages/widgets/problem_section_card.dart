@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../../app/colors.dart';
 import '../../bloc/dashboard_bloc.dart';
@@ -18,6 +19,7 @@ class _ProblemSectionCardState extends State<ProblemSectionCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final s = widget.section;
     final incorrect = s.problemsSolved - s.problemsCorrect;
     final accuracy = s.problemsSolved > 0
@@ -58,7 +60,7 @@ class _ProblemSectionCardState extends State<ProblemSectionCard> {
                         Text(
                           s.problemsSolved > 0
                               ? '✅ ${ s.problemsCorrect}  ❌ $incorrect'
-                              : 'Нет решённых задач',
+                              : l.noSolvedProblems,
                           style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
                       ],
@@ -109,6 +111,7 @@ class ProblemTopicsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final sorted = List<GraphNode>.from(topics)
       ..sort((a, b) => b.qTotal.compareTo(a.qTotal));
 
@@ -142,7 +145,7 @@ class ProblemTopicsList extends StatelessWidget {
                             Text('✅ ${t.qCorrect}  ❌ $incorrect  ·  $accuracy%',
                                 style: TextStyle(fontSize: 11, color: Colors.grey[400]))
                           else
-                            Text('Ещё не решал',
+                            Text(l.notSolvedYet,
                                 style: TextStyle(fontSize: 11, color: Colors.grey[400])),
                         ],
                       ),

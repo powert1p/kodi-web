@@ -1,10 +1,12 @@
 import 'dart:convert';
 import '../../../app/config.dart';
 import '../../../app/colors.dart';
+import '../../../app/locale_bloc.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import '../bloc/auth_bloc.dart';
 import '../../dashboard/pages/dashboard_page.dart';
 import 'phone_login_page.dart';
@@ -53,6 +55,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
@@ -61,12 +64,35 @@ class _LoginPageState extends State<LoginPage> {
       },
       child: Scaffold(
         backgroundColor: AppColors.loginBg,
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Card(
+        body: SafeArea(
+          child: Stack(
+            children: [
+              // Language toggle — top right
+              Positioned(
+                top: 12,
+                right: 16,
+                child: BlocBuilder<LocaleBloc, LocaleState>(
+                  builder: (context, localeState) {
+                    final isRu = localeState.locale.languageCode == 'ru';
+                    return TextButton(
+                      onPressed: () {
+                        final next = isRu ? const Locale('kk') : const Locale('ru');
+                        context.read<LocaleBloc>().add(LocaleChanged(next));
+                      },
+                      child: Text(
+                        isRu ? 'Қазақша' : 'Русский',
+                        style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Card(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: rp(context, 40), vertical: rp(context, 48)),
                   child: Column(
@@ -82,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                       Text('NIS Math',
                           style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
-                      Text('Подготовка к поступлению в НИШ',
+                      Text(l.loginSubtitle,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                           textAlign: TextAlign.center),
                       const SizedBox(height: 32),
@@ -120,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                         Expanded(child: Divider(color: Colors.grey[300])),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('или', style: TextStyle(color: Colors.grey[400], fontSize: 13))),
+                          child: Text(l.loginOr, style: TextStyle(color: Colors.grey[400], fontSize: 13))),
                         Expanded(child: Divider(color: Colors.grey[300])),
                       ]),
 
@@ -132,7 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: OutlinedButton.icon(
                           onPressed: _openTelegramLogin,
                           icon: const Icon(Icons.telegram, size: 20),
-                          label: const Text('Войти через Telegram'),
+                          label: Text(l.loginViaTelegram),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 48),
                             foregroundColor: AppColors.telegram,
@@ -141,7 +167,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
 
                       const SizedBox(height: 24),
-                      Text('2525 задач · 118 тем · БКТ-алгоритм',
+                      Text(l.loginFooter,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
                           textAlign: TextAlign.center),
                     ],
@@ -149,6 +175,9 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
+          ),
+        ),
+            ],
           ),
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import '../../app/colors.dart';
 import 'math_text.dart';
 import '../utils/responsive.dart';
@@ -26,6 +27,7 @@ class ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final ok = isCorrect;
     return Container(
       padding: EdgeInsets.all(rp(context, 20)),
@@ -40,7 +42,7 @@ class ResultCard extends StatelessWidget {
           Icon(ok ? Icons.check_circle_rounded : Icons.cancel_rounded,
             color: ok ? AppColors.success : AppColors.error, size: rs(context, 24)),
           const SizedBox(width: 8),
-          Flexible(child: Text(ok ? 'Правильно! 🎉' : 'Неправильно',
+          Flexible(child: Text(ok ? l.correctAnswer : l.incorrectAnswer,
             style: TextStyle(fontSize: rs(context, 17), fontWeight: FontWeight.bold,
               color: ok ? AppColors.success : AppColors.error),
             overflow: TextOverflow.ellipsis)),
@@ -51,14 +53,14 @@ class ResultCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.success,
                 borderRadius: BorderRadius.circular(20)),
-              child: Text('✨ Освоено',
+              child: Text(l.masteredBadge,
                 style: TextStyle(color: Colors.white, fontSize: rs(context, 11), fontWeight: FontWeight.w600))),
           if (onReport != null && !ok)
             IconButton(
               onPressed: onReport,
               icon: Icon(Icons.flag_outlined, size: rs(context, 18)),
               color: Colors.grey[400],
-              tooltip: 'Пожаловаться',
+              tooltip: l.reportTooltip,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32)),
         ]),
@@ -79,7 +81,7 @@ class ResultCard extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(10)),
             child: Row(children: [
-              Text('Ответ: ', style: TextStyle(color: Colors.grey[500], fontSize: rs(context, 14))),
+              Text(l.answerLabel, style: TextStyle(color: Colors.grey[500], fontSize: rs(context, 14))),
               Expanded(child: MathText(correctAnswer!,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: rs(context, 16), color: AppColors.textPrimary))),
             ])),
@@ -93,7 +95,7 @@ class ResultCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.7),
               borderRadius: BorderRadius.circular(10)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('💡 Решение:',
+              Text(l.solutionLabel,
                 style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: rs(context, 14))),
               const SizedBox(height: 6),
               MathText(solution!,
@@ -105,7 +107,7 @@ class ResultCard extends StatelessWidget {
         if (pMastery != null) ...[
           const SizedBox(height: 14),
           Row(children: [
-            Text('Освоение: ',
+            Text(l.masteryLabel,
               style: TextStyle(color: Colors.grey[500], fontSize: 13)),
             Expanded(child: ClipRRect(
               borderRadius: BorderRadius.circular(4),

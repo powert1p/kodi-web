@@ -161,7 +161,10 @@ class ProblemReport(Base):
     student_answer: Mapped[str | None] = mapped_column(Text)
     correct_answer: Mapped[str] = mapped_column(Text)
     problem_text: Mapped[str] = mapped_column(Text)
-    comment: Mapped[str] = mapped_column(Text)
+    comment: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(20), default="open")  # open/fixed/invalid
+    resolved_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    resolved_by: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(default=func.now())
 
 

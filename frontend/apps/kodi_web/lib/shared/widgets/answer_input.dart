@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import '../../app/colors.dart';
 import '../utils/responsive.dart';
 
@@ -25,6 +26,7 @@ class AnswerInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -38,11 +40,11 @@ class AnswerInput extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(children: [
-              Text('Ваш ответ',
+              Text(l.yourAnswer,
                 style: TextStyle(fontSize: rs(context, 13), fontWeight: FontWeight.w600,
                   color: Colors.grey[600])),
               const Spacer(),
-              Text('Enter — ответить',
+              Text(l.enterToAnswer,
                 style: TextStyle(fontSize: rs(context, 11), color: Colors.grey[400])),
             ]),
           ),
@@ -50,7 +52,7 @@ class AnswerInput extends StatelessWidget {
           controller: controller,
           focusNode: focusNode,
           decoration: InputDecoration(
-            hintText: 'Введите ответ...',
+            hintText: l.answerHint,
             filled: true,
             fillColor: AppColors.surface,
             border: OutlineInputBorder(
@@ -78,7 +80,7 @@ class AnswerInput extends StatelessWidget {
               style: FilledButton.styleFrom(
                 minimumSize: Size(0, btnHeight),
                 backgroundColor: accentColor),
-              child: Text('Ответить',
+              child: Text(l.submitAnswer,
                 style: TextStyle(fontSize: rs(context, 15), fontWeight: FontWeight.w600)))),
             if (onSkip != null) ...[
               SizedBox(width: narrow ? 6 : 10),
@@ -87,7 +89,7 @@ class AnswerInput extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: AppColors.border),
                   padding: EdgeInsets.symmetric(horizontal: rp(context, 16))),
-                child: Text('Пропустить',
+                child: Text(l.skipBtn,
                   style: TextStyle(color: AppColors.textSecondary, fontSize: rs(context, 14))))),
             ],
             if (onReport != null) ...[
@@ -95,7 +97,7 @@ class AnswerInput extends StatelessWidget {
               SizedBox(height: btnHeight, child: IconButton(
                 onPressed: onReport,
                 icon: Icon(Icons.flag_outlined, color: AppColors.borderLight, size: rs(context, 20)),
-                tooltip: 'Пожаловаться')),
+                tooltip: l.reportTooltip)),
             ],
           ];
           return Row(children: children);

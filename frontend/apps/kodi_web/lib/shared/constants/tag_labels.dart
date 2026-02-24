@@ -3,8 +3,8 @@
 /// Replaces duplicate `_sectionNames` in dashboard_page.dart
 /// and `_tagLabels` in graph_page.dart.
 abstract final class TagLabels {
-  /// Full labels for graph and detail views.
-  static const full = <String, String>{
+  /// Full labels for graph and detail views (Russian).
+  static const _full = <String, String>{
     'arithmetic': 'Арифметика',
     'fractions': 'Дроби',
     'decimals': 'Десятичные дроби',
@@ -33,6 +33,36 @@ abstract final class TagLabels {
     'logic': 'Логика',
   };
 
+  /// Full labels for Kazakh locale.
+  static const _fullKz = <String, String>{
+    'arithmetic': 'Арифметика',
+    'fractions': 'Бөлшектер',
+    'decimals': 'Ондық бөлшектер',
+    'divisibility': 'Бөлінгіштік',
+    'equations': 'Теңдеулер',
+    'geometry': 'Геометрия',
+    'algebra': 'Алгебра',
+    'word_problems': 'Мәтінді есептер',
+    'proportion': 'Пропорциялар',
+    'percent': 'Пайыздар',
+    'ratios': 'Пропорциялар мен пайыздар',
+    'numbers': 'Сандар',
+    'number_theory': 'Сандар теориясы',
+    'conversion': 'Өлшем бірліктері',
+    'measurement': 'Өлшем бірліктері',
+    'data': 'Деректер',
+    'data_analysis': 'Деректерді талдау',
+    'combinatorics': 'Комбинаторика',
+    'probability': 'Ықтималдық',
+    'statistics': 'Статистика',
+    'modulus': 'Санның модулі',
+    'sequences': 'Тізбектер',
+    'sets': 'Жиындар',
+    'negative': 'Теріс сандар',
+    'rounding': 'Дөңгелектеу',
+    'logic': 'Логика',
+  };
+
   /// Short labels for dashboard compact view.
   static const _short = <String, String>{
     'decimals': 'Десятичные',
@@ -42,8 +72,12 @@ abstract final class TagLabels {
   };
 
   /// Returns a label for [tag]. Uses short form when [compact] is true.
-  static String label(String tag, {bool compact = false}) {
-    if (compact) return _short[tag] ?? full[tag] ?? tag;
-    return full[tag] ?? tag;
+  /// When [locale] is 'kk', returns Kazakh labels.
+  static String label(String tag, {bool compact = false, String locale = 'ru'}) {
+    if (locale == 'kk') {
+      return _fullKz[tag] ?? _full[tag] ?? tag;
+    }
+    if (compact) return _short[tag] ?? _full[tag] ?? tag;
+    return _full[tag] ?? tag;
   }
 }

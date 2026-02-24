@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../shared/widgets/problem_card.dart';
 import '../../../shared/widgets/answer_input.dart';
@@ -65,6 +66,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
   }
 
   void _showStats(PracticeState state) {
+    final l = AppLocalizations.of(context)!;
     final int count;
     final int correct;
     final int bestCombo;
@@ -84,39 +86,40 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
     showModalBottomSheet(context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (sheetCtx) => Padding(padding: EdgeInsets.all(rp(sheetCtx, 24)), child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('Статистика сессии', style: TextStyle(fontSize: rs(sheetCtx, 18), fontWeight: FontWeight.bold)),
+        Text(l.sessionStats, style: TextStyle(fontSize: rs(sheetCtx, 18), fontWeight: FontWeight.bold)),
         const SizedBox(height: 20),
         Row(children: [
-          _StatTile(label: 'Решено', value: '$n', icon: Icons.check_circle_outline),
-          _StatTile(label: 'Правильно', value: '$correct', icon: Icons.thumb_up_outlined),
-          _StatTile(label: 'Точность', value: '$pct%', icon: Icons.percent),
+          _StatTile(label: l.solved, value: '$n', icon: Icons.check_circle_outline),
+          _StatTile(label: l.correct, value: '$correct', icon: Icons.thumb_up_outlined),
+          _StatTile(label: l.accuracy, value: '$pct%', icon: Icons.percent),
         ]),
         const SizedBox(height: 12),
         Row(children: [
-          _StatTile(label: 'Ср. время', value: _fmtAvg(totalTime, count), icon: Icons.timer_outlined),
-          _StatTile(label: 'Макс комбо', value: '$bestCombo 🔥', icon: Icons.local_fire_department),
-          _StatTile(label: 'Всего', value: _fmtTime(totalTime.round()), icon: Icons.schedule),
+          _StatTile(label: l.avgTime, value: _fmtAvg(totalTime, count), icon: Icons.timer_outlined),
+          _StatTile(label: l.maxCombo, value: '$bestCombo', icon: Icons.local_fire_department),
+          _StatTile(label: l.total, value: _fmtTime(totalTime.round()), icon: Icons.schedule),
         ]),
         const SizedBox(height: 20),
-        SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(sheetCtx), child: const Text('Продолжить'))),
+        SizedBox(width: double.infinity, child: FilledButton(onPressed: () => Navigator.pop(sheetCtx), child: Text(l.continueBtn))),
       ])));
   }
 
   Future<bool> _confirmLeave(int count) async {
     if (count <= 2) return true;
+    final l = AppLocalizations.of(context)!;
     final state = context.read<PracticeBloc>().state;
     final correct = state is PracticeProblemReady ? state.correct
         : state is PracticeAnswerShown ? state.correct : 0;
     final leave = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Завершить практику?'),
-        content: Text('Решено задач: ${count - 1}, правильно: $correct.'),
+        title: Text(l.finishPracticeTitle),
+        content: Text(l.finishPracticeContent(count - 1, correct)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Продолжить')),
+            child: Text(l.continueBtn)),
           TextButton(onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Выйти')),
+            child: Text(l.exitBtn)),
         ],
       ),
     );
@@ -178,6 +181,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, PracticeState state, int count) {
+    final l = AppLocalizations.of(context)!;
     final int elapsedSeconds;
     final bool showTimer;
     final int correct;
@@ -203,7 +207,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
         if (shouldLeave && context.mounted) Navigator.of(context).pop();
       }),
       title: Row(children: [
-        Flexible(child: Text(widget.tagName ?? 'Практика',
+        Flexible(child: Text(widget.tagName ?? l.practiceTitle,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17), overflow: TextOverflow.ellipsis)),
         const Spacer(),
         if (showTimer)
@@ -229,21 +233,22 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
       ]),
       actions: [
         if (count > 2) IconButton(icon: const Icon(Icons.assessment_rounded, color: AppColors.textSecondary),
-          onPressed: () => _showStats(state), tooltip: 'Статистика'),
+          onPressed: () => _showStats(state), tooltip: l.statisticsTooltip),
       ]);
   }
 
   Widget _buildContent(BuildContext context, PracticeState state) {
+    final l = AppLocalizations.of(context)!;
     if (state is PracticeAllDone || state is PracticeError) {
       return Column(children: [
         const SizedBox(height: 60),
         Icon(Icons.emoji_events_rounded, size: 64, color: Colors.amber[400]),
         const SizedBox(height: 16),
-        const Text('Все задачи решены! 🎉', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        Text(l.allSolved, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text('Попробуй другую тему', style: TextStyle(color: Colors.grey[500])),
+        Text(l.tryAnotherTopic, style: TextStyle(color: Colors.grey[500])),
         const SizedBox(height: 24),
-        FilledButton(onPressed: () => Navigator.pop(context), child: const Text('На главную')),
+        FilledButton(onPressed: () => Navigator.pop(context), child: Text(l.goHome)),
       ]);
     }
 
@@ -276,7 +281,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               const Text('🔥', style: TextStyle(fontSize: 18)),
               const SizedBox(width: 6),
-              Text('$combo подряд!', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              Text(l.comboStreak(combo), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
             ]))),
 
       ProblemCard(
@@ -298,19 +303,19 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
                 pMastery: result.pMastery,
                 isMastered: result.isMastered,
                 nodeName: p.nodeName,
-                onReport: !result.isCorrect ? () => showReportSheet(context, api, p.problemId) : null),
+                onReport: !result.isCorrect ? () => showReportSheet(context, api, p.problemId, studentAnswer: _controller.text) : null),
               const SizedBox(height: 16),
               SizedBox(width: double.infinity, child: FilledButton.icon(
                 onPressed: () => bloc.add(PracticeNextRequested()),
                 icon: const Icon(Icons.arrow_forward_rounded),
-                label: const Row(mainAxisSize: MainAxisSize.min, children: [
-                  Text('Следующая', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  SizedBox(width: 8),
-                  Text('→', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                label: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Text(l.nextBtn, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(width: 8),
+                  const Text('→', style: TextStyle(fontSize: 14, color: Colors.white70)),
                 ]),
                 style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: AppColors.primary))),
               const SizedBox(height: 8),
-              Text('→ или пробел', style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+              Text(l.arrowOrSpace, style: TextStyle(fontSize: 11, color: Colors.grey[400])),
             ])))
       else
         AnswerInput(
@@ -318,7 +323,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
           focusNode: _focusNode,
           onSubmit: () => bloc.add(PracticeAnswerSubmitted(_controller.text.trim())),
           onSkip: () => bloc.add(PracticeProblemSkipped()),
-          onReport: () => showReportSheet(context, api, p.problemId)),
+          onReport: () => showReportSheet(context, api, p.problemId, studentAnswer: _controller.text)),
     ]);
   }
 }

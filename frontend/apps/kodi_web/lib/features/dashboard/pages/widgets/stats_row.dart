@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../../app/colors.dart';
 import '../../../../shared/utils/responsive.dart';
@@ -8,6 +9,7 @@ class StatsRow extends StatelessWidget {
   final Stats stats;
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final w = MediaQuery.of(context).size.width;
     final cardWidth = (w < 400) ? (w - 50) / 2 : 140.0;
     return Wrap(
@@ -15,22 +17,22 @@ class StatsRow extends StatelessWidget {
         runSpacing: 10,
         children: [
           SizedBox(width: cardWidth, child: StatCard(
-              label: 'Освоено',
+              label: l.statMastered,
               value: '${stats.masteredCount}/${stats.totalNodes}',
               icon: Icons.school_rounded,
               color: AppColors.success)),
           SizedBox(width: cardWidth, child: StatCard(
-              label: 'Решено',
+              label: l.statSolved,
               value: '${stats.solved}',
               icon: Icons.check_circle_outline,
               color: AppColors.primary)),
           SizedBox(width: cardWidth, child: StatCard(
-              label: 'Точность',
+              label: l.statAccuracy,
               value: '${stats.accuracy}%',
               icon: Icons.analytics_outlined,
               color: AppColors.warning)),
           SizedBox(width: cardWidth, child: StatCard(
-              label: 'Ср. время',
+              label: l.statAvgTime,
               value: '${stats.avgTimeS.toStringAsFixed(0)}с',
               icon: Icons.timer_outlined,
               color: AppColors.purpleLight)),

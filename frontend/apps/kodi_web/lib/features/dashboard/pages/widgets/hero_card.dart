@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../../app/colors.dart';
 import '../../../../shared/utils/responsive.dart';
@@ -11,7 +12,14 @@ class HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final pct = stats.masteryPercent;
+    final firstName = student.displayName.split(' ').first;
+    final dayWord = stats.currentStreak == 1
+        ? l.day1
+        : stats.currentStreak < 5
+            ? l.day2to4
+            : l.day5plus;
     return Container(
       padding: EdgeInsets.all(rp(context, 24)),
       decoration: BoxDecoration(
@@ -27,18 +35,18 @@ class HeroCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                    'Привет, ${student.displayName.split(' ').first}! 👋',
+                    l.heroHello(firstName),
                     style: TextStyle(
                         color: Colors.white70, fontSize: rs(context, 15))),
                 const SizedBox(height: 4),
-                Text('Твой прогресс',
+                Text(l.yourProgress,
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: rs(context, 22),
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
                 Text(
-                    '${stats.masteredCount} из ${stats.totalNodes} тем освоено',
+                    l.topicsMastered(stats.masteredCount, stats.totalNodes),
                     style: const TextStyle(
                         color: Colors.white70, fontSize: 14)),
                 const SizedBox(height: 8),
@@ -58,7 +66,7 @@ class HeroCard extends StatelessWidget {
                     const Text('🔥', style: TextStyle(fontSize: 16)),
                     const SizedBox(width: 4),
                     Text(
-                      '${stats.currentStreak} ${stats.currentStreak == 1 ? "день" : stats.currentStreak < 5 ? "дня" : "дней"} подряд',
+                      l.streakDays(stats.currentStreak, dayWord),
                       style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ]),

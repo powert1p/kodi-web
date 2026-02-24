@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../auth/bloc/auth_bloc.dart';
+import '../../../app/locale_bloc.dart';
 import '../../practice/pages/practice_page.dart';
 import '../../../shared/utils/responsive.dart';
 import 'graph_page.dart';
@@ -36,6 +38,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) => Scaffold(
         backgroundColor: AppColors.scaffoldBg,
@@ -66,13 +69,33 @@ class _DashboardPageState extends State<DashboardPage> {
                   onPressed: () =>
                       Navigator.of(context).pushNamed(GraphPage.routeName).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                   icon: const Icon(Icons.hub_rounded, size: 18),
-                  label: const Text('Граф'),
+                  label: Text(l.graphBtn),
                 ),
               ),
+            BlocBuilder<LocaleBloc, LocaleState>(
+              builder: (context, localeState) {
+                final isRu = localeState.locale.languageCode == 'ru';
+                return TextButton(
+                  onPressed: () {
+                    final next = isRu ? const Locale('kk') : const Locale('ru');
+                    context.read<LocaleBloc>().add(LocaleChanged(next));
+                    context.read<DashboardBloc>().add(DashboardLoad());
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 36),
+                  ),
+                  child: Text(
+                    isRu ? 'ҚК' : 'РУ',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                );
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.logout_rounded, size: 20),
               onPressed: () => context.read<AuthBloc>().add(AuthLogout()),
-              tooltip: 'Выйти',
+              tooltip: l.logoutTooltip,
             ),
             const SizedBox(width: 8),
           ],
@@ -111,6 +134,7 @@ class _BodyState extends State<_Body> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final student = widget.student;
     final stats = widget.stats;
     final nodes = widget.nodes;
@@ -210,7 +234,7 @@ class _BodyState extends State<_Body> {
                               .pushNamed(DiagnosticPage.routeName)
                               .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                           icon: Icon(Icons.psychology_rounded, size: iconSize),
-                          label: Text('Диагностика',
+                          label: Text(l.dashboardDiagnostic,
                               style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
                           style: FilledButton.styleFrom(
                               minimumSize: Size(0, btnHeight),
@@ -224,7 +248,7 @@ class _BodyState extends State<_Body> {
                               .pushNamed(PracticePage.routeName)
                               .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                           icon: Icon(Icons.play_arrow_rounded, size: iconSize),
-                          label: Text('Практика',
+                          label: Text(l.dashboardPractice,
                               style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
                           style: FilledButton.styleFrom(
                               minimumSize: Size(0, btnHeight),
@@ -239,7 +263,7 @@ class _BodyState extends State<_Body> {
                                   arguments: leaderboard)
                               .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                           icon: Icon(Icons.emoji_events_rounded, size: iconSize),
-                          label: Text('Рейтинг',
+                          label: Text(l.dashboardLeaderboard,
                               style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
                           style: FilledButton.styleFrom(
                               minimumSize: Size(0, btnHeight),
@@ -253,7 +277,7 @@ class _BodyState extends State<_Body> {
                 // -- Tab switcher --
                 Row(
                   children: [
-                    Text('РАЗДЕЛЫ',
+                    Text(l.sectionsHeader,
                         style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -270,12 +294,12 @@ class _BodyState extends State<_Body> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           TabChip(
-                            label: 'Темы',
+                            label: l.tabTopics,
                             selected: _tabIndex == 0,
                             onTap: () => setState(() => _tabIndex = 0),
                           ),
                           TabChip(
-                            label: 'Задачи',
+                            label: l.tabProblems,
                             selected: _tabIndex == 1,
                             onTap: () => setState(() => _tabIndex = 1),
                           ),

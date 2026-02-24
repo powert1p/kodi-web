@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../shared/utils/responsive.dart';
@@ -30,9 +31,10 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
   }
 
   Future<void> _checkPhone() async {
+    final l = AppLocalizations.of(context)!;
     final phone = _phoneController.text.trim();
     if (phone.length < 10) {
-      setState(() => _error = 'Введите номер телефона');
+      setState(() => _error = l.phoneEnterNumber);
       return;
     }
     setState(() { _loading = true; _error = null; });
@@ -46,19 +48,20 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
       setState(() { _loading = false; _error = e.userMessage; });
     } catch (e, st) {
       debugPrint('[PhoneLoginPage._checkPhone] $e\n$st');
-      setState(() { _loading = false; _error = 'Не удалось проверить номер. Попробуйте ещё раз.'; });
+      setState(() { _loading = false; _error = l.phoneCheckError; });
     }
   }
 
   Future<void> _submit() async {
+    final l = AppLocalizations.of(context)!;
     final phone = _phoneController.text.trim();
     final pin = _pinController.text.trim();
     if (pin.length != 4) {
-      setState(() => _error = 'PIN — 4 цифры');
+      setState(() => _error = l.phonePin4Digits);
       return;
     }
     if (_isRegister && _nameController.text.trim().isEmpty) {
-      setState(() => _error = 'Введите имя');
+      setState(() => _error = l.phoneEnterName);
       return;
     }
     setState(() { _loading = true; _error = null; });
@@ -78,12 +81,13 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
       setState(() { _loading = false; _error = e.userMessage; });
     } catch (e, st) {
       debugPrint('[PhoneLoginPage._submit] $e\n$st');
-      setState(() { _loading = false; _error = 'Не удалось войти. Попробуйте ещё раз.'; });
+      setState(() { _loading = false; _error = l.phoneLoginError; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -94,8 +98,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
           enabled: !_phoneChecked,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[+0-9]'))],
           decoration: InputDecoration(
-            labelText: 'Номер телефона',
-            hintText: '+7 777 123 4567',
+            labelText: l.phoneLabel,
+            hintText: l.phoneHint,
             prefixIcon: const Icon(Icons.phone_rounded),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             filled: true, fillColor: Colors.grey[50],
@@ -116,7 +120,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               child: _loading
                   ? const SizedBox(width: 22, height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Продолжить', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  : Text(l.phoneContinue, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
           ),
         ],
@@ -130,8 +134,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               child: Row(children: [
                 Icon(Icons.info_outline, color: Colors.blue[400], size: 18),
                 const SizedBox(width: 8),
-                const Expanded(child: Text('Новый ученик! Заполни имя и придумай PIN',
-                    style: TextStyle(fontSize: 13, color: AppColors.infoBlueDark))),
+                Expanded(child: Text(l.phoneNewStudent,
+                    style: const TextStyle(fontSize: 13, color: AppColors.infoBlueDark))),
               ]),
             ),
             const SizedBox(height: 12),
@@ -139,8 +143,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
               decoration: InputDecoration(
-                labelText: 'Имя',
-                hintText: 'Как тебя зовут?',
+                labelText: l.phoneName,
+                hintText: l.phoneNameHint,
                 prefixIcon: const Icon(Icons.person_rounded),
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                 filled: true, fillColor: Colors.grey[50]),
@@ -153,8 +157,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               child: Row(children: [
                 Icon(Icons.check_circle_outline, color: Colors.green[400], size: 18),
                 const SizedBox(width: 8),
-                const Expanded(child: Text('Номер найден! Введи свой PIN',
-                    style: TextStyle(fontSize: 13, color: AppColors.infoGreenDark))),
+                Expanded(child: Text(l.phoneFoundNumber,
+                    style: const TextStyle(fontSize: 13, color: AppColors.infoGreenDark))),
               ]),
             ),
             const SizedBox(height: 12),
@@ -167,8 +171,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
             textAlign: TextAlign.center,
             autofocus: true,
             decoration: InputDecoration(
-              labelText: _isRegister ? 'Придумай PIN (4 цифры)' : 'PIN-код',
-              hintText: '••••',
+              labelText: _isRegister ? l.phoneCreatePin : l.phonePinCode,
+              hintText: l.phonePinHint,
               prefixIcon: const Icon(Icons.lock_rounded),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               filled: true, fillColor: Colors.grey[50]),
@@ -186,14 +190,14 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               child: _loading
                   ? const SizedBox(width: 22, height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text(_isRegister ? 'Зарегистрироваться' : 'Войти',
+                  : Text(_isRegister ? l.phoneRegister : l.phoneLogin,
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(height: 8),
           TextButton(
             onPressed: () => setState(() { _phoneChecked = false; _pinController.clear(); _nameController.clear(); _error = null; }),
-            child: const Text('Изменить номер'),
+            child: Text(l.phoneChangeNumber),
           ),
         ],
 

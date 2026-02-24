@@ -13,6 +13,7 @@ Endpoints:
   GET  /api/practice/next       — next practice problem
   POST /api/practice/answer     — submit answer
   POST /api/practice/skip       — skip problem
+  POST /api/practice/report     — report a problem (complaint)
 
   POST /api/diagnostic/start    — start diagnostic/exam session
   GET  /api/diagnostic/question  — get next diagnostic question
@@ -47,7 +48,7 @@ limiter = Limiter(key_func=get_remote_address)
 from core.grading import check_answer
 from core.selector import select_next_problem
 from db.base import async_session
-from db.models import Attempt, Edge, Mastery, Node, Problem, Student
+from db.models import Attempt, Edge, Mastery, Node, Problem, ProblemReport, Student
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,11 @@ class DiagnosticAnswerBody(BaseModel):
 class SkipBody(BaseModel):
     problem_id: int
     answer: str = ""
+
+class ReportBody(BaseModel):
+    problem_id: int
+    reason: str
+    student_answer: str = ""
 
 class ExamStartBody(BaseModel):
     num_problems: int = 20
@@ -604,6 +610,63 @@ async def practice_skip(request: Request, body: SkipBody):
         await session.close()
 
 
+async def _notify_report(report_id, problem_text, correct_answer, student_answer, reason):
+    """Send report notification to admin Telegram."""
+    import httpx
+
+    bot_token = getattr(settings, 'bot_token', None)
+    admin_id = getattr(settings, 'admin_id', None)
+    if not bot_token or not admin_id:
+        return  # Skip notification if not configured
+    text = (
+        f"\U0001f6a8 Жалоба #{report_id}\n"
+        f"Задача: {problem_text[:200]}\n"
+        f"Правильный ответ: {correct_answer}\n"
+        f"Ответ ученика: {student_answer or '—'}\n"
+        f"Причина: {reason}\n"
+    )
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    async with httpx.AsyncClient() as client:
+        try:
+            await client.post(url, json={"chat_id": admin_id, "text": text})
+        except Exception:
+            pass  # notification is best-effort
+
+
+@router.post("/practice/report")
+async def practice_report(request: Request, body: ReportBody):
+    session, student = await _get_current_student(request)
+    try:
+        problem = await session.get(Problem, body.problem_id)
+        if not problem:
+            raise HTTPException(status_code=404, detail="Задача не найдена")
+
+        report = ProblemReport(
+            student_id=student.id,
+            problem_id=problem.id,
+            node_id=problem.node_id,
+            reason=body.reason,
+            student_answer=body.student_answer or None,
+            correct_answer=problem.answer,
+            problem_text=problem.text_ru,
+            comment="",
+        )
+        session.add(report)
+        await session.flush()  # get report.id
+
+        await session.commit()
+
+        # Fire-and-forget Telegram notification
+        asyncio.ensure_future(_notify_report(
+            report.id, problem.text_ru, problem.answer,
+            body.student_answer, body.reason,
+        ))
+
+        return {"ok": True}
+    finally:
+        await session.close()
+
+
 # ══════════════════════════════════════════════════════════════
 #  TIMED EXAM (batch mode — all problems returned at once)
 # ══════════════════════════════════════════════════════════════
@@ -685,16 +748,17 @@ _diagnostic_states: dict[int, object] = {}
 _diagnostic_lock = asyncio.Lock()
 
 
-async def _format_question(session: AsyncSession, problem: Problem, state) -> dict:
+async def _format_question(session: AsyncSession, problem: Problem, state, lang: str = "ru") -> dict:
     """Build the JSON question payload the Flutter client expects."""
     node = await session.get(Node, problem.node_id)
-    node_name = node.name_ru if node else problem.node_id
+    node_name = (node.name_ru if lang == "ru" else (node.name_kz or node.name_ru)) if node else problem.node_id
+    problem_text = problem.text_ru if lang == "ru" else (problem.text_kz or problem.text_ru)
     return {
         "finished": False,
         "problem_id": problem.id,
         "node_id": problem.node_id,
         "node_name": node_name,
-        "text": problem.text_ru,
+        "text": problem_text,
         "image_path": problem.image_path,
         "answer_type": problem.answer_type,
         "difficulty": problem.difficulty,
@@ -759,7 +823,7 @@ async def _restore_state(session: AsyncSession, student: Student):
 
 
 @router.post("/diagnostic/start")
-async def diagnostic_start(request: Request, body: DiagnosticStartBody):
+async def diagnostic_start(request: Request, body: DiagnosticStartBody, lang: str = Query("ru", regex="^(ru|kz)$")):
     session, student = await _get_current_student(request)
     try:
         mode = body.mode
@@ -792,13 +856,13 @@ async def diagnostic_start(request: Request, body: DiagnosticStartBody):
         if problem is None:
             return {"finished": True, "problem_id": None}
 
-        return await _format_question(session, problem, state)
+        return await _format_question(session, problem, state, lang)
     finally:
         await session.close()
 
 
 @router.get("/diagnostic/question")
-async def diagnostic_question(request: Request):
+async def diagnostic_question(request: Request, lang: str = Query("ru", regex="^(ru|kz)$")):
     session, student = await _get_current_student(request)
     try:
         state = await _restore_state(session, student)
@@ -809,13 +873,13 @@ async def diagnostic_question(request: Request):
         if problem is None:
             return {"finished": True, "problem_id": None}
 
-        return await _format_question(session, problem, state)
+        return await _format_question(session, problem, state, lang)
     finally:
         await session.close()
 
 
 @router.post("/diagnostic/answer")
-async def diagnostic_answer(request: Request, body: DiagnosticAnswerBody):
+async def diagnostic_answer(request: Request, body: DiagnosticAnswerBody, lang: str = Query("ru", regex="^(ru|kz)$")):
     session, student = await _get_current_student(request)
     try:
         state = await _restore_state(session, student)
@@ -863,10 +927,12 @@ async def diagnostic_answer(request: Request, body: DiagnosticAnswerBody):
         elif isinstance(state, DiagnosticState):
             has_next = bool(state.queue) or state.topics_tested < state.max_topics
 
+        solution = problem.solution_ru if lang == "ru" else (problem.solution_kz or problem.solution_ru)
+
         return {
             "is_correct": is_correct,
             "correct_answer": problem.answer,
-            "solution": problem.solution_ru,
+            "solution": solution,
             "questions_asked": state.questions_asked,
             "topics_tested": state.topics_tested,
             "max_topics": state.max_topics,

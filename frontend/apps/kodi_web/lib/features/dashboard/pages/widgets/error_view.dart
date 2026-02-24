@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import '../../../../app/colors.dart';
 
 class ErrorView extends StatelessWidget {
@@ -7,13 +8,16 @@ class ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
 
   @override
-  Widget build(BuildContext context) => Center(
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          FilledButton(onPressed: onRetry, child: const Text('Повторить')),
+          FilledButton(onPressed: onRetry, child: Text(l.retryBtn)),
         ]),
       );
+  }
 }

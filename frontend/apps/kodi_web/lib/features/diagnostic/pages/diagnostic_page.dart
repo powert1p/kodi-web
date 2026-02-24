@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../shared/widgets/problem_card.dart';
 import '../../../shared/widgets/answer_input.dart';
@@ -50,17 +51,17 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         state is DiagnosticAnswerShown ||
         state is DiagnosticLoading;
     if (!isActive) return true;
+    final l = AppLocalizations.of(context)!;
     final leave = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Покинуть диагностику?'),
-        content: const Text(
-          'Прогресс будет сохранён — вы сможете продолжить позже.'),
+        title: Text(l.leaveDiagnosticTitle),
+        content: Text(l.leaveDiagnosticContent),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Остаться')),
+            child: Text(l.stayBtn)),
           TextButton(onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Выйти')),
+            child: Text(l.exitBtn)),
         ],
       ),
     );
@@ -116,6 +117,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, DiagnosticState state) {
+    final l = AppLocalizations.of(context)!;
     return AppBar(
       backgroundColor: Colors.white, surfaceTintColor: Colors.white, elevation: 0.5,
       leading: BackButton(onPressed: () async {
@@ -124,8 +126,8 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         if (shouldLeave && context.mounted) Navigator.of(context).pop();
       }),
       title: Row(children: [
-        const Text('Диагностика',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        Text(l.diagnosticTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         if (state is DiagnosticQuestionReady) ...[
           const Spacer(),
           Padding(
@@ -170,7 +172,8 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
   }
 
   Widget _buildResumePrompt(BuildContext context, DiagnosticActiveSessionFound state) {
-    final modeName = state.activeMode == 'gaps' ? 'Проверка пробелов' : 'Подготовка к экзамену';
+    final l = AppLocalizations.of(context)!;
+    final modeName = state.activeMode == 'gaps' ? l.gapsCheck : l.examPreparation;
     final bloc = context.read<DiagnosticBloc>();
     return Column(children: [
       const SizedBox(height: 40),
@@ -181,10 +184,10 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
           borderRadius: BorderRadius.circular(20)),
         child: Icon(Icons.pause_circle_filled_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      Text('Незавершённая диагностика',
+      Text(l.unfinishedDiagnostic,
         style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       const SizedBox(height: 12),
-      Text('$modeName — ${state.activeTopicsTested} из ${state.activeMaxTopics} тем · ${state.activeQuestionsAsked} вопросов',
+      Text(l.unfinishedDiagnosticInfo(modeName, state.activeTopicsTested, state.activeMaxTopics, state.activeQuestionsAsked),
         style: TextStyle(fontSize: 15, color: Colors.grey[600], height: 1.5),
         textAlign: TextAlign.center),
       const SizedBox(height: 8),
@@ -201,8 +204,8 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         child: FilledButton.icon(
           onPressed: () => bloc.add(DiagnosticResumeRequested()),
           icon: const Icon(Icons.play_arrow_rounded),
-          label: const Text('Продолжить',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          label: Text(l.resumeBtn,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           style: FilledButton.styleFrom(
             minimumSize: const Size(0, 52),
             backgroundColor: AppColors.orange))),
@@ -212,14 +215,15 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         child: OutlinedButton.icon(
           onPressed: () => bloc.add(DiagnosticDismissResumePrompt()),
           icon: const Icon(Icons.restart_alt_rounded),
-          label: const Text('Начать заново',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          label: Text(l.startOver,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           style: OutlinedButton.styleFrom(
             minimumSize: const Size(0, 52)))),
     ]);
   }
 
   Widget _buildStart(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final bloc = context.read<DiagnosticBloc>();
     return Column(children: [
       const SizedBox(height: 40),
@@ -230,28 +234,31 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
           borderRadius: BorderRadius.circular(20)),
         child: Icon(Icons.psychology_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      Text('Диагностика знаний',
+      Text(l.diagnosticKnowledge,
         style: TextStyle(fontSize: rs(context, 24), fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       const SizedBox(height: 12),
-      Text('15 тем — адаптивный алгоритм подберёт задачи под тебя.',
+      Text(l.diagnosticDescription,
         style: TextStyle(fontSize: 15, color: Colors.grey[600], height: 1.5),
         textAlign: TextAlign.center),
       const SizedBox(height: 32),
       _ModeCard(
-        title: 'Готовлюсь к экзамену', subtitle: '15 тем · 10-15 минут',
-        description: 'Сложные темы первыми — проверь готовность',
+        title: l.diagnosticExamMode, subtitle: l.diagnosticExamSubtitle,
+        description: l.diagnosticExamDescription,
         icon: Icons.school_rounded, color: AppColors.primary,
+        startLabel: l.startBtn,
         onStart: () => bloc.add(DiagnosticCancelAndStartNew('exam'))),
       const SizedBox(height: 12),
       _ModeCard(
-        title: 'Проверяю пробелы', subtitle: '15 тем · 10-15 минут',
-        description: 'С базовых тем вверх — найди слабые места',
+        title: l.diagnosticGapsMode, subtitle: l.diagnosticGapsSubtitle,
+        description: l.diagnosticGapsDescription,
         icon: Icons.search_rounded, color: AppColors.purple,
+        startLabel: l.startBtn,
         onStart: () => bloc.add(DiagnosticCancelAndStartNew('gaps'))),
     ]);
   }
 
   Widget _buildQuestion(BuildContext context, DiagnosticQuestionReady state) {
+    final l = AppLocalizations.of(context)!;
     final q = state.question;
     final text = q['text'] as String? ?? '';
     final nodeName = q['node_name'] as String?;
@@ -268,10 +275,10 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
           valueColor: const AlwaysStoppedAnimation(AppColors.primary))),
       const SizedBox(height: 4),
       Row(children: [
-        Text('Тема ${state.topicsTested + 1} из ${state.maxTopics}',
+        Text(l.topicNofM(state.topicsTested + 1, state.maxTopics),
           style: TextStyle(fontSize: 12, color: Colors.grey[500])),
         const Spacer(),
-        Text('${state.correctCount} правильно',
+        Text(l.nCorrect(state.correctCount),
           style: const TextStyle(fontSize: 12, color: AppColors.success, fontWeight: FontWeight.w600)),
       ]),
       const SizedBox(height: 16),
@@ -286,12 +293,13 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         controller: _controller,
         focusNode: _focusNode,
         onSubmit: () => bloc.add(DiagnosticAnswerSubmitted(_controller.text.trim())),
-        onReport: () => showReportSheet(context, api, q['problem_id']),
+        onReport: () => showReportSheet(context, api, q['problem_id'], studentAnswer: _controller.text),
       ),
     ]);
   }
 
   Widget _buildAnswerResult(BuildContext context, DiagnosticAnswerShown state) {
+    final l = AppLocalizations.of(context)!;
     final r = state.answerResult;
     final ok = r['is_correct'] == true;
     final hasNext = r['has_next'] == true;
@@ -313,7 +321,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         correctAnswer: r['correct_answer']?.toString(),
         solution: r['solution'] as String?,
         nodeName: state.question['node_name'] as String?,
-        onReport: !ok ? () => showReportSheet(context, api, state.question['problem_id']) : null,
+        onReport: !ok ? () => showReportSheet(context, api, state.question['problem_id'], studentAnswer: _controller.text) : null,
       ),
       const SizedBox(height: 16),
 
@@ -325,7 +333,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
               : () => bloc.add(DiagnosticFinishRequested()),
           icon: Icon(hasNext ? Icons.arrow_forward_rounded : Icons.flag_rounded),
           label: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text(hasNext ? 'Следующая' : 'Завершить',
+            Text(hasNext ? l.nextBtn : l.finishBtn,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             if (hasNext) ...[
               const SizedBox(width: 8),
@@ -337,12 +345,13 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
             backgroundColor: AppColors.primary))),
       if (hasNext) ...[
         const SizedBox(height: 8),
-        Text('→ или пробел', style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+        Text(l.arrowOrSpace, style: TextStyle(fontSize: 11, color: Colors.grey[400])),
       ],
     ]);
   }
 
   Widget _buildResults(BuildContext context, DiagnosticFinished state) {
+    final l = AppLocalizations.of(context)!;
     final r = state.results;
     final mastered = (r['mastered_nodes'] as List?)?.length ?? 0;
     final failed = (r['failed_nodes'] as List?)?.length ?? 0;
@@ -359,7 +368,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
           borderRadius: BorderRadius.circular(20)),
         child: Icon(Icons.check_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      Text('Диагностика завершена!',
+      Text(l.diagnosticComplete,
         style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       const SizedBox(height: 8),
       Text(summary, style: TextStyle(fontSize: rs(context, 14), color: Colors.grey[600]),
@@ -367,18 +376,18 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
       const SizedBox(height: 24),
 
       Row(children: [
-        Expanded(child: _ResultStat(label: 'Освоено', value: '$mastered', color: AppColors.success)),
+        Expanded(child: _ResultStat(label: l.mastered, value: '$mastered', color: AppColors.success)),
         const SizedBox(width: 10),
-        Expanded(child: _ResultStat(label: 'Пробелы', value: '$failed', color: AppColors.error)),
+        Expanded(child: _ResultStat(label: l.gaps, value: '$failed', color: AppColors.error)),
         const SizedBox(width: 10),
-        Expanded(child: _ResultStat(label: 'Правильно', value: '${state.correctCount}', color: AppColors.primary)),
+        Expanded(child: _ResultStat(label: l.correct, value: '${state.correctCount}', color: AppColors.primary)),
       ]),
       const SizedBox(height: 20),
 
       if (masteredNodes.isNotEmpty)
-        _TopicList(title: '✅ Освоенные темы', topics: masteredNodes, color: AppColors.success),
+        _TopicList(title: l.masteredTopics, topics: masteredNodes, color: AppColors.success),
       if (failedNodes.isNotEmpty)
-        _TopicList(title: '❌ Слабые темы', topics: failedNodes, color: AppColors.error),
+        _TopicList(title: l.weakTopics, topics: failedNodes, color: AppColors.error),
 
       const SizedBox(height: 24),
       SizedBox(
@@ -386,8 +395,8 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         child: FilledButton.icon(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.home_rounded),
-          label: const Text('На главную',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          label: Text(l.goHome,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           style: FilledButton.styleFrom(
             minimumSize: const Size(0, 52),
             backgroundColor: AppColors.primary))),
@@ -395,25 +404,27 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
   }
 
   Widget _buildError(BuildContext context, String message) {
+    final l = AppLocalizations.of(context)!;
     return Column(children: [
       const SizedBox(height: 40),
       Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
       const SizedBox(height: 16),
-      Text('Что-то пошло не так', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+      Text(l.somethingWentWrong, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
       const SizedBox(height: 8),
       Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[500], fontSize: 13)),
       const SizedBox(height: 16),
       FilledButton(
         onPressed: () => context.read<DiagnosticBloc>().add(DiagnosticErrorDismissed()),
-        child: const Text('Попробовать снова')),
+        child: Text(l.tryAgain)),
     ]);
   }
 }
 
 class _ModeCard extends StatelessWidget {
   const _ModeCard({required this.title, required this.subtitle,
-    required this.description, required this.icon, required this.color, required this.onStart});
-  final String title, subtitle, description;
+    required this.description, required this.icon, required this.color,
+    required this.onStart, required this.startLabel});
+  final String title, subtitle, description, startLabel;
   final IconData icon;
   final Color color;
   final VoidCallback onStart;
@@ -436,7 +447,7 @@ class _ModeCard extends StatelessWidget {
         ])),
         FilledButton(onPressed: onStart,
           style: FilledButton.styleFrom(backgroundColor: color, padding: EdgeInsets.symmetric(horizontal: rp(context, 16))),
-          child: Text('Начать', style: TextStyle(fontSize: rs(context, 14)))),
+          child: Text(startLabel, style: TextStyle(fontSize: rs(context, 14)))),
       ]));
   }
 }

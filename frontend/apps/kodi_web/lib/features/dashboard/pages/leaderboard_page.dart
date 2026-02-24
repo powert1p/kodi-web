@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import '../../../app/colors.dart';
 import '../bloc/dashboard_bloc.dart';
 
@@ -29,10 +30,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     return list;
   }
 
-  String _sortLabel(LeaderboardSort s) => switch (s) {
-        LeaderboardSort.byQuantity => 'По количеству',
-        LeaderboardSort.byAccuracy => 'По точности',
-        LeaderboardSort.byProgress => 'По прогрессу',
+  String _sortLabel(LeaderboardSort s, AppLocalizations l) => switch (s) {
+        LeaderboardSort.byQuantity => l.sortByQuantity,
+        LeaderboardSort.byAccuracy => l.sortByAccuracy,
+        LeaderboardSort.byProgress => l.sortByProgress,
       };
 
   String _valueForSort(LeaderboardEntry e) => switch (_sort) {
@@ -43,6 +44,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final sorted = _sorted;
 
     return Scaffold(
@@ -52,8 +54,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         surfaceTintColor: Colors.white,
         elevation: 0.5,
         leading: const BackButton(),
-        title: const Text('🏆 Лидерборд',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l.leaderboardTitle,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: Center(
         child: ConstrainedBox(
@@ -81,7 +83,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            _sortLabel(s),
+                            _sortLabel(s, l),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
@@ -144,6 +146,7 @@ class _LeaderboardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final isCurrent = entry.isCurrent;
 
     return Container(
@@ -194,7 +197,7 @@ class _LeaderboardRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (isCurrent)
-                  Text('Это вы',
+                  Text(l.itsYou,
                       style: TextStyle(
                           fontSize: 11, color: Colors.orange[700])),
               ],

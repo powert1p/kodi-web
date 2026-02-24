@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import '../../../../app/colors.dart';
 
 class ResumeBanner extends StatelessWidget {
@@ -7,6 +8,7 @@ class ResumeBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -28,10 +30,10 @@ class ResumeBanner extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Незавершённая диагностика',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14,
+              Text(l.resumeBannerTitle,
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14,
                   color: AppColors.textPrimary)),
-              Text('Продолжи с того места, где остановился',
+              Text(l.resumeBannerSubtitle,
                 style: TextStyle(fontSize: 12, color: Colors.grey[600])),
             ],
           ),
@@ -42,8 +44,8 @@ class ResumeBanner extends StatelessWidget {
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.orange,
             padding: const EdgeInsets.symmetric(horizontal: 16)),
-          child: const Text('Продолжить',
-            style: TextStyle(fontWeight: FontWeight.w600))),
+          child: Text(l.resumeBannerBtn,
+            style: const TextStyle(fontWeight: FontWeight.w600))),
       ]),
     );
   }

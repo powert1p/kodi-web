@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../features/auth/pages/login_page.dart';
 import '../features/dashboard/pages/dashboard_page.dart';
@@ -57,7 +58,7 @@ Route<dynamic>? onGenerateRoute(RouteSettings settings) {
         ),
         settings: settings),
     _ => MaterialPageRoute(
-        builder: (_) =>
-            const Scaffold(body: Center(child: Text('404')))),
+        builder: (ctx) =>
+            Scaffold(body: Center(child: Text(AppLocalizations.of(ctx)!.page404)))),
   };
 }

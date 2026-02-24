@@ -252,6 +252,74 @@ def _extract_number_from_text(text: str) -> float | None:
     return None
 
 
+# ── Unit conversion ───────────────────────────────────────────
+
+# Unit conversion tables — value is the multiplier to convert to base unit
+_UNIT_TO_BASE = {
+    # Length → meters
+    'мм': ('length', 0.001), 'см': ('length', 0.01), 'дм': ('length', 0.1),
+    'м': ('length', 1.0), 'км': ('length', 1000.0),
+    'mm': ('length', 0.001), 'cm': ('length', 0.01), 'dm': ('length', 0.1),
+    'm': ('length', 1.0), 'km': ('length', 1000.0),
+    # Mass → grams
+    'мг': ('mass', 0.001), 'г': ('mass', 1.0), 'кг': ('mass', 1000.0),
+    'ц': ('mass', 100000.0), 'т': ('mass', 1000000.0),
+    'mg': ('mass', 0.001), 'g': ('mass', 1.0), 'kg': ('mass', 1000.0),
+    't': ('mass', 1000000.0),
+    # Area → m²
+    'мм²': ('area', 1e-6), 'см²': ('area', 1e-4), 'дм²': ('area', 0.01),
+    'м²': ('area', 1.0), 'км²': ('area', 1e6), 'га': ('area', 10000.0),
+    'mm²': ('area', 1e-6), 'cm²': ('area', 1e-4), 'dm²': ('area', 0.01),
+    'm²': ('area', 1.0), 'km²': ('area', 1e6),
+    # Volume → liters
+    'мл': ('volume', 0.001), 'л': ('volume', 1.0), 'дл': ('volume', 0.1),
+    'ml': ('volume', 0.001), 'l': ('volume', 1.0),
+    # Time → seconds
+    'с': ('time', 1.0), 'сек': ('time', 1.0), 'мин': ('time', 60.0),
+    'ч': ('time', 3600.0), 'сут': ('time', 86400.0),
+    'sec': ('time', 1.0), 'min': ('time', 60.0), 'h': ('time', 3600.0),
+}
+
+_UNIT_NUMBER_RE = re.compile(r'^(-?\d+(?:[.,]\d+)?)\s*(.+)$')
+
+
+def _extract_number_and_unit(text: str):
+    """Extract (number, unit) from text like '3см', '0.3 дм', '150kg'."""
+    text = text.strip().lower()
+    # Normalise unicode dashes to ASCII minus
+    text = text.translate(_DASHES)
+    # Replace comma with period for Russian decimals
+    text = text.replace(',', '.')
+    # Try to match number followed by optional unit
+    m = _UNIT_NUMBER_RE.match(text)
+    if m:
+        try:
+            num = float(m.group(1))
+            unit = m.group(2).strip()
+            if unit in _UNIT_TO_BASE:
+                return num, unit
+        except ValueError:
+            pass
+    return None, None
+
+
+def _try_unit_conversion(student_raw: str, correct_raw: str) -> bool:
+    """Compare answers after unit conversion. Returns True if equivalent."""
+    s_num, s_unit = _extract_number_and_unit(student_raw)
+    c_num, c_unit = _extract_number_and_unit(correct_raw)
+    if s_num is None or c_num is None:
+        return False
+    if s_unit is None or c_unit is None:
+        return False
+    s_dim, s_factor = _UNIT_TO_BASE[s_unit]
+    c_dim, c_factor = _UNIT_TO_BASE[c_unit]
+    if s_dim != c_dim:
+        return False
+    s_base = s_num * s_factor
+    c_base = c_num * c_factor
+    return abs(s_base - c_base) < 1e-6
+
+
 # ── Symbol ↔ word equivalence ─────────────────────────────────
 
 _SYMBOL_TO_WORD = {
@@ -276,6 +344,14 @@ def check_answer_rule_based(
 
     if not sa:
         return False
+
+    # ── 0.5. Unit-aware gate ──
+    # If both raw answers have recognised units, delegate entirely to
+    # unit conversion so that "3см" vs "3кг" is NOT accepted.
+    _s_num, _s_unit = _extract_number_and_unit(student_answer)
+    _c_num, _c_unit = _extract_number_and_unit(correct_answer)
+    if _s_unit is not None and _c_unit is not None:
+        return _try_unit_conversion(student_answer, correct_answer)
 
     # ── 0. Symbol ↔ word equivalence (e.g. * == умножение) ──
     if sa in _SYMBOL_TO_WORD and ca == _SYMBOL_TO_WORD[sa]:

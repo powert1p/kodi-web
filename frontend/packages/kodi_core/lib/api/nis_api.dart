@@ -39,6 +39,7 @@ class NisApiClient {
 
   final String baseUrl;
   String? token;
+  String lang = 'ru';
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
@@ -147,12 +148,12 @@ class NisApiClient {
   // ── Stats & Graph ─────────────────────────────────────────────
 
   Future<Stats> getStats() async {
-    final res = await _get('/api/stats/me?lang=ru');
+    final res = await _get('/api/stats/me?lang=$lang');
     return Stats.fromJson(res);
   }
 
   Future<Map<String, dynamic>> getGraphData() async {
-    return await _get('/api/graph/me?lang=ru');
+    return await _get('/api/graph/me?lang=$lang');
   }
 
   Future<List<GraphNode>> getGraphNodes() async {
@@ -172,7 +173,7 @@ class NisApiClient {
   }
 
   Future<AnswerResult> submitAnswer(int problemId, String answer) async {
-    final res = await _post('/api/practice/answer?lang=ru', {
+    final res = await _post('/api/practice/answer?lang=$lang', {
       'problem_id': problemId,
       'answer': answer,
     });

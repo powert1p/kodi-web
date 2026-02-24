@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../shared/widgets/problem_card.dart';
 import '../../../shared/widgets/answer_input.dart';
@@ -53,18 +54,18 @@ class _ExamPageState extends State<ExamPage> {
   Future<bool> _confirmLeave(ExamState state) async {
     final isActive = state is ExamQuestionReady || state is ExamAnswerShown;
     if (!isActive) return true;
+    final l = AppLocalizations.of(context)!;
     final leave = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Покинуть экзамен?'),
-        content: const Text(
-          'Таймер идёт! Если выйдешь, прогресс будет потерян.'),
+        title: Text(l.leaveExamTitle),
+        content: Text(l.leaveExamContent),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Остаться')),
+            child: Text(l.stayBtn)),
           TextButton(onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Выйти')),
+            child: Text(l.exitBtn)),
         ],
       ),
     );
@@ -115,6 +116,7 @@ class _ExamPageState extends State<ExamPage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, ExamState state) {
+    final l = AppLocalizations.of(context)!;
     return AppBar(
       backgroundColor: Colors.white, surfaceTintColor: Colors.white, elevation: 0.5,
       leading: BackButton(onPressed: () async {
@@ -123,7 +125,7 @@ class _ExamPageState extends State<ExamPage> {
         if (shouldLeave && context.mounted) Navigator.of(context).pop();
       }),
       title: Row(children: [
-        const Text('Экзамен', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        Text(l.examTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         if (state is ExamQuestionReady) ...[
           const Spacer(),
           Padding(
@@ -155,6 +157,7 @@ class _ExamPageState extends State<ExamPage> {
   }
 
   Widget _buildSetup(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(children: [
       const SizedBox(height: 40),
       Container(width: rs(context, 80), height: rs(context, 80),
@@ -163,9 +166,9 @@ class _ExamPageState extends State<ExamPage> {
           borderRadius: BorderRadius.circular(20)),
         child: Icon(Icons.timer_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      Text('Экзамен', style: TextStyle(fontSize: rs(context, 24), fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+      Text(l.examTitle, style: TextStyle(fontSize: rs(context, 24), fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       const SizedBox(height: 8),
-      Text('Реши задачи на время — как на настоящем НИШ',
+      Text(l.examSubtitle,
         style: TextStyle(fontSize: rs(context, 15), color: Colors.grey[600]), textAlign: TextAlign.center),
       const SizedBox(height: 32),
       Container(
@@ -173,11 +176,11 @@ class _ExamPageState extends State<ExamPage> {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))]),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Настройки', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+          Text(l.examSettings, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           const SizedBox(height: 16),
           Row(children: [
             Icon(Icons.assignment_rounded, size: rs(context, 20), color: AppColors.textSecondary),
-            const SizedBox(width: 8), Text('Задач:', style: TextStyle(fontSize: rs(context, 14))), const Spacer(),
+            const SizedBox(width: 8), Text(l.examProblems, style: TextStyle(fontSize: rs(context, 14))), const Spacer(),
             SegmentedButton<int>(
               segments: const [
                 ButtonSegment(value: 10, label: Text('10')),
@@ -191,8 +194,8 @@ class _ExamPageState extends State<ExamPage> {
           const SizedBox(height: 12),
           Row(children: [
             const Icon(Icons.timer_rounded, size: 20, color: AppColors.textSecondary),
-            const SizedBox(width: 8), const Text('Время:'), const Spacer(),
-            Text('$_timeMinutes мин', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            const SizedBox(width: 8), Text(l.examTime), const Spacer(),
+            Text(l.examTimeMinutes(_timeMinutes), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           ]),
         ])),
       const SizedBox(height: 24),
@@ -200,12 +203,13 @@ class _ExamPageState extends State<ExamPage> {
         onPressed: () => context.read<ExamBloc>().add(
             ExamStartRequested(numProblems: _numProblems, timeMinutes: _timeMinutes)),
         icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('Начать экзамен', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        label: Text(l.startExam, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: AppColors.error))),
     ]);
   }
 
   Widget _buildQuestion(BuildContext context, ExamQuestionReady state) {
+    final l = AppLocalizations.of(context)!;
     final p = state.problems[state.currentIndex];
     final text = p['text'] as String? ?? '';
     final nodeName = p['node_name'] as String?;
@@ -222,10 +226,10 @@ class _ExamPageState extends State<ExamPage> {
           valueColor: const AlwaysStoppedAnimation(AppColors.error))),
       const SizedBox(height: 4),
       Row(children: [
-        Text('Задача ${state.currentIndex + 1} из ${state.problems.length}',
+        Text(l.problemNofM(state.currentIndex + 1, state.problems.length),
           style: TextStyle(fontSize: 12, color: Colors.grey[500])),
         const Spacer(),
-        Text('${state.correct} правильно',
+        Text(l.nCorrect(state.correct),
           style: const TextStyle(fontSize: 12, color: AppColors.success, fontWeight: FontWeight.w600)),
       ]),
       const SizedBox(height: 16),
@@ -237,12 +241,13 @@ class _ExamPageState extends State<ExamPage> {
         controller: _controller, focusNode: _focusNode,
         onSubmit: () => bloc.add(ExamAnswerSubmitted(_controller.text.trim())),
         onSkip: () => bloc.add(ExamProblemSkipped()),
-        onReport: () => showReportSheet(context, api, p['problem_id']),
+        onReport: () => showReportSheet(context, api, p['problem_id'], studentAnswer: _controller.text),
         accentColor: AppColors.error),
     ]);
   }
 
   Widget _buildAnswerFeedback(BuildContext context, ExamAnswerShown state) {
+    final l = AppLocalizations.of(context)!;
     final r = state.answerResult;
     final ok = r['is_correct'] == true;
     final isLast = state.currentIndex + 1 >= state.problems.length;
@@ -255,21 +260,22 @@ class _ExamPageState extends State<ExamPage> {
         correctAnswer: r['correct_answer']?.toString(),
         solution: r['solution'] as String?,
         nodeName: state.problems[state.currentIndex]['node_name'] as String?,
-        onReport: !ok ? () => showReportSheet(context, api, state.problems[state.currentIndex]['problem_id']) : null),
+        onReport: !ok ? () => showReportSheet(context, api, state.problems[state.currentIndex]['problem_id'], studentAnswer: _controller.text) : null),
       const SizedBox(height: 16),
       SizedBox(width: double.infinity, child: FilledButton(
         onPressed: () => bloc.add(ExamNextProblemRequested()),
         style: FilledButton.styleFrom(minimumSize: const Size(0, 48), backgroundColor: AppColors.primary),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Text(isLast ? 'Завершить' : 'Следующая →',
+          Text(isLast ? l.finishBtn : '${l.nextBtn} →',
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
         ]))),
       const SizedBox(height: 8),
-      Text('→ или пробел', style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+      Text(l.arrowOrSpace, style: TextStyle(fontSize: 11, color: Colors.grey[400])),
     ]);
   }
 
   Widget _buildResults(BuildContext context, ExamFinished state) {
+    final l = AppLocalizations.of(context)!;
     final pct = state.totalProblems > 0 ? (state.correct / state.totalProblems * 100).round() : 0;
     final bloc = context.read<ExamBloc>();
 
@@ -281,46 +287,47 @@ class _ExamPageState extends State<ExamPage> {
           borderRadius: BorderRadius.circular(20)),
         child: Icon(pct >= 70 ? Icons.emoji_events_rounded : Icons.assessment_rounded, color: Colors.white, size: rs(context, 44))),
       const SizedBox(height: 24),
-      Text(pct >= 70 ? 'Отлично!' : 'Можно лучше!',
+      Text(pct >= 70 ? l.excellent : l.canDoBetter,
         style: TextStyle(fontSize: rs(context, 22), fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
       const SizedBox(height: 8),
-      Text('Время: ${_formatTime(state.timeUsedSeconds)}',
+      Text(l.timeLabel(_formatTime(state.timeUsedSeconds)),
         style: TextStyle(fontSize: rs(context, 15), color: Colors.grey[600])),
       const SizedBox(height: 24),
       Row(children: [
-        Expanded(child: _StatCard(label: 'Результат', value: '$pct%',
+        Expanded(child: _StatCard(label: l.result, value: '$pct%',
           color: pct >= 70 ? AppColors.success : AppColors.warning)),
         const SizedBox(width: 10),
-        Expanded(child: _StatCard(label: 'Правильно', value: '${state.correct}/${state.totalProblems}', color: AppColors.primary)),
+        Expanded(child: _StatCard(label: l.correct, value: '${state.correct}/${state.totalProblems}', color: AppColors.primary)),
         const SizedBox(width: 10),
-        Expanded(child: _StatCard(label: 'Пропущено', value: '${state.totalProblems - state.answered}', color: AppColors.textSecondary)),
+        Expanded(child: _StatCard(label: l.skipped, value: '${state.totalProblems - state.answered}', color: AppColors.textSecondary)),
       ]),
       const SizedBox(height: 24),
       SizedBox(width: double.infinity, child: FilledButton.icon(
         onPressed: () => bloc.add(ExamResetRequested()),
         icon: const Icon(Icons.refresh_rounded),
-        label: const Text('Ещё раз', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        label: Text(l.oneMoreTime, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         style: FilledButton.styleFrom(minimumSize: const Size(0, 52), backgroundColor: AppColors.error))),
       const SizedBox(height: 12),
       SizedBox(width: double.infinity, child: OutlinedButton.icon(
         onPressed: () => Navigator.of(context).pop(),
         icon: const Icon(Icons.home_rounded),
-        label: const Text('На главную', style: TextStyle(fontSize: 16)),
+        label: Text(l.goHome, style: const TextStyle(fontSize: 16)),
         style: OutlinedButton.styleFrom(minimumSize: const Size(0, 52)))),
     ]);
   }
 
   Widget _buildError(BuildContext context, String message) {
+    final l = AppLocalizations.of(context)!;
     return Column(children: [
       const SizedBox(height: 40),
       Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
       const SizedBox(height: 16),
-      Text('Что-то пошло не так', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+      Text(l.somethingWentWrong, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
       const SizedBox(height: 8),
       Text(message, textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[500], fontSize: 13)),
       const SizedBox(height: 16),
       FilledButton(onPressed: () => context.read<ExamBloc>().add(ExamResetRequested()),
-        child: const Text('Назад')),
+        child: Text(l.backBtn)),
     ]);
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../../../../app/colors.dart';
 import '../../bloc/dashboard_bloc.dart';
@@ -25,6 +26,7 @@ class _SectionCardState extends State<SectionCard>
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final s = widget.section;
     final pctColor = s.testedCount > 0
         ? _pctColor(s.percentage)
@@ -77,8 +79,8 @@ class _SectionCardState extends State<SectionCard>
                             const SizedBox(height: 2),
                             Text(
                               s.testedCount > 0
-                                  ? '${s.testedCount} из ${s.totalCount} проверено'
-                                  : '${s.totalCount} тем',
+                                  ? l.sectionTestedOfTotal(s.testedCount, s.totalCount)
+                                  : l.sectionTopicsCount(s.totalCount),
                               style: TextStyle(
                                   fontSize: 12, color: Colors.grey[500]),
                             ),
@@ -132,7 +134,7 @@ class _SectionCardState extends State<SectionCard>
                         arguments: {'tag': s.tag, 'tagName': s.nameRu},
                       ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
                       icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                      label: Text('Тренировать: ${s.nameRu}',
+                      label: Text(l.trainSection(s.nameRu),
                           style: const TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(0, 40),
@@ -210,6 +212,7 @@ class TopicsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     // Sort topics: tested first by mastery desc, untested at bottom
     final sorted = List<GraphNode>.from(topics)
       ..sort((a, b) {
@@ -249,7 +252,7 @@ class TopicsList extends StatelessWidget {
                         children: [
                           Text(t.nameRu,
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                          Text(pct != null ? 'Нажми чтобы практиковать' : 'Начать изучение',
+                          Text(pct != null ? l.tapToPractice : l.startLearning,
                               style: TextStyle(fontSize: 11, color: Colors.grey[400])),
                         ],
                       ),

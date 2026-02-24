@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kodi_web/l10n/app_localizations.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../../shared/constants/tag_labels.dart';
@@ -11,13 +12,14 @@ class GraphPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) => Scaffold(
         backgroundColor: AppColors.surfaceAlt,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          title: const Text('Граф знаний', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(l.graphTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
           leading: const BackButton(),
         ),
         body: switch (state) {
@@ -30,7 +32,7 @@ class GraphPage extends StatelessWidget {
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => context.read<DashboardBloc>().add(DashboardLoad()),
-                child: const Text('Повторить'),
+                child: Text(l.retryBtn),
               ),
             ]),
           ),
@@ -47,6 +49,7 @@ class _GraphBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final byTag = <String, List<GraphNode>>{};
     for (final n in nodes) { byTag.putIfAbsent(n.tag, () => []).add(n); }
 
@@ -65,10 +68,10 @@ class _GraphBody extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _LegendItem(color: AppColors.success, label: 'Освоено', count: mastered),
-                _LegendItem(color: AppColors.warning, label: 'Частично', count: partial),
-                _LegendItem(color: AppColors.error, label: 'Провалено', count: failed),
-                _LegendItem(color: AppColors.muted, label: 'Не проверено', count: untested),
+                _LegendItem(color: AppColors.success, label: l.legendMastered, count: mastered),
+                _LegendItem(color: AppColors.warning, label: l.legendPartial, count: partial),
+                _LegendItem(color: AppColors.error, label: l.legendFailed, count: failed),
+                _LegendItem(color: AppColors.muted, label: l.legendUntested, count: untested),
               ]),
             ),
             const SizedBox(height: 20),
