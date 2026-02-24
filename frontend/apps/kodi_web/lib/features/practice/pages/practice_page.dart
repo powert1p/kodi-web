@@ -9,6 +9,7 @@ import '../../../shared/widgets/result_card.dart';
 import '../../../shared/widgets/report_sheet.dart';
 import '../../../shared/utils/responsive.dart';
 import '../../../app/colors.dart';
+import '../../../app/error_l10n.dart';
 import '../bloc/practice_bloc.dart';
 
 class PracticePage extends StatefulWidget {
@@ -151,7 +152,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
           if (state.combo >= 3) _comboAnimController.forward(from: 0);
         }
         if (state is PracticeError) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(localizeError(context, state.message))));
         }
       },
       builder: (context, state) {

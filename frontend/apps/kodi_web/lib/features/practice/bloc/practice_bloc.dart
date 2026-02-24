@@ -163,7 +163,7 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
       emit(PracticeError(e.userMessage));
     } catch (e, st) {
       debugPrint('[PracticeBloc._onAnswerSubmitted] $e\n$st');
-      emit(PracticeError('Не удалось отправить ответ'));
+      emit(PracticeError('practiceAnswerError'));
     }
   }
 
@@ -234,7 +234,7 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
       emit(PracticeError(e.userMessage));
     } catch (e, st) {
       debugPrint('[PracticeBloc._loadNext] $e\n$st');
-      emit(PracticeError('Не удалось загрузить задачу'));
+      emit(PracticeError('practiceProblemError'));
     }
   }
 

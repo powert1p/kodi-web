@@ -607,4 +607,45 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get page404 => '404';
+
+  @override
+  String get authTelegramError =>
+      'Не удалось войти через Telegram. Попробуйте ещё раз.';
+
+  @override
+  String get authProfileError =>
+      'Не удалось загрузить профиль. Попробуйте ещё раз.';
+
+  @override
+  String get practiceAnswerError => 'Не удалось отправить ответ';
+
+  @override
+  String get practiceProblemError => 'Не удалось загрузить задачу';
+
+  @override
+  String get diagnosticResumeError => 'Не удалось продолжить диагностику';
+
+  @override
+  String get diagnosticStartError => 'Не удалось начать диагностику';
+
+  @override
+  String get diagnosticAnswerError => 'Не удалось отправить ответ';
+
+  @override
+  String get diagnosticQuestionError => 'Не удалось загрузить вопрос';
+
+  @override
+  String get diagnosticFinishError => 'Не удалось завершить диагностику';
+
+  @override
+  String get dashboardLoadError => 'Не удалось загрузить данные';
+
+  @override
+  String get examStartError => 'Не удалось запустить экзамен';
+
+  @override
+  String get examAnswerError => 'Не удалось отправить ответ';
+
+  @override
+  String get leaderboardDefaultName => 'Ученик';
 }

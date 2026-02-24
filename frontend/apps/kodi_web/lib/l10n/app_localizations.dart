@@ -1220,6 +1220,84 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'404'**
   String get page404;
+
+  /// No description provided for @authTelegramError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось войти через Telegram. Попробуйте ещё раз.'**
+  String get authTelegramError;
+
+  /// No description provided for @authProfileError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить профиль. Попробуйте ещё раз.'**
+  String get authProfileError;
+
+  /// No description provided for @practiceAnswerError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось отправить ответ'**
+  String get practiceAnswerError;
+
+  /// No description provided for @practiceProblemError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить задачу'**
+  String get practiceProblemError;
+
+  /// No description provided for @diagnosticResumeError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось продолжить диагностику'**
+  String get diagnosticResumeError;
+
+  /// No description provided for @diagnosticStartError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось начать диагностику'**
+  String get diagnosticStartError;
+
+  /// No description provided for @diagnosticAnswerError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось отправить ответ'**
+  String get diagnosticAnswerError;
+
+  /// No description provided for @diagnosticQuestionError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить вопрос'**
+  String get diagnosticQuestionError;
+
+  /// No description provided for @diagnosticFinishError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось завершить диагностику'**
+  String get diagnosticFinishError;
+
+  /// No description provided for @dashboardLoadError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось загрузить данные'**
+  String get dashboardLoadError;
+
+  /// No description provided for @examStartError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось запустить экзамен'**
+  String get examStartError;
+
+  /// No description provided for @examAnswerError.
+  ///
+  /// In ru, this message translates to:
+  /// **'Не удалось отправить ответ'**
+  String get examAnswerError;
+
+  /// No description provided for @leaderboardDefaultName.
+  ///
+  /// In ru, this message translates to:
+  /// **'Ученик'**
+  String get leaderboardDefaultName;
 }
 
 class _AppLocalizationsDelegate

@@ -203,7 +203,7 @@ class DiagnosticBloc extends Bloc<DiagnosticEvent, DiagnosticState> {
       emit(DiagnosticError(e.userMessage, wasStarted: true));
     } catch (e, st) {
       debugPrint('[DiagnosticBloc._onResume] $e\n$st');
-      emit(DiagnosticError('Не удалось продолжить диагностику', wasStarted: true));
+      emit(DiagnosticError('diagnosticResumeError', wasStarted: true));
     }
   }
 
@@ -223,7 +223,7 @@ class DiagnosticBloc extends Bloc<DiagnosticEvent, DiagnosticState> {
       emit(DiagnosticError(e.userMessage, wasStarted: true));
     } catch (e, st) {
       debugPrint('[DiagnosticBloc._onStart] $e\n$st');
-      emit(DiagnosticError('Не удалось начать диагностику', wasStarted: true));
+      emit(DiagnosticError('diagnosticStartError', wasStarted: true));
     }
   }
 
@@ -249,7 +249,7 @@ class DiagnosticBloc extends Bloc<DiagnosticEvent, DiagnosticState> {
       emit(DiagnosticError(e.userMessage, wasStarted: true));
     } catch (e, st) {
       debugPrint('[DiagnosticBloc._onCancelAndStart] start $e\n$st');
-      emit(DiagnosticError('Не удалось начать диагностику', wasStarted: true));
+      emit(DiagnosticError('diagnosticStartError', wasStarted: true));
     }
   }
 
@@ -284,7 +284,7 @@ class DiagnosticBloc extends Bloc<DiagnosticEvent, DiagnosticState> {
       emit(DiagnosticError(e.userMessage, wasStarted: true));
     } catch (e, st) {
       debugPrint('[DiagnosticBloc._onAnswerSubmitted] $e\n$st');
-      emit(DiagnosticError('Не удалось отправить ответ', wasStarted: true));
+      emit(DiagnosticError('diagnosticAnswerError', wasStarted: true));
     }
   }
 
@@ -302,7 +302,7 @@ class DiagnosticBloc extends Bloc<DiagnosticEvent, DiagnosticState> {
       emit(DiagnosticError(e.userMessage, wasStarted: true));
     } catch (e, st) {
       debugPrint('[DiagnosticBloc._onNextQuestion] $e\n$st');
-      emit(DiagnosticError('Не удалось загрузить вопрос', wasStarted: true));
+      emit(DiagnosticError('diagnosticQuestionError', wasStarted: true));
     }
   }
 
@@ -321,7 +321,7 @@ class DiagnosticBloc extends Bloc<DiagnosticEvent, DiagnosticState> {
       emit(DiagnosticError(e.userMessage, wasStarted: true));
     } catch (e, st) {
       debugPrint('[DiagnosticBloc._onFinish] $e\n$st');
-      emit(DiagnosticError('Не удалось завершить диагностику', wasStarted: true));
+      emit(DiagnosticError('diagnosticFinishError', wasStarted: true));
     }
   }
 

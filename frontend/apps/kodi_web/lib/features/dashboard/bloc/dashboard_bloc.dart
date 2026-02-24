@@ -66,7 +66,7 @@ class LeaderboardEntry extends Equatable {
 
   factory LeaderboardEntry.fromJson(Map<String, dynamic> json) =>
       LeaderboardEntry(
-        name: json['name'] as String? ?? 'Ученик',
+        name: json['name'] as String? ?? '',
         solved: json['solved'] as int? ?? 0,
         correct: json['correct'] as int? ?? 0,
         accuracy: json['accuracy'] as int? ?? 0,
@@ -126,7 +126,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       emit(DashboardError(e.userMessage));
     } catch (e, st) {
       debugPrint('[DashboardBloc._onLoad] $e\n$st');
-      emit(DashboardError('Не удалось загрузить данные'));
+      emit(DashboardError('dashboardLoadError'));
     }
   }
 }

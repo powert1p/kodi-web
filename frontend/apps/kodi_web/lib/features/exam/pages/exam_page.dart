@@ -9,6 +9,7 @@ import '../../../shared/widgets/result_card.dart';
 import '../../../shared/widgets/report_sheet.dart';
 import '../../../shared/utils/responsive.dart';
 import '../../../app/colors.dart';
+import '../../../app/error_l10n.dart';
 import '../bloc/exam_bloc.dart';
 
 class ExamPage extends StatefulWidget {
@@ -87,7 +88,7 @@ class _ExamPageState extends State<ExamPage> {
         }
         if (state is ExamError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)));
+            SnackBar(content: Text(localizeError(context, state.message))));
         }
       },
       builder: (context, state) {
@@ -147,7 +148,7 @@ class _ExamPageState extends State<ExamPage> {
 
   Widget _buildContent(BuildContext context, ExamState state) {
     return switch (state) {
-      ExamError(:final message) => _buildError(context, message),
+      ExamError(:final message) => _buildError(context, localizeError(context, message)),
       ExamFinished() => _buildResults(context, state),
       ExamInitial() => _buildSetup(context),
       ExamQuestionReady() => _buildQuestion(context, state),

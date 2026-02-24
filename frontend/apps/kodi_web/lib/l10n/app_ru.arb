@@ -222,5 +222,19 @@
   "submitAnswer": "Ответить",
   "skipBtn": "Пропустить",
 
-  "page404": "404"
+  "page404": "404",
+
+  "authTelegramError": "Не удалось войти через Telegram. Попробуйте ещё раз.",
+  "authProfileError": "Не удалось загрузить профиль. Попробуйте ещё раз.",
+  "practiceAnswerError": "Не удалось отправить ответ",
+  "practiceProblemError": "Не удалось загрузить задачу",
+  "diagnosticResumeError": "Не удалось продолжить диагностику",
+  "diagnosticStartError": "Не удалось начать диагностику",
+  "diagnosticAnswerError": "Не удалось отправить ответ",
+  "diagnosticQuestionError": "Не удалось загрузить вопрос",
+  "diagnosticFinishError": "Не удалось завершить диагностику",
+  "dashboardLoadError": "Не удалось загрузить данные",
+  "examStartError": "Не удалось запустить экзамен",
+  "examAnswerError": "Не удалось отправить ответ",
+  "leaderboardDefaultName": "Ученик"
 }

@@ -166,7 +166,7 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
       emit(ExamError(e.userMessage));
     } catch (e, st) {
       debugPrint('[ExamBloc._onStart] $e\n$st');
-      emit(ExamError('Не удалось запустить экзамен'));
+      emit(ExamError('examStartError'));
     }
   }
 
@@ -202,7 +202,7 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
       emit(ExamError(e.userMessage));
     } catch (e, st) {
       debugPrint('[ExamBloc._onAnswerSubmitted] $e\n$st');
-      emit(ExamError('Не удалось отправить ответ'));
+      emit(ExamError('examAnswerError'));
     }
   }
 

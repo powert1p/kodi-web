@@ -12,6 +12,7 @@ import 'leaderboard_page.dart';
 import '../../diagnostic/pages/diagnostic_page.dart';
 import '../../../shared/constants/tag_labels.dart';
 import '../../../app/colors.dart';
+import '../../../app/error_l10n.dart';
 import 'widgets/section_data.dart';
 import 'widgets/error_view.dart';
 import 'widgets/hero_card.dart';
@@ -109,7 +110,7 @@ class _DashboardPageState extends State<DashboardPage> {
           DashboardLoading() || DashboardInitial() =>
             const Center(child: CircularProgressIndicator()),
           DashboardError(:final message) => ErrorView(
-              message: message,
+              message: localizeError(context, message),
               onRetry: () =>
                   context.read<DashboardBloc>().add(DashboardLoad())),
           DashboardLoaded(:final student, :final stats, :final nodes, :final leaderboard) =>

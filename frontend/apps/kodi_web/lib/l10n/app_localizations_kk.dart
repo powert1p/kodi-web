@@ -607,4 +607,45 @@ class AppLocalizationsKk extends AppLocalizations {
 
   @override
   String get page404 => '404';
+
+  @override
+  String get authTelegramError =>
+      'Telegram арқылы кіру мүмкін болмады. Қайта көріңіз.';
+
+  @override
+  String get authProfileError =>
+      'Профильді жүктеу мүмкін болмады. Қайта көріңіз.';
+
+  @override
+  String get practiceAnswerError => 'Жауапты жіберу мүмкін болмады';
+
+  @override
+  String get practiceProblemError => 'Есепті жүктеу мүмкін болмады';
+
+  @override
+  String get diagnosticResumeError => 'Диагностиканы жалғастыру мүмкін болмады';
+
+  @override
+  String get diagnosticStartError => 'Диагностиканы бастау мүмкін болмады';
+
+  @override
+  String get diagnosticAnswerError => 'Жауапты жіберу мүмкін болмады';
+
+  @override
+  String get diagnosticQuestionError => 'Сұрақты жүктеу мүмкін болмады';
+
+  @override
+  String get diagnosticFinishError => 'Диагностиканы аяқтау мүмкін болмады';
+
+  @override
+  String get dashboardLoadError => 'Деректерді жүктеу мүмкін болмады';
+
+  @override
+  String get examStartError => 'Емтиханды бастау мүмкін болмады';
+
+  @override
+  String get examAnswerError => 'Жауапты жіберу мүмкін болмады';
+
+  @override
+  String get leaderboardDefaultName => 'Оқушы';
 }

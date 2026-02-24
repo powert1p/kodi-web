@@ -9,6 +9,7 @@ import '../../../shared/widgets/result_card.dart';
 import '../../../shared/widgets/report_sheet.dart';
 import '../../../shared/utils/responsive.dart';
 import '../../../app/colors.dart';
+import '../../../app/error_l10n.dart';
 import '../bloc/diagnostic_bloc.dart';
 
 class DiagnosticPage extends StatefulWidget {
@@ -86,7 +87,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
         }
         if (state is DiagnosticError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)));
+            SnackBar(content: Text(localizeError(context, state.message))));
         }
       },
       builder: (context, state) {
@@ -161,7 +162,7 @@ class _DiagnosticPageState extends State<DiagnosticPage> {
 
   Widget _buildContent(BuildContext context, DiagnosticState state) {
     return switch (state) {
-      DiagnosticError(:final message) => _buildError(context, message),
+      DiagnosticError(:final message) => _buildError(context, localizeError(context, message)),
       DiagnosticFinished() => _buildResults(context, state),
       DiagnosticActiveSessionFound() => _buildResumePrompt(context, state),
       DiagnosticModeSelection() => _buildStart(context),

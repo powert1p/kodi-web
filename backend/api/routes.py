@@ -331,8 +331,8 @@ async def stats_me(request: Request, lang: str = "ru"):
             "avg_time_s": avg_time_s,
             "mastered_count": mastered_count,
             "total_nodes": total_nodes,
-            "current_streak": 0,
-            "longest_streak": 0,
+            "current_streak": student.current_streak or 0,
+            "longest_streak": student.longest_streak or 0,
         }
     finally:
         await session.close()

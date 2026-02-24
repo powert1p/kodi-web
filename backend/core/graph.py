@@ -51,7 +51,7 @@ async def get_outer_fringe(
     """Nodes where ALL prerequisites are mastered but the node itself is NOT.
 
     *threshold* controls what counts as "mastered":
-        - Default (None) uses MASTERY_THRESHOLD (0.95) — for practice mode.
+        - Default (None) uses MASTERY_THRESHOLD (0.85) — for practice mode.
         - Pass 0.5 after diagnostic (mastered=0.8, failed=0.2).
 
     For nodes with NO prerequisites and p_mastery < threshold — they are also

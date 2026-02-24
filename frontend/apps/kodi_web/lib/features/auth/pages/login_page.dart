@@ -7,6 +7,7 @@ import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kodi_web/l10n/app_localizations.dart';
+import '../../../app/error_l10n.dart';
 import '../bloc/auth_bloc.dart';
 import '../../dashboard/pages/dashboard_page.dart';
 import 'phone_login_page.dart';
@@ -128,7 +129,7 @@ class _LoginPageState extends State<LoginPage> {
                                 decoration: BoxDecoration(
                                   color: Colors.red[50],
                                   borderRadius: BorderRadius.circular(8)),
-                                child: Text(state.message,
+                                child: Text(localizeError(context, state.message),
                                     style: TextStyle(color: Colors.red[700], fontSize: 13),
                                     textAlign: TextAlign.center)),
                               const SizedBox(height: 16),

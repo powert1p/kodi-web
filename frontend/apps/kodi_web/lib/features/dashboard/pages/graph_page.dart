@@ -5,6 +5,7 @@ import 'package:kodi_core/kodi_core.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../../shared/constants/tag_labels.dart';
 import '../../../app/colors.dart';
+import '../../../app/error_l10n.dart';
 
 class GraphPage extends StatelessWidget {
   const GraphPage({super.key});
@@ -28,7 +29,7 @@ class GraphPage extends StatelessWidget {
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 12),
-              Text(message, textAlign: TextAlign.center),
+              Text(localizeError(context, message), textAlign: TextAlign.center),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => context.read<DashboardBloc>().add(DashboardLoad()),

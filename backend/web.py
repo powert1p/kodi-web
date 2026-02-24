@@ -59,7 +59,6 @@ _ALLOWED_ORIGINS = [
 ] or [
     "https://kodi-web-production.up.railway.app",
     "http://localhost:8000",
-    "http://localhost:5000",
 ]
 
 app.add_middleware(

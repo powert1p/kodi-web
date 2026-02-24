@@ -45,7 +45,7 @@ class NisMathApp extends StatelessWidget {
         ],
         child: BlocListener<LocaleBloc, LocaleState>(
           listener: (context, state) {
-            api.lang = state.locale.languageCode;
+            api.lang = state.locale.languageCode == 'kk' ? 'kz' : state.locale.languageCode;
           },
           child: BlocBuilder<LocaleBloc, LocaleState>(
             builder: (context, localeState) => MaterialApp(

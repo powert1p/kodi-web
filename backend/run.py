@@ -26,11 +26,20 @@ async def on_startup():
         await conn.run_sync(Base.metadata.create_all)
         # Add columns that may be missing in existing DB
         for stmt in [
+            # ── students table ──
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS practice_count INTEGER DEFAULT 0",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS current_practice_node VARCHAR(10)",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS problems_on_current_node INTEGER DEFAULT 0",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS pin_hash VARCHAR(128)",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS paused_diagnostic JSONB",
+            # ── problem_reports table ──
+            "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'open'",
+            "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP",
+            "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_by VARCHAR(100)",
+            "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''",
+            # ── fix NULLs in existing rows ──
+            "UPDATE students SET practice_count = 0 WHERE practice_count IS NULL",
+            "UPDATE students SET problems_on_current_node = 0 WHERE problems_on_current_node IS NULL",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")

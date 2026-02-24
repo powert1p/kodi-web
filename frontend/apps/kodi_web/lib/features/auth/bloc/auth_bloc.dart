@@ -91,7 +91,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.userMessage));
     } catch (e, st) {
       debugPrint('[AuthBloc._onTelegramLogin] $e\n$st');
-      emit(AuthError('Не удалось войти через Telegram. Попробуйте ещё раз.'));
+      emit(AuthError('authTelegramError'));
     }
   }
 
@@ -112,7 +112,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.userMessage));
     } catch (e, st) {
       debugPrint('[AuthBloc._onTokenReceived] $e\n$st');
-      emit(AuthError('Не удалось загрузить профиль. Попробуйте ещё раз.'));
+      emit(AuthError('authProfileError'));
     }
   }
 
