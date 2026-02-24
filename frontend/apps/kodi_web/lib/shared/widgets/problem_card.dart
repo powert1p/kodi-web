@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/colors.dart';
 import 'math_text.dart';
 import '../utils/responsive.dart';
 
@@ -26,10 +27,10 @@ class ProblemCard extends StatelessWidget {
           Flexible(child: Container(
             padding: EdgeInsets.symmetric(horizontal: rp(context, 12), vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
+              color: AppColors.primaryBgLight,
               borderRadius: BorderRadius.circular(8)),
             child: Text(nodeName!,
-              style: TextStyle(color: const Color(0xFF2563EB),
+              style: TextStyle(color: AppColors.primary,
                 fontWeight: FontWeight.w600, fontSize: rs(context, 13)),
               overflow: TextOverflow.ellipsis))),
         if (difficulty != null) ...[
@@ -41,7 +42,7 @@ class ProblemCard extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: rp(context, 10), vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(20)),
             child: Text(counter!,
               style: TextStyle(color: Colors.grey[600],
@@ -61,7 +62,7 @@ class ProblemCard extends StatelessWidget {
             blurRadius: 8, offset: const Offset(0, 2))]),
         child: MathText(text,
           style: TextStyle(
-            fontSize: rs(context, 17), height: 1.6, color: const Color(0xFF1E293B))),
+            fontSize: rs(context, 17), height: 1.6, color: AppColors.textPrimary)),
       ),
     ]);
   }
@@ -75,5 +76,5 @@ class _DifficultyDots extends StatelessWidget {
     children: List.generate(4, (i) => Container(
       width: 8, height: 8, margin: const EdgeInsets.only(right: 3),
       decoration: BoxDecoration(shape: BoxShape.circle,
-        color: i < level ? const Color(0xFF2563EB) : const Color(0xFFE2E8F0)))));
+        color: i < level ? AppColors.primary : AppColors.border))));
 }

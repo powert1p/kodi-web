@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:kodi_core/kodi_core.dart';
@@ -123,7 +124,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       emit(DashboardError(e.message));
     } on ApiException catch (e) {
       emit(DashboardError(e.userMessage));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[DashboardBloc._onLoad] $e\n$st');
       emit(DashboardError('Не удалось загрузить данные'));
     }
   }

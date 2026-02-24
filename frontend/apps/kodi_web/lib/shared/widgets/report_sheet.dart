@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kodi_core/kodi_core.dart';
+import '../../app/colors.dart';
 
 /// Shows report bottom sheet and submits to API.
 Future<void> showReportSheet(BuildContext context, NisApiClient api, int problemId) async {
@@ -14,15 +15,15 @@ Future<void> showReportSheet(BuildContext context, NisApiClient api, int problem
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         ListTile(
-          leading: const Icon(Icons.error_outline, color: Color(0xFFEF4444)),
+          leading: Icon(Icons.error_outline, color: AppColors.error),
           title: const Text('Ошибка в условии'),
           onTap: () => Navigator.pop(context, 'error')),
         ListTile(
-          leading: const Icon(Icons.help_outline, color: Color(0xFFF59E0B)),
+          leading: Icon(Icons.help_outline, color: AppColors.warning),
           title: const Text('Неправильный ответ'),
           onTap: () => Navigator.pop(context, 'wrong_answer')),
         ListTile(
-          leading: const Icon(Icons.visibility_off, color: Color(0xFF64748B)),
+          leading: Icon(Icons.visibility_off, color: AppColors.textSecondary),
           title: const Text('Непонятное условие'),
           onTap: () => Navigator.pop(context, 'unclear')),
       ])));
@@ -36,7 +37,8 @@ Future<void> showReportSheet(BuildContext context, NisApiClient api, int problem
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Спасибо! Мы проверим.')));
     }
-  } catch (_) {
+  } catch (e, st) {
+    debugPrint('[showReportSheet] $e\n$st');
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Не удалось отправить. Попробуйте позже.')));

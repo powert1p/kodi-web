@@ -29,7 +29,7 @@ import hmac
 import logging
 import random
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -108,8 +108,8 @@ class ExamStartBody(BaseModel):
 def _create_token(student_id: int) -> str:
     payload = {
         "sub": str(student_id),
-        "exp": datetime.utcnow() + timedelta(days=JWT_EXPIRE_DAYS),
-        "iat": datetime.utcnow(),
+        "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRE_DAYS),
+        "iat": datetime.now(timezone.utc),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -141,11 +141,17 @@ async def _get_current_student(request: Request) -> tuple[AsyncSession, Student]
 # ── PIN hashing ───────────────────────────────────────────────
 
 def _hash_pin(pin: str) -> str:
-    return hashlib.sha256(pin.encode()).hexdigest()
+    import bcrypt
+    return bcrypt.hashpw(pin.encode(), bcrypt.gensalt()).decode()
 
 
 def _verify_pin(pin: str, pin_hash: str) -> bool:
-    return hmac.compare_digest(hashlib.sha256(pin.encode()).hexdigest(), pin_hash)
+    import bcrypt
+    # Support legacy SHA256 hashes (64 hex chars) for existing users
+    if len(pin_hash) == 64:
+        return hmac.compare_digest(hashlib.sha256(pin.encode()).hexdigest(), pin_hash)
+    # bcrypt hash
+    return bcrypt.checkpw(pin.encode(), pin_hash.encode())
 
 
 # ── Telegram hash verification ────────────────────────────────
@@ -250,6 +256,10 @@ async def auth_phone_login(request: Request, body: PhoneLoginBody):
             raise HTTPException(status_code=401, detail="Для этого аккаунта не установлен PIN. Войдите через Telegram.")
         if not _verify_pin(body.pin, student.pin_hash):
             raise HTTPException(status_code=401, detail="Неверный номер телефона или PIN")
+        # Upgrade legacy SHA256 hash to bcrypt on successful login
+        if len(student.pin_hash) == 64:
+            student.pin_hash = _hash_pin(body.pin)
+            await session.commit()
         return {"access_token": _create_token(student.id)}
 
 
@@ -288,7 +298,7 @@ async def stats_me(request: Request, lang: str = "ru"):
         mastered_result = await session.execute(
             select(func.count(Mastery.node_id)).where(
                 Mastery.student_id == student.id,
-                Mastery.p_mastery >= 0.7,
+                Mastery.p_mastery >= MASTERY_THRESHOLD,
             )
         )
         mastered_count = mastered_result.scalar() or 0
@@ -326,7 +336,42 @@ async def stats_me(request: Request, lang: str = "ru"):
 #  GRAPH ROUTES
 # ══════════════════════════════════════════════════════════════
 
+_downstream_cache: dict[str, int] | None = None
+
+
+async def _get_downstream_counts(session: AsyncSession) -> dict[str, int]:
+    """Compute downstream node counts (cached — graph doesn't change at runtime)."""
+    global _downstream_cache
+    if _downstream_cache is not None:
+        return _downstream_cache
+
+    edges_result = await session.execute(select(Edge.from_node, Edge.to_node))
+    all_edges = edges_result.all()
+
+    nodes_result = await session.execute(select(Node.id))
+    all_node_ids = {r[0] for r in nodes_result.all()}
+
+    dependents_map: dict[str, set[str]] = {}
+    for from_n, to_n in all_edges:
+        dependents_map.setdefault(from_n, set()).add(to_n)
+
+    def _count(nid: str, cache: dict[str, int]) -> int:
+        if nid in cache:
+            return cache[nid]
+        direct = dependents_map.get(nid, set())
+        total = len(direct)
+        for dep in direct:
+            total += _count(dep, cache)
+        cache[nid] = total
+        return total
+
+    cache: dict[str, int] = {}
+    _downstream_cache = {nid: _count(nid, cache) for nid in all_node_ids}
+    return _downstream_cache
+
+
 @router.get("/graph/me")
+@limiter.limit("20/minute")
 async def graph_me(request: Request, lang: str = "ru"):
     session, student = await _get_current_student(request)
     try:
@@ -390,22 +435,7 @@ async def graph_me(request: Request, lang: str = "ru"):
             if any(p in failed_tested for p in prereqs):
                 blocked_ids.add(nid)
 
-        dependents_map: dict[str, set[str]] = {}
-        for from_n, to_n in edge_tuples:
-            dependents_map.setdefault(from_n, set()).add(to_n)
-
-        def _count_downstream(nid: str, cache: dict[str, int]) -> int:
-            if nid in cache:
-                return cache[nid]
-            direct = dependents_map.get(nid, set())
-            total = len(direct)
-            for dep in direct:
-                total += _count_downstream(dep, cache)
-            cache[nid] = total
-            return total
-
-        ds_cache: dict[str, int] = {}
-        downstream_counts = {nid: _count_downstream(nid, ds_cache) for nid in all_node_ids}
+        downstream_counts = await _get_downstream_counts(session)
 
         nodes_json = []
         for node in all_nodes:
@@ -445,30 +475,59 @@ async def graph_me(request: Request, lang: str = "ru"):
 #  PRACTICE ROUTES
 # ══════════════════════════════════════════════════════════════
 
-_practice_counters: dict[int, int] = {}
-_practice_lock = asyncio.Lock()
-
 @router.get("/practice/next")
 async def practice_next(
     request: Request,
-    count: int = Query(1),
-    lang: str = Query("ru"),
-    tag: str | None = Query(None),
-    node_id: str | None = Query(None),
+    count: int = Query(1, ge=1, le=10),
+    lang: str = Query("ru", regex="^(ru|kz)$"),
+    tag: str | None = Query(None, max_length=30),
+    node_id: str | None = Query(None, max_length=10),
 ):
     session, student = await _get_current_student(request)
     try:
-        async with _practice_lock:
-            counter = _practice_counters.get(student.id, 0) + 1
-            _practice_counters[student.id] = counter
+        student.practice_count = (student.practice_count or 0) + 1
+        counter = student.practice_count
+        await session.flush()
+
+        BLOCK_SIZE = 5
 
         if node_id:
+            # Explicit node request — bypass block logic
             from core.selector import _pick_problem_for_node
             problem = await _pick_problem_for_node(session, student.id, node_id)
             if not problem:
                 raise HTTPException(status_code=404, detail="Нет задач для этой темы")
         else:
-            problem, _ = await select_next_problem(session, student.id, counter)
+            # ── Block interleaving ──
+            current_node = student.current_practice_node
+            problems_done = student.problems_on_current_node or 0
+            problem = None
+
+            # Try to continue current block
+            if current_node and problems_done < BLOCK_SIZE:
+                mastery_row = (await session.execute(
+                    select(Mastery).where(
+                        Mastery.student_id == student.id,
+                        Mastery.node_id == current_node,
+                    )
+                )).scalar_one_or_none()
+
+                if mastery_row is None or not is_mastered(mastery_row):
+                    from core.selector import _pick_problem_for_node
+                    problem = await _pick_problem_for_node(
+                        session, student.id, current_node,
+                    )
+                    if problem:
+                        student.problems_on_current_node = problems_done + 1
+
+            # Block ended / mastered / no problems → switch topic
+            if problem is None:
+                problem, new_node = await select_next_problem(
+                    session, student.id, exclude_node=current_node,
+                )
+                if problem and new_node:
+                    student.current_practice_node = new_node
+                    student.problems_on_current_node = 1
 
         if not problem:
             raise HTTPException(status_code=404, detail="Все задачи решены! Поздравляем!")
@@ -476,6 +535,8 @@ async def practice_next(
         node = await session.get(Node, problem.node_id)
         node_name = (node.name_ru if lang == "ru" else (node.name_kz or node.name_ru)) if node else problem.node_id
         problem_text = problem.text_ru if lang == "ru" else (problem.text_kz or problem.text_ru)
+
+        await session.commit()
 
         return {
             "problem_id": problem.id,
@@ -675,24 +736,26 @@ async def _restore_state(session: AsyncSession, student: Student):
     from core.exam import ExamState
     from core.diagnostic import DiagnosticState
 
-    if student.id in _diagnostic_states:
-        return _diagnostic_states[student.id]
+    async with _diagnostic_lock:
+        if student.id in _diagnostic_states:
+            return _diagnostic_states[student.id]
 
-    blob = student.paused_diagnostic
-    if not blob or not isinstance(blob, dict):
-        return None
+        blob = student.paused_diagnostic
+        if not blob or not isinstance(blob, dict):
+            return None
 
-    mode = blob.get("_mode", blob.get("mode", ""))
-    try:
-        if mode == "exam" or blob.get("phase") == 4:
-            state = ExamState.from_dict(blob)
-        else:
-            state = DiagnosticState.from_dict(blob)
-        _diagnostic_states[student.id] = state
-        return state
-    except (KeyError, ValueError, TypeError) as exc:
-        logger.warning("Failed to restore diagnostic state for %s: %s", student.id, exc)
-        return None
+        mode = blob.get("_mode", blob.get("mode", ""))
+        try:
+            if mode == "exam" or blob.get("phase") == 4:
+                state = ExamState.from_dict(blob)
+            else:
+                state = DiagnosticState.from_dict(blob)
+            _diagnostic_states[student.id] = state
+            return state
+        except (KeyError, ValueError, TypeError) as exc:
+            logger.warning("Failed to restore diagnostic state for %s: %s", student.id, exc)
+            student.paused_diagnostic = None
+            return None
 
 
 @router.post("/diagnostic/start")
@@ -701,7 +764,8 @@ async def diagnostic_start(request: Request, body: DiagnosticStartBody):
     try:
         mode = body.mode
 
-        _diagnostic_states.pop(student.id, None)
+        async with _diagnostic_lock:
+            _diagnostic_states.pop(student.id, None)
 
         if mode in ("exam", "gaps"):
             from core.exam import init_exam
@@ -719,7 +783,8 @@ async def diagnostic_start(request: Request, body: DiagnosticStartBody):
             from core.exam import init_exam
             state = await init_exam(session, student.id)
 
-        _diagnostic_states[student.id] = state
+        async with _diagnostic_lock:
+            _diagnostic_states[student.id] = state
         await _persist_state(session, student, state, mode)
         await session.commit()
 
@@ -838,7 +903,8 @@ async def diagnostic_finish(request: Request):
         student.paused_diagnostic = None
         await session.commit()
 
-        _diagnostic_states.pop(student.id, None)
+        async with _diagnostic_lock:
+            _diagnostic_states.pop(student.id, None)
 
         return {"status": "finished"}
     finally:
@@ -850,7 +916,8 @@ async def diagnostic_cancel(request: Request):
     """Explicitly abandon the current diagnostic/exam session."""
     session, student = await _get_current_student(request)
     try:
-        _diagnostic_states.pop(student.id, None)
+        async with _diagnostic_lock:
+            _diagnostic_states.pop(student.id, None)
         student.paused_diagnostic = None
         await session.commit()
         return {"status": "cancelled"}

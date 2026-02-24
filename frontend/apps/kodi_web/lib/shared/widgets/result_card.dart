@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/colors.dart';
 import 'math_text.dart';
 import '../utils/responsive.dart';
 
@@ -29,26 +30,26 @@ class ResultCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(rp(context, 20)),
       decoration: BoxDecoration(
-        color: ok ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
+        color: ok ? AppColors.successBgLight : AppColors.errorBgLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+          color: ok ? AppColors.success : AppColors.error,
           width: 1.5)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Icon(ok ? Icons.check_circle_rounded : Icons.cancel_rounded,
-            color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444), size: rs(context, 24)),
+            color: ok ? AppColors.success : AppColors.error, size: rs(context, 24)),
           const SizedBox(width: 8),
           Flexible(child: Text(ok ? 'Правильно! 🎉' : 'Неправильно',
             style: TextStyle(fontSize: rs(context, 17), fontWeight: FontWeight.bold,
-              color: ok ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+              color: ok ? AppColors.success : AppColors.error),
             overflow: TextOverflow.ellipsis)),
           const Spacer(),
           if (isMastered)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981),
+                color: AppColors.success,
                 borderRadius: BorderRadius.circular(20)),
               child: Text('✨ Освоено',
                 style: TextStyle(color: Colors.white, fontSize: rs(context, 11), fontWeight: FontWeight.w600))),
@@ -80,7 +81,7 @@ class ResultCard extends StatelessWidget {
             child: Row(children: [
               Text('Ответ: ', style: TextStyle(color: Colors.grey[500], fontSize: rs(context, 14))),
               Expanded(child: MathText(correctAnswer!,
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: rs(context, 16), color: const Color(0xFF1E293B)))),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: rs(context, 16), color: AppColors.textPrimary))),
             ])),
         ],
 
@@ -93,10 +94,10 @@ class ResultCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text('💡 Решение:',
-                style: TextStyle(fontWeight: FontWeight.w600, color: const Color(0xFF1E293B), fontSize: rs(context, 14))),
+                style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontSize: rs(context, 14))),
               const SizedBox(height: 6),
               MathText(solution!,
-                style: TextStyle(color: const Color(0xFF475569), height: 1.5, fontSize: rs(context, 14))),
+                style: TextStyle(color: AppColors.textBody, height: 1.5, fontSize: rs(context, 14))),
             ])),
         ],
 
@@ -111,10 +112,10 @@ class ResultCard extends StatelessWidget {
               child: LinearProgressIndicator(
                 value: pMastery!,
                 minHeight: 8,
-                backgroundColor: const Color(0xFFE2E8F0),
+                backgroundColor: AppColors.border,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  pMastery! >= 0.7 ? const Color(0xFF10B981)
-                    : pMastery! >= 0.4 ? const Color(0xFFF59E0B) : const Color(0xFF2563EB))))),
+                  pMastery! >= 0.7 ? AppColors.success
+                    : pMastery! >= 0.4 ? AppColors.warning : AppColors.primary)))),
             const SizedBox(width: 8),
             Text('${(pMastery! * 100).toStringAsFixed(0)}%',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),

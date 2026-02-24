@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/colors.dart';
 import '../bloc/dashboard_bloc.dart';
 
 enum LeaderboardSort { byQuantity, byAccuracy, byProgress }
@@ -45,7 +46,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     final sorted = _sorted;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFAF9F6),
+      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
@@ -75,7 +76,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             color: active
-                                ? const Color(0xFFFFF3E0)
+                                ? AppColors.leaderboardActiveBg
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -87,7 +88,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                               fontWeight:
                                   active ? FontWeight.w700 : FontWeight.w500,
                               color: active
-                                  ? const Color(0xFFE65100)
+                                  ? AppColors.leaderboardActiveText
                                   : Colors.grey[600],
                             ),
                           ),
@@ -149,10 +150,10 @@ class _LeaderboardRow extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: isCurrent ? const Color(0xFFFFF8E1) : Colors.white,
+        color: isCurrent ? AppColors.leaderboardHighlightBg : Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: isCurrent
-            ? Border.all(color: const Color(0xFFFFB300), width: 1.5)
+            ? Border.all(color: AppColors.leaderboardHighlightBorder, width: 1.5)
             : null,
         boxShadow: [
           BoxShadow(
@@ -188,7 +189,7 @@ class _LeaderboardRow extends StatelessWidget {
                     fontSize: 15,
                     fontWeight:
                         isCurrent ? FontWeight.w700 : FontWeight.w500,
-                    color: const Color(0xFF1E293B),
+                    color: AppColors.textPrimary,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -206,8 +207,8 @@ class _LeaderboardRow extends StatelessWidget {
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: isCurrent
-                  ? const Color(0xFFE65100)
-                  : const Color(0xFF1E293B),
+                  ? AppColors.leaderboardActiveText
+                  : AppColors.textPrimary,
             ),
           ),
         ],

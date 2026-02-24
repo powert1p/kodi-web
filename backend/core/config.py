@@ -48,7 +48,7 @@ class Settings:
         f"https://{d}" if (d := os.getenv("RAILWAY_PUBLIC_DOMAIN")) else "http://localhost:8000"
     )
     port: int = int(os.getenv("PORT", "8000"))
-    jwt_secret: str = os.getenv("JWT_SECRET", "") or os.getenv("BOT_TOKEN", "")
+    jwt_secret: str = os.getenv("JWT_SECRET") or os.getenv("BOT_TOKEN", "")
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
 
@@ -58,3 +58,10 @@ class Settings:
 
 
 settings = Settings()
+
+if not os.getenv("JWT_SECRET"):
+    import logging as _log
+    _log.getLogger(__name__).warning(
+        "JWT_SECRET not set — falling back to BOT_TOKEN. "
+        "Set JWT_SECRET in .env for production security."
+    )

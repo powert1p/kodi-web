@@ -97,6 +97,9 @@ class Student(Base):
     longest_streak: Mapped[int | None] = mapped_column(Integer, default=0, server_default="0")
     last_active_date: Mapped[str | None] = mapped_column(String(10))  # YYYY-MM-DD
     diagnostic_complete: Mapped[bool] = mapped_column(Boolean, default=False)
+    practice_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    current_practice_node: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    problems_on_current_node: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     pin_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     paused_diagnostic: Mapped[dict | None] = mapped_column(
         JSONB().with_variant(JSON, "sqlite"), nullable=True

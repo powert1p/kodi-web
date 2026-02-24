@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:kodi_core/kodi_core.dart';
@@ -67,7 +68,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       api.token = token;
       final student = await api.getMe();
       emit(AuthAuthenticated(student));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[AuthBloc._onCheck] $e\n$st');
       emit(AuthUnauthenticated());
     }
   }
@@ -87,7 +89,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.message));
     } on ApiException catch (e) {
       emit(AuthError(e.userMessage));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[AuthBloc._onTelegramLogin] $e\n$st');
       emit(AuthError('Не удалось войти через Telegram. Попробуйте ещё раз.'));
     }
   }
@@ -107,7 +110,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthError(e.message));
     } on ApiException catch (e) {
       emit(AuthError(e.userMessage));
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[AuthBloc._onTokenReceived] $e\n$st');
       emit(AuthError('Не удалось загрузить профиль. Попробуйте ещё раз.'));
     }
   }

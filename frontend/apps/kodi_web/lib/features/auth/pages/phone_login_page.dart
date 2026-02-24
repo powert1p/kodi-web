@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../shared/utils/responsive.dart';
+import '../../../app/colors.dart';
 
 class PhoneLoginPage extends StatefulWidget {
   const PhoneLoginPage({super.key});
@@ -43,7 +44,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
       setState(() { _loading = false; _error = e.message; });
     } on ApiException catch (e) {
       setState(() { _loading = false; _error = e.userMessage; });
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[PhoneLoginPage._checkPhone] $e\n$st');
       setState(() { _loading = false; _error = 'Не удалось проверить номер. Попробуйте ещё раз.'; });
     }
   }
@@ -74,7 +76,8 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
       setState(() { _loading = false; _error = e.message; });
     } on ApiException catch (e) {
       setState(() { _loading = false; _error = e.userMessage; });
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('[PhoneLoginPage._submit] $e\n$st');
       setState(() { _loading = false; _error = 'Не удалось войти. Попробуйте ещё раз.'; });
     }
   }
@@ -109,7 +112,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               onPressed: _loading ? null : _checkPhone,
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, 52),
-                backgroundColor: const Color(0xFF2563EB)),
+                backgroundColor: AppColors.primary),
               child: _loading
                   ? const SizedBox(width: 22, height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -128,7 +131,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
                 Icon(Icons.info_outline, color: Colors.blue[400], size: 18),
                 const SizedBox(width: 8),
                 const Expanded(child: Text('Новый ученик! Заполни имя и придумай PIN',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF1E40AF)))),
+                    style: TextStyle(fontSize: 13, color: AppColors.infoBlueDark))),
               ]),
             ),
             const SizedBox(height: 12),
@@ -151,7 +154,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
                 Icon(Icons.check_circle_outline, color: Colors.green[400], size: 18),
                 const SizedBox(width: 8),
                 const Expanded(child: Text('Номер найден! Введи свой PIN',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF166534)))),
+                    style: TextStyle(fontSize: 13, color: AppColors.infoGreenDark))),
               ]),
             ),
             const SizedBox(height: 12),
@@ -179,7 +182,7 @@ class _PhoneLoginPageState extends State<PhoneLoginPage> {
               onPressed: _loading ? null : _submit,
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, 52),
-                backgroundColor: const Color(0xFF2563EB)),
+                backgroundColor: AppColors.primary),
               child: _loading
                   ? const SizedBox(width: 22, height: 22,
                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))

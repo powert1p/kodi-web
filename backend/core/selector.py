@@ -1,15 +1,14 @@
 """Task selector — picks the next problem for a student.
 
-Interleaved practice (2+2 cycle):
-    positions 0,1 → weak EXAM_HEADS (untested first, then lowest mastery)
-    positions 2,3 → outer fringe gaps (untested first, then lowest mastery)
+Block interleaving:
+    5 problems per topic, then switch to the weakest unmastered topic.
+    When topic is mastered mid-block, switch immediately.
 
-When all EXAM_HEADS >= 0.85 → only outer fringe.
-Fallback: if one source is empty, use the other.
-
-When both heads and fringe are empty (everything mastered):
-    Phase C → review: topics with p_mastery >= 0.70 sorted by staleness
-    Phase D → challenge: hardest unsolved problems (top 20% raw_score)
+Topic selection (when starting a new block):
+    1. Spaced repetition due reviews (if any)
+    2. Weakest unmastered topic from EXAM_HEADS + outer fringe
+    3. Review: mastered topics sorted by staleness
+    4. Challenge: hardest unsolved problems
 
 Within a chosen node we pick a problem whose raw_score is closest to
 the student's mastery-proportional target.  Falls back to sub_difficulty
@@ -19,11 +18,12 @@ levels if raw_score is not available.
 from __future__ import annotations
 
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.bkt import MASTERY_THRESHOLD
 from core.exam import EXAM_HEADS
 from core.graph import get_outer_fringe
 from db.models import Attempt, Mastery, Problem
@@ -80,7 +80,7 @@ async def _pick_problem_for_node(
     has_scores = node_min is not None and node_max is not None
 
     if has_scores:
-        target = node_min + min(p_m + 0.1, 1.0) * (node_max - node_min)
+        target = node_min + min(p_m, 1.0) * (node_max - node_min)
         return await _pick_by_raw_score(
             session, student_id, node_id, target, answered_sub,
         )
@@ -132,7 +132,7 @@ async def _pick_by_raw_score(
         return random.choice(rows)
 
     # Tier 3: not attempted in 7+ days
-    stale_cutoff = datetime.utcnow() - timedelta(days=_REVIEW_STALE_DAYS)
+    stale_cutoff = datetime.now(timezone.utc) - timedelta(days=_REVIEW_STALE_DAYS)
     latest_attempt = (
         select(func.max(Attempt.created_at))
         .where(
@@ -155,14 +155,14 @@ async def _pick_by_raw_score(
     if rows:
         return random.choice(rows)
 
-    # Tier 4: oldest attempted problem
-    result = await session.execute(
+    # Tier 4: oldest attempted problems (pick randomly from top 3 to avoid loops)
+    rows = (await session.execute(
         select(Problem)
         .where(Problem.node_id == node_id)
         .order_by(latest_attempt.asc())
-        .limit(1)
-    )
-    return result.scalar_one_or_none()
+        .limit(3)
+    )).scalars().all()
+    return random.choice(rows) if rows else None
 
 
 async def _pick_by_sub_difficulty(
@@ -272,6 +272,35 @@ async def _get_weak_fringe(
     return untested + [nid for _, nid in tested]
 
 
+async def _get_all_weak_topics(
+    session: AsyncSession,
+    student_id: int,
+) -> list[str]:
+    """All unmastered topics (heads + fringe), sorted globally by weakness."""
+    heads = await _get_weak_exam_heads(session, student_id)
+    fringe = await _get_weak_fringe(session, student_id)
+
+    all_nodes = list(dict.fromkeys(heads + fringe))  # dedupe preserving order
+    if not all_nodes:
+        return []
+
+    # Re-sort globally: untested first, then by p_mastery ASC
+    mastery_rows = (
+        await session.execute(
+            select(Mastery.node_id, Mastery.p_mastery).where(
+                Mastery.student_id == student_id,
+                Mastery.node_id.in_(all_nodes),
+            )
+        )
+    ).all()
+    mastery_map = {r.node_id: r.p_mastery for r in mastery_rows}
+
+    untested = [n for n in all_nodes if n not in mastery_map]
+    tested = [(mastery_map[n], n) for n in all_nodes if n in mastery_map]
+    tested.sort(key=lambda x: x[0])
+    return untested + [n for _, n in tested]
+
+
 async def _pick_from_list(
     session: AsyncSession,
     student_id: int,
@@ -299,7 +328,7 @@ async def _get_review_topics(
     rows = (await session.execute(
         select(Mastery.node_id, Mastery.last_attempt_at).where(
             Mastery.student_id == student_id,
-            Mastery.p_mastery >= 0.70,
+            Mastery.p_mastery >= MASTERY_THRESHOLD,
         ).order_by(Mastery.last_attempt_at.asc())
     )).all()
     return [r.node_id for r in rows]
@@ -348,7 +377,7 @@ async def _get_due_reviews(
         select(Mastery.node_id).where(
             Mastery.student_id == student_id,
             Mastery.next_review_at.isnot(None),
-            Mastery.next_review_at <= datetime.utcnow(),
+            Mastery.next_review_at <= datetime.now(timezone.utc),
         ).order_by(Mastery.next_review_at.asc())
     )).scalars().all()
     return list(rows)
@@ -357,53 +386,41 @@ async def _get_due_reviews(
 async def select_next_problem(
     session: AsyncSession,
     student_id: int,
-    practice_count: int = 1,
+    exclude_node: str | None = None,
 ) -> tuple[Problem | None, str | None]:
-    """Select the best next problem using interleaved 2+2 strategy.
+    """Select the weakest unmastered topic and pick a problem from it.
 
-    Cycle of 4:
-        positions 0,1 → weak EXAM_HEADS (untested → weakest)
-        positions 2,3 → outer fringe gaps (untested → weakest, excluding heads)
+    Called when starting a new block (after 5 problems or mastery).
 
-    When all heads >= 0.85 → only fringe.
-    Fallback: if primary source is empty, use the other.
-
-    Endgame (both empty):
-        Phase C → review stale mastered topics
-        Phase D → challenge with hardest unsolved problems
+    Priority:
+        1. Spaced repetition due reviews
+        2. Weakest unmastered topic (heads + fringe merged)
+        3. Review: stale mastered topics
+        4. Challenge: hardest unsolved problems
     """
     # ── Spaced repetition: due reviews get priority ──
     due_reviews = await _get_due_reviews(session, student_id)
-    if due_reviews and (practice_count - 1) % 3 == 0:
-        # Every 3rd problem slot → review due topic
-        result = await _pick_from_list(session, student_id, due_reviews)
+    if due_reviews:
+        candidates = [n for n in due_reviews if n != exclude_node] if exclude_node else due_reviews
+        if candidates:
+            result = await _pick_from_list(session, student_id, candidates)
+            if result[0] is not None:
+                return result
+
+    # ── Weakest unmastered topic (heads + fringe) ──
+    all_weak = await _get_all_weak_topics(session, student_id)
+    if exclude_node:
+        all_weak = [n for n in all_weak if n != exclude_node]
+    if all_weak:
+        result = await _pick_from_list(session, student_id, all_weak)
         if result[0] is not None:
             return result
-
-    cycle_pos = (practice_count - 1) % 4
-    want_heads = cycle_pos in (0, 1)
-
-    heads = await _get_weak_exam_heads(session, student_id)
-    fringe = await _get_weak_fringe(session, student_id)
-
-    if want_heads and heads:
-        result = await _pick_from_list(session, student_id, heads)
-        if result[0] is not None:
-            return result
-        return await _pick_from_list(session, student_id, fringe)
-
-    if fringe:
-        result = await _pick_from_list(session, student_id, fringe)
-        if result[0] is not None:
-            return result
-        return await _pick_from_list(session, student_id, heads)
-
-    if heads:
-        return await _pick_from_list(session, student_id, heads)
 
     # ── Endgame: everything mastered ──
     # Phase C: review — stale topics
     review = await _get_review_topics(session, student_id)
+    if exclude_node:
+        review = [n for n in review if n != exclude_node]
     if review:
         result = await _pick_from_list(session, student_id, review)
         if result[0] is not None:
@@ -411,6 +428,8 @@ async def select_next_problem(
 
     # Phase D: challenge — hardest unsolved problems
     challenge = await _get_challenge_topics(session, student_id)
+    if exclude_node:
+        challenge = [n for n in challenge if n != exclude_node]
     if challenge:
         result = await _pick_from_list(session, student_id, challenge)
         if result[0] is not None:

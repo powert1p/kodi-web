@@ -1,5 +1,6 @@
 import 'dart:convert';
 import '../../../app/config.dart';
+import '../../../app/colors.dart';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
@@ -36,7 +37,9 @@ class _LoginPageState extends State<LoginPage> {
           context.read<AuthBloc>().add(AuthTelegramLogin(data));
         }
       }
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('[LoginPage._onMessage] $e\n$st');
+    }
   }
 
   void _openTelegramLogin() {
@@ -57,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF0F4FF),
+        backgroundColor: AppColors.loginBg,
         body: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -72,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                       Container(
                         width: rs(context, 72), height: rs(context, 72),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB),
+                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(20)),
                         child: Icon(Icons.school_rounded, color: Colors.white, size: rs(context, 40))),
                       const SizedBox(height: 24),
@@ -132,8 +135,8 @@ class _LoginPageState extends State<LoginPage> {
                           label: const Text('Войти через Telegram'),
                           style: OutlinedButton.styleFrom(
                             minimumSize: const Size(0, 48),
-                            foregroundColor: const Color(0xFF229ED9),
-                            side: const BorderSide(color: Color(0xFF229ED9))),
+                            foregroundColor: AppColors.telegram,
+                            side: const BorderSide(color: AppColors.telegram)),
                         ),
                       ),
 

@@ -180,11 +180,10 @@ class NisApiClient {
   }
 
   Future<void> skipProblem(int problemId) async {
-    await http.post(
-      Uri.parse('$baseUrl/api/practice/skip'),
-      headers: _headers,
-      body: jsonEncode({'problem_id': problemId, 'answer': ''}),
-    );
+    await _post('/api/practice/skip', {
+      'problem_id': problemId,
+      'answer': '',
+    });
   }
 
   // ── Diagnostic ──────────────────────────────────────────────

@@ -2,29 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kodi_core/kodi_core.dart';
 import '../bloc/dashboard_bloc.dart';
+import '../../../shared/constants/tag_labels.dart';
+import '../../../app/colors.dart';
 
 class GraphPage extends StatelessWidget {
   const GraphPage({super.key});
   static const routeName = '/graph';
 
-  static const _tagLabels = {
-    'arithmetic': 'Арифметика', 'fractions': 'Дроби', 'algebra': 'Алгебра',
-    'geometry': 'Геометрия', 'word_problems': 'Текстовые задачи',
-    'number_theory': 'Теория чисел', 'combinatorics': 'Комбинаторика',
-    'probability': 'Вероятность', 'statistics': 'Статистика',
-    'equations': 'Уравнения', 'decimals': 'Десятичные дроби',
-    'ratios': 'Пропорции и проценты', 'modulus': 'Модуль числа',
-    'sequences': 'Последовательности', 'sets': 'Множества',
-    'negative': 'Отрицательные числа', 'rounding': 'Округление',
-    'measurement': 'Единицы измерения', 'data_analysis': 'Анализ данных',
-    'divisibility': 'Делимость', 'logic': 'Логика',
-  };
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) => Scaffold(
-        backgroundColor: const Color(0xFFF1F5F9),
+        backgroundColor: AppColors.surfaceAlt,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
@@ -35,7 +24,7 @@ class GraphPage extends StatelessWidget {
           DashboardLoaded(:final nodes, :final student) => _GraphBody(nodes: nodes, lang: student.lang),
           DashboardError(:final message) => Center(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Icon(Icons.error_outline, size: 48, color: Color(0xFFEF4444)),
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 12),
               Text(message, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -72,21 +61,20 @@ class _GraphBody extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Legend
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
               child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _LegendItem(color: const Color(0xFF10B981), label: 'Освоено', count: mastered),
-                _LegendItem(color: const Color(0xFFF59E0B), label: 'Частично', count: partial),
-                _LegendItem(color: const Color(0xFFEF4444), label: 'Провалено', count: failed),
-                _LegendItem(color: const Color(0xFF94A3B8), label: 'Не проверено', count: untested),
+                _LegendItem(color: AppColors.success, label: 'Освоено', count: mastered),
+                _LegendItem(color: AppColors.warning, label: 'Частично', count: partial),
+                _LegendItem(color: AppColors.error, label: 'Провалено', count: failed),
+                _LegendItem(color: AppColors.muted, label: 'Не проверено', count: untested),
               ]),
             ),
             const SizedBox(height: 20),
             ...byTag.entries.map((e) => _CategorySection(
               tag: e.key,
-              label: GraphPage._tagLabels[e.key] ?? e.key,
+              label: TagLabels.label(e.key),
               nodes: e.value,
               lang: lang,
             )),
@@ -104,7 +92,7 @@ class _LegendItem extends StatelessWidget {
   Widget build(BuildContext context) => Column(children: [
     Container(width: 12, height: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
     const SizedBox(height: 4),
-    Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+    Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
     Text('$count', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
   ]);
 }
@@ -126,18 +114,18 @@ class _CategorySection extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            Expanded(child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)))),
+            Expanded(child: Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
             Text('$mastered/${nodes.length}',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-                color: pct > 0.7 ? const Color(0xFF10B981) : const Color(0xFF64748B))),
+                color: pct > 0.7 ? AppColors.success : AppColors.textSecondary)),
           ]),
           const SizedBox(height: 8),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: pct, minHeight: 8,
-              backgroundColor: const Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(pct > 0.7 ? const Color(0xFF10B981) : pct > 0.3 ? const Color(0xFFF59E0B) : const Color(0xFF2563EB)),
+              backgroundColor: AppColors.border,
+              valueColor: AlwaysStoppedAnimation<Color>(pct > 0.7 ? AppColors.success : pct > 0.3 ? AppColors.warning : AppColors.primary),
             ),
           ),
           const SizedBox(height: 12),
@@ -154,10 +142,10 @@ class _NodeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, icon) = switch (node.status) {
-      'mastered' => (const Color(0xFF10B981), Icons.check_circle_rounded),
-      'partial'  => (const Color(0xFFF59E0B), Icons.radio_button_checked_rounded),
-      'failed'   => (const Color(0xFFEF4444), Icons.cancel_rounded),
-      _          => (const Color(0xFFCBD5E1), Icons.radio_button_unchecked_rounded),
+      'mastered' => (AppColors.success, Icons.check_circle_rounded),
+      'partial'  => (AppColors.warning, Icons.radio_button_checked_rounded),
+      'failed'   => (AppColors.error, Icons.cancel_rounded),
+      _          => (AppColors.borderLight, Icons.radio_button_unchecked_rounded),
     };
     final pct = node.pMastery != null ? '${(node.pMastery! * 100).toStringAsFixed(0)}%' : '—';
     return Padding(
@@ -165,14 +153,14 @@ class _NodeRow extends StatelessWidget {
       child: Row(children: [
         Icon(icon, color: color, size: 16),
         const SizedBox(width: 8),
-        Expanded(child: Text(node.name(lang), style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)))),
+        Expanded(child: Text(node.name(lang), style: const TextStyle(fontSize: 13, color: AppColors.textPrimary))),
         Text(pct, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w500)),
         if (node.isFringe) ...[
           const SizedBox(width: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(4)),
-            child: const Text('◎', style: TextStyle(fontSize: 10, color: Color(0xFF2563EB))),
+            decoration: BoxDecoration(color: AppColors.primaryBgLight, borderRadius: BorderRadius.circular(4)),
+            child: const Text('◎', style: TextStyle(fontSize: 10, color: AppColors.primary)),
           ),
         ],
       ]),

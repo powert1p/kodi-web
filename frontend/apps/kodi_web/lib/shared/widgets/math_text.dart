@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+import '../../app/colors.dart';
 
 /// Renders text with inline math expressions.
 /// Converts plain-text math notation to LaTeX and renders mixed text+math.
@@ -11,7 +12,7 @@ class MathText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final defaultStyle = style ??
-        const TextStyle(fontSize: 17, height: 1.6, color: Color(0xFF1E293B));
+        const TextStyle(fontSize: 17, height: 1.6, color: AppColors.textPrimary);
 
     final segments = _parse(text);
 

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'colors.dart';
 
 class AppTheme {
-  static const Color primary = Color(0xFF2563EB);      // blue-600
-  static const Color secondary = Color(0xFF10B981);    // emerald-500
-  static const Color error = Color(0xFFEF4444);        // red-500
-  static const Color warning = Color(0xFFF59E0B);      // amber-500
-  static const Color surface = Color(0xFFF8FAFC);      // slate-50
-  static const Color card = Colors.white;
+  static const Color primary = AppColors.primary;
+  static const Color secondary = AppColors.success;
+  static const Color error = AppColors.error;
+  static const Color warning = AppColors.warning;
+  static const Color surface = AppColors.surface;
+  static const Color card = AppColors.card;
 
   static ThemeData get light => ThemeData(
         useMaterial3: true,
@@ -18,13 +19,13 @@ class AppTheme {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(16)),
-            side: BorderSide(color: Color(0xFFE2E8F0)),
+            side: BorderSide(color: AppColors.border),
           ),
         ),
         appBarTheme: const AppBarTheme(
           elevation: 0,
           backgroundColor: Colors.white,
-          foregroundColor: Color(0xFF1E293B),
+          foregroundColor: AppColors.textPrimary,
           surfaceTintColor: Colors.transparent,
         ),
         filledButtonTheme: FilledButtonThemeData(

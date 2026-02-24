@@ -8,12 +8,12 @@ Parameters per node (stored in `nodes` table):
     P(G) — bkt_p_g — probability of guessing correctly
     P(S) — bkt_p_s — probability of slipping (careless error)
 
-Mastery threshold: P(mastery) >= 0.7 → skill is considered mastered.
+Mastery threshold: P(mastery) >= 0.85 → skill is considered mastered.
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Attempt, Mastery, Node, Problem, Student
 
-MASTERY_THRESHOLD = 0.7
+MASTERY_THRESHOLD = 0.85
 MASTERY_ALGO_VERSION = 1  # bump when BKT/exam mastery logic changes
 
 
@@ -63,8 +63,10 @@ def difficulty_adjusted_params(
     """
     span = max(node_max - node_min, 0.1)
     d = max(0.0, min(1.0, (raw_score - node_min) / span))
-    p_g = 0.25 * (1 - d) + 0.05 * d
-    p_s = 0.05 * (1 - d) + 0.20 * d
+    # Easy problems → higher guess (up to 3x base), lower slip (down to 0.5x base)
+    # Hard problems → lower guess (down to 0.5x base), higher slip (up to 2.5x base)
+    p_g = min(0.30, base_p_g * (3.0 * (1 - d) + 0.5 * d))
+    p_s = min(0.25, base_p_s * (0.5 * (1 - d) + 2.5 * d))
     return p_g, p_s
 
 
@@ -75,7 +77,7 @@ async def get_or_create_mastery(
     session: AsyncSession,
     student_id: int,
     node_id: str,
-    initial_p: float = 0.0,
+    initial_p: float = 0.1,
 ) -> Mastery:
     """Get existing mastery row or create one with *initial_p*.
 
@@ -161,10 +163,10 @@ async def record_attempt(
     mastery.attempts_total += 1
     if is_correct:
         mastery.attempts_correct += 1
-    mastery.last_attempt_at = datetime.utcnow()
+    mastery.last_attempt_at = datetime.now(timezone.utc)
 
     # 4b. Spaced repetition: compute next_review_at
-    if mastery.p_mastery >= 0.7:  # mastered → schedule review
+    if mastery.p_mastery >= MASTERY_THRESHOLD:  # mastered → schedule review
         _SR_INTERVALS = [1, 3, 7, 21, 60]  # days
         # Count consecutive correct answers (most recent first)
         from sqlalchemy import select as _sel
@@ -174,24 +176,26 @@ async def record_attempt(
                 Attempt.node_id == problem.node_id,
             ).order_by(Attempt.created_at.desc()).limit(10)
         )
-        consec = 0
-        for (ok,) in recent.all():
-            if ok:
-                consec += 1
-            else:
-                break
+        # Start with current answer (not yet flushed to DB)
+        consec = 1 if is_correct else 0
+        if is_correct:
+            for (ok,) in recent.all():
+                if ok:
+                    consec += 1
+                else:
+                    break
         interval_idx = min(max(consec - 1, 0), len(_SR_INTERVALS) - 1)
         days = _SR_INTERVALS[interval_idx]
-        mastery.next_review_at = datetime.utcnow() + timedelta(days=days)
+        mastery.next_review_at = datetime.now(timezone.utc) + timedelta(days=days)
     elif mastery.next_review_at is not None:
         # Lost mastery → clear scheduled review, needs immediate work
         mastery.next_review_at = None
 
     # 5. Update daily streak
-    today = datetime.utcnow().strftime('%Y-%m-%d')
+    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
     student = await session.get(Student, student_id)
     if student is not None:
-        yesterday = (datetime.utcnow() - timedelta(days=1)).strftime('%Y-%m-%d')
+        yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d')
         if student.last_active_date != today:
             if student.last_active_date == yesterday:
                 student.current_streak = (student.current_streak or 0) + 1
@@ -210,9 +214,9 @@ async def record_attempt(
 
 def is_mastered(mastery: Mastery) -> bool:
     """Check if the skill is considered mastered.
-    
+
     Requires:
-    1. BKT p_mastery >= threshold (0.7)
+    1. BKT p_mastery >= threshold (0.85)
     2. At least 3 correct answers
     3. Overall accuracy >= 50% (prevents guessers from mastering)
     """
