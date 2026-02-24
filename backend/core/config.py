@@ -40,7 +40,9 @@ class Settings:
             "postgresql+asyncpg://postgres:postgres@localhost:5432/nismathbot",
         )
     ))
-    admin_id: int = int(os.getenv("ADMIN_ID", "0"))
+    admin_ids: list[int] = field(
+        default_factory=lambda: _parse_id_list(os.getenv("ADMIN_ID", "0"))
+    )
     tester_ids: list[int] = field(
         default_factory=lambda: _parse_id_list(os.getenv("TESTER_IDS", "745533750"))
     )
@@ -54,7 +56,7 @@ class Settings:
 
     def is_privileged(self, user_id: int) -> bool:
         """True for admin and testers — they see correct answers in questions."""
-        return user_id == self.admin_id or user_id in self.tester_ids
+        return user_id in self.admin_ids or user_id in self.tester_ids
 
 
 settings = Settings()

@@ -615,8 +615,8 @@ async def _notify_report(report_id, problem_text, correct_answer, student_answer
     import httpx
 
     bot_token = getattr(settings, 'bot_token', None)
-    admin_id = getattr(settings, 'admin_id', None)
-    if not bot_token or not admin_id:
+    admin_ids = getattr(settings, 'admin_ids', [])
+    if not bot_token or not admin_ids:
         return  # Skip notification if not configured
     text = (
         f"\U0001f6a8 Жалоба #{report_id}\n"
@@ -635,10 +635,11 @@ async def _notify_report(report_id, problem_text, correct_answer, student_answer
             text += f"Причина: {explanation}\n"
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     async with httpx.AsyncClient() as client:
-        try:
-            await client.post(url, json={"chat_id": admin_id, "text": text})
-        except Exception:
-            pass  # notification is best-effort
+        for aid in admin_ids:
+            try:
+                await client.post(url, json={"chat_id": aid, "text": text})
+            except Exception:
+                pass  # notification is best-effort
 
 
 @router.post("/practice/report")
