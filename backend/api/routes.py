@@ -705,7 +705,8 @@ async def practice_report(request: Request, body: ReportBody):
 # ══════════════════════════════════════════════════════════════
 
 @router.post("/practice/exam/start")
-async def practice_exam_start(request: Request, body: ExamStartBody):
+async def practice_exam_start(request: Request, body: ExamStartBody,
+                              lang: str = Query("ru", pattern="^(ru|kz)$")):
     """Select N problems across diverse topics for a timed exam."""
     session, student = await _get_current_student(request)
     try:
@@ -757,11 +758,13 @@ async def practice_exam_start(request: Request, body: ExamStartBody):
 
         problems = []
         for r in rows:
+            text = r[3] if lang == "kz" and r[3] else r[2]
+            node_name = r[11] if lang == "kz" and r[11] else r[10]
             problems.append({
                 "problem_id": r[0],
                 "node_id": r[1],
-                "node_name": r[10],
-                "text": r[2],
+                "node_name": node_name,
+                "text": text,
                 "image_path": r[8],
                 "answer_type": r[5],
                 "difficulty": r[6],

@@ -147,7 +147,7 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
     _timeMinutes = event.timeMinutes;
     emit(ExamLoading());
     try {
-      final resp = await api.post('/api/practice/exam/start', {
+      final resp = await api.post('/api/practice/exam/start?lang=${api.lang}', {
         'num_problems': event.numProblems,
         'time_minutes': event.timeMinutes,
       });
