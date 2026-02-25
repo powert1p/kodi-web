@@ -158,6 +158,8 @@ class _BodyState extends State<_Body> {
       byTag.putIfAbsent(n.tag, () => []).add(n);
     }
 
+    final localeCode = Localizations.localeOf(context).languageCode;
+
     final sections = byTag.entries.map((e) {
       final tag = e.key;
       final topics = e.value;
@@ -182,7 +184,7 @@ class _BodyState extends State<_Body> {
 
       return SectionData(
         tag: tag,
-        nameRu: TagLabels.label(tag, compact: true),
+        nameRu: TagLabels.label(tag, compact: true, locale: localeCode),
         icon: _sectionIcons[tag] ?? '📘',
         testedCount: testedCount,
         totalCount: totalCount,

@@ -240,7 +240,7 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
 
   Widget _buildContent(BuildContext context, PracticeState state) {
     final l = AppLocalizations.of(context)!;
-    if (state is PracticeAllDone || state is PracticeError) {
+    if (state is PracticeAllDone) {
       return Column(children: [
         const SizedBox(height: 60),
         Icon(Icons.emoji_events_rounded, size: 64, color: Colors.amber[400]),
@@ -250,6 +250,17 @@ class _PracticePageState extends State<PracticePage> with TickerProviderStateMix
         Text(l.tryAnotherTopic, style: TextStyle(color: Colors.grey[500])),
         const SizedBox(height: 24),
         FilledButton(onPressed: () => Navigator.pop(context), child: Text(l.goHome)),
+      ]);
+    }
+    if (state is PracticeError) {
+      return Column(children: [
+        const SizedBox(height: 60),
+        Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+        const SizedBox(height: 16),
+        Text(localizeError(context, state.message),
+            style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+        const SizedBox(height: 24),
+        FilledButton(onPressed: () => Navigator.pop(context), child: Text(l.backBtn)),
       ]);
     }
 

@@ -213,6 +213,7 @@ class TopicsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final lang = context.read<NisApiClient>().lang;
     // Sort topics: tested first by mastery desc, untested at bottom
     final sorted = List<GraphNode>.from(topics)
       ..sort((a, b) {
@@ -235,7 +236,7 @@ class TopicsList extends StatelessWidget {
             return InkWell(
               onTap: () => Navigator.of(context).pushNamed(
                 PracticePage.routeName,
-                arguments: {'nodeId': t.id, 'tagName': t.nameRu},
+                arguments: {'nodeId': t.id, 'tagName': t.name(lang)},
               ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -250,7 +251,7 @@ class TopicsList extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(t.nameRu,
+                          Text(t.name(lang),
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                           Text(pct != null ? l.tapToPractice : l.startLearning,
                               style: TextStyle(fontSize: 11, color: Colors.grey[400])),

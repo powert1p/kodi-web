@@ -231,7 +231,11 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
     } on NetworkException catch (e) {
       emit(PracticeError(e.message));
     } on ApiException catch (e) {
-      emit(PracticeError(e.userMessage));
+      if (e.isNotFound) {
+        emit(PracticeAllDone());
+      } else {
+        emit(PracticeError(e.userMessage));
+      }
     } catch (e, st) {
       debugPrint('[PracticeBloc._loadNext] $e\n$st');
       emit(PracticeError('practiceProblemError'));
