@@ -633,13 +633,16 @@ async def _notify_report(report_id, problem_text, correct_answer, student_answer
         elif action == "rejected":
             text += f"\n\U0001f916 AI проверил — ответ ученика неверен.\n"
             text += f"Причина: {explanation}\n"
+    logger.info("Notifying %d admins: %s", len(admin_ids), admin_ids)
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     async with httpx.AsyncClient() as client:
         for aid in admin_ids:
             try:
-                await client.post(url, json={"chat_id": aid, "text": text})
-            except Exception:
-                pass  # notification is best-effort
+                resp = await client.post(url, json={"chat_id": aid, "text": text})
+                if resp.status_code != 200:
+                    logger.warning("Telegram notify admin %s failed: %s", aid, resp.text)
+            except Exception as exc:
+                logger.warning("Telegram notify admin %s error: %s", aid, exc)
 
 
 @router.post("/practice/report")

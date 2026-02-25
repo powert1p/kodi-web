@@ -474,9 +474,13 @@ async def check_with_claude(
         explanation = "\n".join(lines[1:]).strip()
 
         if first_line.startswith("YES"):
-            return True, explanation or "Подтверждено AI"
+            rest = lines[0].strip()[3:].strip().lstrip(".,:-").strip()
+            full = f"{rest}\n{explanation}".strip() if rest else explanation
+            return True, full or "Подтверждено AI"
         if first_line.startswith("NO"):
-            return False, explanation
+            rest = lines[0].strip()[2:].strip().lstrip(".,:-").strip()
+            full = f"{rest}\n{explanation}".strip() if rest else explanation
+            return False, full or "Ответ ученика не эквивалентен правильному"
 
         text_upper = text.upper()
         if "\nYES" in text_upper or text_upper.endswith("YES"):
