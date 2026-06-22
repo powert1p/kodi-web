@@ -1,6 +1,13 @@
-# kodi-web Deploy — self-hosted VPS (план revival, по образцу CDP)
+# kodi-web Deploy — self-hosted VPS (по образцу CDP)
 
-> Статус: **план** (на 2026-06-22 ещё на Railway / не задеплоен). Финализируется на фазе 3, после чего этот файл = факт.
+> Статус: **задеплоен** (2026-06-22) на сервер AiPlus (тот же, что CDP). Контейнеры `kodi-app`/`kodi-postgres` живы, `/health` → 200.
+
+## Факт (что есть сейчас)
+- Сервер: ssh-хост `aiplus` (user `eset`), compose-дир `~/kodi-web`, Docker 26.1.3, **sudo НЕТ**.
+- Контейнеры: `kodi-app` (127.0.0.1:8300→8000), `kodi-postgres` (127.0.0.1:5435→5432, bind-mount `~/kodi-web/pgdata`). Свежая БД, seed 118 нод/2525 задач.
+- Наружу пока НЕ открыт (нет vhost). **Доступ с мака — SSH-туннель:** `ssh -L 8300:127.0.0.1:8300 aiplus` → http://127.0.0.1:8300
+- nginx vhost (`docker/nginx/kodi-web.conf`) + SSL — **ждёт root/Умида** (домен подтвердить). Это единственный открытый шаг до публичного доступа.
+- Деплой апдейта: `rsync` изменённого в `~/kodi-web/` → `ssh aiplus 'cd ~/kodi-web && docker compose up -d --build'`. Секреты — в `~/kodi-web/.env` на сервере (НЕ в git).
 
 ## Цель
 - Уйти с Railway на **свой VPS** (тот же сервер, что CDP: ssh-хост `aiplus`, **sudo НЕТ** — nginx/SSL правит только root).

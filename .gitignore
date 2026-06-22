@@ -23,3 +23,6 @@ frontend/packages/kodi_core/.dart_tool/
 # Build outputs
 backend/web_static/
 backend/static/
+
+# Local compose runtime
+pgdata/

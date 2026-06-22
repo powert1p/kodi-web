@@ -8,8 +8,8 @@
 |---|--------|--------|----------|
 | 1 | Архитектурный аудит → AUDIT-REPORT.md | **done** (2026-06-22) | Workflow: 5 ридеров + adversarial verify |
 | 2 | Каркас доков/правил по образцу CDP (PROJECT, architecture, module-map, data-state, DESIGN_SYSTEM, .claude/rules) | **done** (2026-06-22) | этот файл и есть часть каркаса |
-| 3 | Воскрешение локально (Docker): P0-фиксы + backend+seed+Flutter build + smoke ядра | in_progress | AUDIT revival checklist A+B |
-| 4 | Деплой на свой VPS (compose, свой Postgres, свежие порты, nginx vhost) + live-проверка | pending | AUDIT revival checklist C; `.claude/rules/deploy.md` |
+| 3 | Воскрешение локально (Docker): P0-фиксы + backend+seed+Flutter build + smoke ядра | **done** (2026-06-22) | + найден/пофикшен tz-баг практики (timezone=True) |
+| 4 | Деплой на свой VPS (compose, свой Postgres, порты 8300/5435) + live-проверка | **done, на проде** (2026-06-22) | `~/kodi-web` на `aiplus`, health 200, core-флоу зелёный. Осталось: nginx vhost от root/Умида (пока туннель) |
 
 ## P0 — блокеры запуска/деплоя (чинить в фазе 3)
 - **BUILD-1** `git add backend/fonts/DejaVuSerif.ttf` (Docker build падает на свежем clone).
