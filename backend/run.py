@@ -35,7 +35,9 @@ async def on_startup():
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS paused_diagnostic JSONB",
             # ── problem_reports table ──
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'open'",
-            "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMP",
+            # TIMESTAMPTZ (не TIMESTAMP): колонка tz-aware в модели; иначе naive-vs-aware DataError
+            # на resolved_at write (AI report-fix). На свежей БД no-op (create_all уже сделал tz-aware).
+            "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ",
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_by VARCHAR(100)",
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''",
             # ── fix NULLs in existing rows ──
