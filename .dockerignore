@@ -1,0 +1,35 @@
+# Не тянуть в build-контекст артефакты и мусор (AUDIT OPS-2).
+# ВАЖНО: backend/fonts и backend/data НУЖНЫ на build — НЕ исключать.
+.git
+.gitignore
+*.md
+docs/
+AUDIT-REPORT.md
+DESIGN_SYSTEM.md
+PROJECT.md
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.venv/
+**/venv/
+.env
+
+# Сгенерится на build / в рантайме
+backend/static/
+backend/web_static/
+
+# Flutter build outputs (образ билдит сам)
+frontend/apps/kodi_web/build/
+frontend/apps/kodi_web/.dart_tool/
+frontend/packages/kodi_core/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# Local compose data
+pgdata/
+
+# IDE
+.idea/
+.vscode/
+.DS_Store

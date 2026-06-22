@@ -748,12 +748,14 @@ async def practice_exam_start(request: Request, body: ExamStartBody,
                            n.name_ru AS node_name, n.name_kz AS node_name_kz
                     FROM problems p
                     JOIN nodes n ON n.id = p.node_id
-                    WHERE p.id NOT IN :seen
+                    WHERE NOT (p.id = ANY(:seen))
                     ORDER BY RANDOM()
                     LIMIT :limit
                 """),
                 {
-                    "seen": tuple(r[0] for r in rows) or (0,),
+                    # asyncpg биндит Python-list как Postgres-массив → = ANY(:seen)
+                    # работает. tuple + IN не разворачивается без bindparam(expanding) → 500.
+                    "seen": [r[0] for r in rows] or [0],
                     "limit": n - len(rows),
                 },
             )

@@ -5,6 +5,7 @@ Usage: python run.py
 
 import asyncio
 import logging
+import os
 
 import uvicorn
 from sqlalchemy import text
@@ -58,7 +59,17 @@ async def on_startup():
 
 async def main():
     await on_startup()
-    config = uvicorn.Config(app, host="0.0.0.0", port=settings.port, log_level="info")
+    # За host-nginx доверяем X-Forwarded-* → реальный IP клиента (иначе slowapi
+    # лочит всех в один bucket как 127.0.0.1). Single-worker не трогаем —
+    # _diagnostic_states process-local.
+    config = uvicorn.Config(
+        app,
+        host="0.0.0.0",
+        port=settings.port,
+        log_level="info",
+        proxy_headers=True,
+        forwarded_allow_ips=os.getenv("FORWARDED_ALLOW_IPS", "127.0.0.1"),
+    )
     server = uvicorn.Server(config)
     await server.serve()
 

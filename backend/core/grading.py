@@ -475,7 +475,7 @@ async def check_with_claude(
     try:
         response = await asyncio.wait_for(
             client.messages.create(
-                model="claude-sonnet-4-5-20241022",
+                model="claude-haiku-4-5",
                 max_tokens=150,
                 messages=[{"role": "user", "content": prompt}],
             ),

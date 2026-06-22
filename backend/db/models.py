@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy import (
     BigInteger,
     Boolean,
+    DateTime,
     Float,
     ForeignKey,
     Index,
@@ -91,8 +92,8 @@ class Student(Base):
     grade: Mapped[int | None] = mapped_column(SmallInteger)
     lang: Mapped[str] = mapped_column(String(2), default="ru")
     registered: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
-    last_reminded_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
+    last_reminded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     current_streak: Mapped[int | None] = mapped_column(Integer, default=0, server_default="0")
     longest_streak: Mapped[int | None] = mapped_column(Integer, default=0, server_default="0")
     last_active_date: Mapped[str | None] = mapped_column(String(10))  # YYYY-MM-DD
@@ -120,10 +121,10 @@ class Mastery(Base):
     p_mastery: Mapped[float] = mapped_column(Float, default=0.0)
     attempts_total: Mapped[int] = mapped_column(Integer, default=0)
     attempts_correct: Mapped[int] = mapped_column(Integer, default=0)
-    last_attempt_at: Mapped[datetime | None] = mapped_column()
+    last_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     fsrs_stability: Mapped[float | None] = mapped_column(Float)
     fsrs_difficulty: Mapped[float | None] = mapped_column(Float)
-    next_review_at: Mapped[datetime | None] = mapped_column()
+    next_review_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Attempt(Base):
@@ -145,7 +146,7 @@ class Attempt(Base):
     source: Mapped[str | None] = mapped_column(String(20))  # "diagnostic" / "practice"
     response_time_ms: Mapped[int | None] = mapped_column(Integer)
     p_mastery_after: Mapped[float | None] = mapped_column(Float)
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
 
 
 class ProblemReport(Base):
@@ -163,9 +164,9 @@ class ProblemReport(Base):
     problem_text: Mapped[str] = mapped_column(Text)
     comment: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(20), default="open")  # open/fixed/auto_fixed/invalid
-    resolved_at: Mapped[datetime | None] = mapped_column(nullable=True, default=None)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
     resolved_by: Mapped[str | None] = mapped_column(String(100), nullable=True, default=None)
-    created_at: Mapped[datetime] = mapped_column(default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
 
 
 class Setting(Base):

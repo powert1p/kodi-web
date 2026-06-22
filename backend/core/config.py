@@ -67,3 +67,12 @@ if not os.getenv("JWT_SECRET"):
         "JWT_SECRET not set — falling back to BOT_TOKEN. "
         "Set JWT_SECRET in .env for production security."
     )
+
+# Fail-fast: пустой ключ подписи = forgery токенов / полная подмена пользователя.
+# Не стартуем без секрета — лучше явный отказ, чем тихая дыра в auth.
+if not settings.jwt_secret.strip():
+    raise RuntimeError(
+        "JWT_SECRET не задан (и BOT_TOKEN тоже пуст). "
+        "Установите JWT_SECRET в окружении — приложение не запускается "
+        "с пустым ключом подписи JWT."
+    )
