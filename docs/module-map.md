@@ -101,3 +101,24 @@
 | models/student.dart | Модель `Student` (профиль, стрики, диагностика) | — | 45 |
 | models/stats.dart | Модель `Stats` (решено/точность/освоенные) | — | 41 |
 | kodi_core.dart | Barrel: реэкспорт models + nis_api | `library kodi_core` | 7 |
+
+## Frontend: Кабинет «Работа над ошибками» (`cabinet/`) — НОВЫЙ, отдельно от Flutter
+
+> Добавлено: 2026-06-23. React 19 + TS + Vite SPA (НЕ Flutter) — кабинет разбора ошибок среза; mobile-first, embeddable в мобилку через WebView. Пока на mock-данных (`cabinet/src/mock/`), backend-интеграция — отдельный заход. Запуск: `cd cabinet && npm run dev` (HashRouter: `/#/`, `/#/task/:id`, `/#/closure/:id`).
+
+| Путь | Назначение |
+|------|-----------|
+| cabinet/src/pages/{HubPage,TaskPage,ClosurePage}.tsx | Экраны: срез-хаб / разбор (лесенка) / закрытие |
+| cabinet/src/components/ladder/{Ladder,Rung,RungInput,RungOptions,HintBanner}.tsx | Лесенка понимания (signature); рунги compute/choose, gating, climb-down |
+| cabinet/src/components/tutor/ | AI-тьютор bottom-sheet (mock) |
+| cabinet/src/hooks/useLadder.ts | Состояние лесенки: рунги, вставка easier-ступени, climb-back. ⚠️ `<Ladder key={task.id}>` в TaskPage — иначе стейт течёт между задачами |
+| cabinet/src/mock/{srez,hints,tutor}.ts | Mock-срез по форме backend-декомпозиции (тема→микро-навык→задача-в-шагах) + Socratic-подсказки |
+| cabinet/src/lib/math.ts | KaTeX-рендер $...$ + нормализация ответов (дроби/десятичные) |
+| cabinet/src/index.css | Дизайн-токены (@theme): Lexend/Bricolage/Space Grotesk, светофор mastery, слоистый фон |
+
+### Движок авторинга лесенок (`cabinet/engine/`)
+| Путь | Назначение |
+|------|-----------|
+| engine/author-prompt.md | Промпт агента-АВТОРА (принципы + контрастные ok/не-ok разной формы, без скелета). Канон для чтения/правки |
+| engine/critic-prompt.md | Промпт агента-КРИТИКА (поштучный чеклист C1–C12, вердикт accept/revise/needs_human) |
+| engine/ladder-engine.workflow.js | Оркестратор (Workflow): автор → критик → ≤1 правка на задачу. Вход `args.tasks[]` (grounding=эталонные steps[]). Прогон 3 задачи ≈ 1.5 мин |

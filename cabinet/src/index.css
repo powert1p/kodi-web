@@ -1,0 +1,215 @@
+@import "tailwindcss";
+
+/* Шрифты: self-host через fontsource (импортятся в main.tsx),
+   здесь только KaTeX подключается отдельно в main.tsx */
+
+/* ─────────────────────────────────────────────────────────────
+   ДИЗАЙН-ТОКЕНЫ — единственный источник правды.
+   Tailwind v4: @theme экспортит токены как utility-классы
+   (bg-card, text-ink, rounded-md, shadow-raised и т.д.)
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  /* Чернила / текст */
+  --color-ink: #1e293b;
+  --color-ink-soft: #475569;
+  --color-muted: #94a3b8;
+
+  /* Бренд */
+  --color-brand: #2563eb;
+  --color-brand-deep: #1d4ed8;
+  --color-brand-indigo: #4f46e5;
+
+  /* Тёплый акцент — ТОЛЬКО fix-it / celebrate */
+  --color-spark: #ff6b57;
+
+  /* Светофор освоения */
+  --color-almost: #f59e0b; /* янтарь */
+  --color-got: #14b8a6; /* бирюза */
+  --color-revisit: #94a3b8; /* грифель */
+
+  /* Поверхности */
+  --color-card: #ffffff;
+  --color-line: #e8ecf2;
+  --color-paper: #faf9f6; /* тёплая база */
+
+  /* Подложки статусов (мягкие тинты) */
+  --color-got-wash: #ecfdf7;
+  --color-almost-wash: #fffbeb;
+  --color-spark-wash: #fff1ee;
+  --color-brand-wash: #eff4ff;
+
+  /* Радиусы */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* Тени — три яруса высоты */
+  --shadow-soft: 0 2px 8px rgba(2, 6, 23, 0.05);
+  --shadow-raised: 0 8px 24px rgba(2, 6, 23, 0.08);
+  --shadow-overlay: 0 16px 40px rgba(2, 6, 23, 0.14);
+
+  /* Шрифтовые семейства */
+  --font-display: "Bricolage Grotesque Variable", "Lexend Variable", sans-serif;
+  --font-body: "Lexend Variable", system-ui, sans-serif;
+  --font-num: "Space Grotesk Variable", "Lexend Variable", monospace;
+
+  /* Тайминги анимаций */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Слоистый фон (НЕ плоский): тёплая бумага + мягкие радиальные
+   блики бренда у верхних углов.
+   ───────────────────────────────────────────────────────────── */
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(
+      1200px 600px at 50% -10%,
+      rgba(79, 70, 229, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 500px at 110% 10%,
+      rgba(37, 99, 235, 0.06),
+      transparent 55%
+    );
+  background-attachment: fixed;
+}
+
+/* Табличные цифры везде, где используется font-num */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* KaTeX чуть крупнее окружающего текста — дроби читабельны */
+.katex {
+  font-size: 1.08em;
+}
+
+/* Глобальный focus-visible: видимое бренд-кольцо для клавиатуры */
+:where(button, a, input, [tabindex]):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-brand) 55%, white);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Тетрадная сетка — текстура-память за активной ступенью */
+.graph-paper {
+  background-image:
+    linear-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.08) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Hand-rolled keyframes (fallback и для не-motion элементов) */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Мягкое тёплое покачивание при неверном ответе — НИКОГДА красный shake */
+@keyframes warm-wobble {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px) rotate(-0.4deg);
+  }
+  50% {
+    transform: translateX(4px) rotate(0.4deg);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+}
+
+.animate-wobble {
+  animation: warm-wobble 0.45s var(--ease-spring);
+}
+
+/* Шиммер для скелетонов */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
+  );
+  animation: shimmer 1.4s infinite;
+}
+
+/* Стаггер-появление при загрузке страницы (контент виден и без JS) */
+.stagger > * {
+  animation: rise-in 0.5s var(--ease-spring) both;
+}
+.stagger > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 0.14s;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 0.26s;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 0.32s;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 0.38s;
+}
+
+/* Уважение prefers-reduced-motion: гасим все transform-анимации */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .stagger > * {
+    animation: none;
+  }
+}
