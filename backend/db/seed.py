@@ -125,6 +125,51 @@ async def _insert_all_problems(session) -> int:
     return len(problems_raw)
 
 
+async def seed_topics(session) -> int:
+    """Идемпотентно загрузить темы/рёбра и привязать узлы к темам.
+
+    Безопасно на уже засеянной БД: upsert тем, рёбра ON CONFLICT DO NOTHING,
+    node.topic_id через UPDATE. Деструктива нет. Возвращает число тем.
+    """
+    topics_path = _DATA_DIR / "cc_topics_v01.json"
+    if not topics_path.exists():
+        logger.warning("cc_topics file not found: %s", topics_path)
+        return 0
+
+    d = json.loads(topics_path.read_text(encoding="utf-8"))
+
+    for t in d["topics"]:
+        await session.execute(
+            text("""
+                INSERT INTO topics (id, strand, grade, order_idx, name_ru, name_kz)
+                VALUES (:id, :strand, :grade, :order_idx, :name_ru, :name_kz)
+                ON CONFLICT (id) DO UPDATE SET
+                    strand = EXCLUDED.strand, grade = EXCLUDED.grade,
+                    order_idx = EXCLUDED.order_idx,
+                    name_ru = EXCLUDED.name_ru, name_kz = EXCLUDED.name_kz
+            """),
+            {"id": t["id"], "strand": t["strand"], "grade": t.get("grade"),
+             "order_idx": t.get("order", 0), "name_ru": t["name_ru"], "name_kz": t["name_kz"]},
+        )
+
+    for a, b in d["topic_edges"]:
+        await session.execute(
+            text("INSERT INTO topic_edges (from_topic, to_topic) VALUES (:a, :b) "
+                 "ON CONFLICT (from_topic, to_topic) DO NOTHING"),
+            {"a": a, "b": b},
+        )
+
+    for node_id, topic_id in d["node_topic"].items():
+        await session.execute(
+            text("UPDATE nodes SET topic_id = :tid WHERE id = :nid"),
+            {"tid": topic_id, "nid": node_id},
+        )
+
+    await session.commit()
+    logger.info("Seeded %d topics, %d topic edges.", len(d["topics"]), len(d["topic_edges"]))
+    return len(d["topics"])
+
+
 async def _sync_problems(session) -> int:
     """Обновить существующие задачи из JSON (по порядку id)."""
     problems_path = _find_problems_path()

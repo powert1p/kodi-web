@@ -31,6 +31,7 @@ class Node(Base):
     name_ru: Mapped[str] = mapped_column(Text, nullable=False)
     name_kz: Mapped[str] = mapped_column(Text, nullable=False)
     tag: Mapped[str | None] = mapped_column(String(30))
+    topic_id: Mapped[str | None] = mapped_column(String(20))  # FK на topics.id; на existing-БД без констрейнта (ALTER)
     difficulty: Mapped[int | None] = mapped_column(SmallInteger)
     description: Mapped[str | None] = mapped_column(Text)
     bkt_p_t: Mapped[float] = mapped_column(Float, default=0.3)
@@ -176,3 +177,25 @@ class Setting(Base):
 
     key: Mapped[str] = mapped_column(String(50), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
+
+
+class Topic(Base):
+    """Тема графа (CC-кластер или НИШ-группа) — слой над узлами."""
+
+    __tablename__ = "topics"
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)  # "6.RP.A" / "NIS.COMB"
+    strand: Mapped[str] = mapped_column(String(10), nullable=False)  # домен: RP/EE/.../NIS
+    grade: Mapped[int | None] = mapped_column(SmallInteger)
+    order_idx: Mapped[int] = mapped_column(Integer, default=0)
+    name_ru: Mapped[str] = mapped_column(Text, nullable=False)
+    name_kz: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class TopicEdge(Base):
+    """Ребро-пререквизит между темами (CC coherence map)."""
+
+    __tablename__ = "topic_edges"
+
+    from_topic: Mapped[str] = mapped_column(String(20), ForeignKey("topics.id"), primary_key=True)
+    to_topic: Mapped[str] = mapped_column(String(20), ForeignKey("topics.id"), primary_key=True)

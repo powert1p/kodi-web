@@ -13,7 +13,7 @@ from sqlalchemy import text
 from web import app
 from core.config import settings
 from db.base import Base, async_session, engine
-from db.seed import seed_graph, seed_problems
+from db.seed import seed_graph, seed_problems, seed_topics
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +40,8 @@ async def on_startup():
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ",
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS resolved_by VARCHAR(100)",
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''",
+            # ── topics layer ──
+            "ALTER TABLE nodes ADD COLUMN IF NOT EXISTS topic_id VARCHAR(20)",
             # ── fix NULLs in existing rows ──
             "UPDATE students SET practice_count = 0 WHERE practice_count IS NULL",
             "UPDATE students SET problems_on_current_node = 0 WHERE problems_on_current_node IS NULL",
@@ -57,6 +59,10 @@ async def on_startup():
             logger.info("Seed complete.")
         else:
             logger.info("DB already seeded (%d nodes).", count)
+
+    # seed_topics вызывается всегда (и на свежей, и на уже засеянной БД) — идемпотентен
+    async with async_session() as session:
+        await seed_topics(session)
 
 
 async def main():
