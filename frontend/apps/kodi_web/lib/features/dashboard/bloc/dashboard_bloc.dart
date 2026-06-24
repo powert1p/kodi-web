@@ -27,6 +27,8 @@ class DashboardLoaded extends DashboardState {
     required this.stats,
     required this.nodes,
     required this.leaderboard,
+    required this.topics,
+    required this.strands,
   }) : loadedAt = DateTime.now();
 
   final Student student;
@@ -34,9 +36,12 @@ class DashboardLoaded extends DashboardState {
   final List<GraphNode> nodes;
   final List<LeaderboardEntry> leaderboard;
   final DateTime loadedAt;
+  // Темы и разделы CC/НИШ-иерархии
+  final List<GraphTopic> topics;
+  final List<GraphStrand> strands;
 
   @override
-  List<Object?> get props => [student, stats, nodes, leaderboard, loadedAt];
+  List<Object?> get props => [student, stats, nodes, leaderboard, loadedAt, topics, strands];
 }
 
 class DashboardError extends DashboardState {
@@ -114,11 +119,23 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
               .toList() ??
           [];
 
+      // Парсинг тем и разделов CC/НИШ-иерархии (обратная совместимость: пустой список, если ключей нет)
+      final topics = (graphData['topics'] as List<dynamic>?)
+              ?.map((t) => GraphTopic.fromJson(t as Map<String, dynamic>))
+              .toList() ??
+          [];
+      final strands = (graphData['strands'] as List<dynamic>?)
+              ?.map((s) => GraphStrand.fromJson(s as Map<String, dynamic>))
+              .toList() ??
+          [];
+
       emit(DashboardLoaded(
         student: student,
         stats: stats,
         nodes: nodes,
         leaderboard: leaderboard,
+        topics: topics,
+        strands: strands,
       ));
     } on NetworkException catch (e) {
       emit(DashboardError(e.message));

@@ -15,6 +15,7 @@ class GraphNode extends Equatable {
     required this.downstream,
     this.qTotal = 0,
     this.qCorrect = 0,
+    this.topicId,
   });
 
   final String id;
@@ -30,6 +31,8 @@ class GraphNode extends Equatable {
   final int downstream;
   final int qTotal;
   final int qCorrect;
+  // Ссылка на тему CC/НИШ, к которой принадлежит узел
+  final String? topicId;
 
   String name(String lang) => lang == 'kz' ? nameKz : nameRu;
 
@@ -47,6 +50,7 @@ class GraphNode extends Equatable {
         downstream: json['downstream'] as int? ?? 0,
         qTotal: json['q_total'] as int? ?? 0,
         qCorrect: json['q_correct'] as int? ?? 0,
+        topicId: json['topic_id'] as String?,
       );
 
   @override
