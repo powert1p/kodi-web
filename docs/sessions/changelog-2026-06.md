@@ -67,3 +67,16 @@
 **Открытые вопросы:** PC02 стал гранулярнее (5 ступеней — дробит «найти 20%» и «прибавить»); если покажется дробно — слить. Grounding всё ещё из ручной реконструкции (не из верифиц. банка) — следующий слой. SymPy-гейт на числа (из research) — отдельная задача.
 **Файлы:** cabinet/engine/{author-prompt,critic-prompt}.md, cabinet/engine/ladder-engine.workflow.js, cabinet/src/mock/srez.ts, docs/specs/2026-06-24-simpler-ladder-prompts.md
 **Issue:** —
+
+## 2026-06-24 15:40
+**Тип:** plan (brainstorming → subagent-driven)
+**Зачем:** «подтемы» графа были плоскими 15 тегами (чисто UI-фильтр), а 3-уровневая иерархия Common Core (43 темы, 61 ребро) жила только в `docs/specs` и с прод-графом кодом связана не была. Цель — сделать подтему настоящим уровнем графа **Раздел→Тема→навык**, чтобы ученик видел структуру, а не плоский список тегов.
+**Что сделано:**
+- Новые таблицы `topics`(43)/`topic_edges`(61) + колонка `nodes.topic_id`; мост 118 узлов→43 темы сгенерён семантическим маппингом (Workflow: 7 агентов по тег-группам + верификатор; 118/118, 0 сирот). ru/kz-названия тем/разделов — агентом.
+- Идемпотентный `seed_topics` (upsert / ON CONFLICT / UPDATE) — зовётся ВСЕГДА (вне `if nodes==0`), чтобы лить темы на уже засеянную прод-БД. API `/graph/me` отдаёт `topics/strands/topic_id` через общий хелпер `build_topics_payload` (им же питается `generate_graph_data` HTML-экспорт). Фронт-модели GraphTopic/GraphStrand; граф-страница — вложенный аккордеон Раздел→Тема→навык (прогресс на уровнях, «Опирается на: …» из topic_edges, CC-коды скрыты).
+- Тесты с нуля (был долг TEST-0): pytest+pytest-asyncio, conftest против отдельной `*_test` Postgres-БД. 8 тестов (инварианты данных, идемпотентность сида, контракт хелпера, парсинг моделей).
+**Решение:** слой тем НАД 118 узлами (additive), НЕ замена на 337 микро-навыков и НЕ изменение движка — выбор владельца (view-only). Движок/задачи/mastery не тронуты. Грейн темы = CC-кластер (43); strand = домен CC (9) + НИШ.
+**Итог:** ✅ задеплоено на VPS (merge в main, HEAD `9926663`). Гейты: 8/8 pytest; flutter analyze 0 ошибок (graph_page) + build web проходит; **live Playwright** против запущенного стека — иерархия рендерится, карточки full-width, «Опирается на» резолвит имена, 0 ошибок консоли. На проде: лог `Seeded 43 topics, 61 topic edges` на existing-БД, DB topics=43 / edges=61 / topic_id_set=118.
+**Открытые вопросы:** 7 из 43 тем без узлов (118 крупных узлов не покрывают все CC-кластеры) → отфильтрованы из выдачи; ~10 low-confidence маппингов узел→тема (в JSON, правка тривиальна); иерархия пока только view (не гейтит путь); `dashboard_page` всё ещё группирует by tag (вне scope); интеграция 337 микро-навыков — отдельная история.
+**Файлы:** backend/db/{models,seed}.py, backend/core/web_graph.py, backend/api/routes.py (graph_me), backend/data/cc_topics_v01.json, scripts/build_cc_topics.py, frontend/apps/kodi_web/lib/features/dashboard/pages/graph_page.dart, frontend/packages/kodi_core/lib/models/graph_topic.dart
+**Issue:** —

@@ -1,8 +1,8 @@
 # Module Map
 
-> **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-06-22.** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
+> **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-06-24 (слой тем CC).** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
 
-**Масштаб:** 10 core-модулей (+ ~40 модулей в `scorers/`+`classifiers/` — DEAD CODE в рантайме), `routes.py` ~1070 строк (монолит, 17 эндпоинтов), 5 Flutter-фич (auth/dashboard/practice/diagnostic/exam), 8 DB-таблиц (CLAUDE.md говорит «9» — в коде 8 `__tablename__`), 2525 задач / 118 нод графа.
+**Масштаб:** 10 core-модулей (+ ~40 модулей в `scorers/`+`classifiers/` — DEAD CODE в рантайме), `routes.py` ~1070 строк (монолит, 17 эндпоинтов), 5 Flutter-фич (auth/dashboard/practice/diagnostic/exam), 10 DB-таблиц (`__tablename__` ×10: +`topics`,`topic_edges` со слоя тем 2026-06-24), 2525 задач / 118 нод графа / 43 темы CC.
 
 ## Backend: Core (`backend/core/`)
 
@@ -13,7 +13,7 @@
 | exam.py | Режим экзамена для сильных учеников: Phase A (15 `EXAM_HEADS`) → Phase B (5 самых неопределённых подтем по BKT-uncertainty); переиспользует helpers из `diagnostic.py` | `EXAM_HEADS`, `PRIOR=0.30`, `SLIP`/`GUESS` по sub_difficulty, weighted-accuracy для подтем | 599 |
 | grading.py | Проверка ответа: rule-based pipeline (8 правил — нормализация/exact/numeric/fraction/units/multi-value/text) + Claude LLM фолбэк при «неверно» | `check_answer`, `check_with_claude`, `_UNITS_RE`, `_DASHES` | 531 |
 | selector.py | Выбор следующей задачи: блочное чередование (5 задач/тема), приоритет spaced-rep → weakest unmastered → review → challenge; внутри ноды — raw_score cascade (Tier 1-4) | `select_next_problem`, `_pick_problem_for_node`, `_REVIEW_STALE_DAYS=7` | 438 |
-| web_graph.py | Сборка JSON графа+статистики для фронта и HTML stats-страницы | `generate_graph_data`, UX-порог 0.7 (НЕ трогать) | 369 |
+| web_graph.py | Сборка JSON графа+статистики для фронта и HTML stats-страницы. Слой тем: `build_topics_payload` (topics/strands, общий для route graph_me и HTML-экспорта), `_strand_meta` (имена разделов из data-файла) | `generate_graph_data`, `build_topics_payload`, UX-порог 0.7 (НЕ трогать) | 449 |
 | bkt.py | Bayesian Knowledge Tracing: обновление `p_mastery` после каждого ответа (Corbett & Anderson) | `bkt_update`, `is_mastered`, `record_attempt`, `MASTERY_THRESHOLD=0.85`, `MASTERY_ALGO_VERSION` | 230 |
 | graph.py | Операции с графом знаний (Knowledge Space Theory): outer/inner fringe, prerequisites, backward walk | `get_prerequisites`, `get_dependents`, `get_mastery_map`, `get_outer_fringe` | 157 |
 | config.py | Настройки из `.env` (dataclass); фикс `postgres://`→`postgresql+asyncpg://` | `settings`, `Settings`, `is_privileged`, `_fix_database_url` | 69 |
@@ -36,8 +36,8 @@
 
 | File | Назначение | Ключевое | ~Lines |
 |------|-----------|----------|--------|
-| seed.py | Загрузка графа (nodes+edges) и задач из JSON в БД при пустой таблице; upsert по версии. `raw_score`/`sub_difficulty` берутся прямо из JSON | `seed_graph`, `seed_problems`, `PROBLEMS_VERSION="v10.1"` | 209 |
-| models.py | SQLAlchemy-модели, **8 таблиц**: `Node`, `Edge`, `Problem`, `Student`, `Mastery`, `Attempt`, `ProblemReport`, `Setting` | `__tablename__` ×8, ключевые поля Student/Mastery (см. CLAUDE.md) | 177 |
+| seed.py | Загрузка графа (nodes+edges) и задач из JSON при пустой таблице; upsert по версии. **`seed_topics`** — идемпотентный upsert слоя тем, зовётся ВСЕГДА (не gated по nodes) | `seed_graph`, `seed_problems`, `seed_topics`, `PROBLEMS_VERSION="v10.1"` | 254 |
+| models.py | SQLAlchemy-модели, **10 таблиц**: `Node`, `Edge`, `Problem`, `Student`, `Mastery`, `Attempt`, `ProblemReport`, `Setting`, `Topic`, `TopicEdge` (+`Node.topic_id`) | `__tablename__` ×10, ключевые поля Student/Mastery (см. CLAUDE.md) | 201 |
 | base.py | Async-движок (asyncpg), `async_session` factory, `Base` (DeclarativeBase), pool 10+5 | `engine`, `async_session`, `Base`, `get_session` | 24 |
 
 ## Backend: Scripts & Data
@@ -66,7 +66,7 @@
 | features/auth/pages/phone_login_page.dart | Вход/регистрация по телефону+PIN | — | 219 |
 | features/auth/pages/login_page.dart | Лендинг входа: Telegram OAuth (через `dart:html`) + переход на phone | использует `AppConfig.telegramBotName` | 187 |
 | features/dashboard/pages/widgets/onboarding_view.dart | Онбординг для нового ученика (CTA на диагностику) | `OnboardingView` | 180 |
-| features/dashboard/pages/graph_page.dart | Граф знаний: ноды по статусу mastered/partial/failed/untested | `GraphPage`, TagLabels | 173 |
+| features/dashboard/pages/graph_page.dart | Граф знаний: вложенная иерархия **Раздел→Тема→навык** (аккордеон, прогресс на уровнях, «Опирается на: …», fallback «Прочее»). CC-коды скрыты | `GraphPage`, `_StrandSection`, `_TopicSubCard`, `_NodeRow` | 599 |
 | features/dashboard/pages/widgets/problem_section_card.dart | Карточка секции с задачами | `ProblemSectionCard` (Stateful) | 170 |
 | features/auth/bloc/auth_bloc.dart | BLoC auth: check/telegram/phone-login, токен в SharedPreferences | `AuthCheckRequested`, `AuthAuthenticated`/`AuthUnauthenticated` | 128 |
 | features/dashboard/pages/widgets/hero_card.dart | Hero-карточка дашборда (прогресс/CTA) | `HeroCard` | 128 |
@@ -97,7 +97,8 @@
 |------|-----------|----------|--------|
 | api/nis_api.dart | HTTP-клиент ко всем эндпоинтам: auth/stats/graph/practice/diagnostic; типизированные ошибки + локализованные сообщения | `NisApiClient`, `ApiException`, `NetworkException`, методы `getNextProblem`/`submitAnswer`/`startDiagnostic`/… | 222 |
 | models/problem.dart | Модели `Problem` + `AnswerResult` (Equatable) | — | 70 |
-| models/graph_node.dart | Модель `GraphNode` (нода графа + статус mastery) | — | 54 |
+| models/graph_node.dart | Модель `GraphNode` (нода графа + статус mastery + `topicId`) | — | 58 |
+| models/graph_topic.dart | Модели `GraphTopic` (id/strand/grade/order/prereq/nodeIds) и `GraphStrand` слоя тем | — | 67 |
 | models/student.dart | Модель `Student` (профиль, стрики, диагностика) | — | 45 |
 | models/stats.dart | Модель `Stats` (решено/точность/освоенные) | — | 41 |
 | kodi_core.dart | Barrel: реэкспорт models + nis_api | `library kodi_core` | 7 |
