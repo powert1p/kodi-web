@@ -153,6 +153,8 @@
   "legendPartial": "Частично",
   "legendFailed": "Провалено",
   "legendUntested": "Не проверено",
+  "graphReliesOn": "Опирается на",
+  "graphOther": "Прочее",
 
   "heroHello": "Привет, {name}! \uD83D\uDC4B",
   "@heroHello": { "placeholders": { "name": { "type": "String" } } },

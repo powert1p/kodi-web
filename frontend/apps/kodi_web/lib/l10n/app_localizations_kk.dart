@@ -441,6 +441,12 @@ class AppLocalizationsKk extends AppLocalizations {
   String get legendUntested => 'Тексерілмеді';
 
   @override
+  String get graphReliesOn => 'Негізделеді';
+
+  @override
+  String get graphOther => 'Басқалар';
+
+  @override
   String heroHello(String name) {
     return 'Сәлем, $name! 👋';
   }

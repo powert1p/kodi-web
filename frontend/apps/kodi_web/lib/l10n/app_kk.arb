@@ -153,6 +153,8 @@
   "legendPartial": "Жартылай",
   "legendFailed": "Сәтсіз",
   "legendUntested": "Тексерілмеді",
+  "graphReliesOn": "Негізделеді",
+  "graphOther": "Басқалар",
 
   "heroHello": "Сәлем, {name}! \uD83D\uDC4B",
   "@heroHello": { "placeholders": { "name": { "type": "String" } } },

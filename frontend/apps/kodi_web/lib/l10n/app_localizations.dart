@@ -909,6 +909,18 @@ abstract class AppLocalizations {
   /// **'Не проверено'**
   String get legendUntested;
 
+  /// No description provided for @graphReliesOn.
+  ///
+  /// In ru, this message translates to:
+  /// **'Опирается на'**
+  String get graphReliesOn;
+
+  /// No description provided for @graphOther.
+  ///
+  /// In ru, this message translates to:
+  /// **'Прочее'**
+  String get graphOther;
+
   /// No description provided for @heroHello.
   ///
   /// In ru, this message translates to:

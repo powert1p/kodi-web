@@ -441,6 +441,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get legendUntested => 'Не проверено';
 
   @override
+  String get graphReliesOn => 'Опирается на';
+
+  @override
+  String get graphOther => 'Прочее';
+
+  @override
   String heroHello(String name) {
     return 'Привет, $name! 👋';
   }
