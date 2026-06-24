@@ -7,6 +7,7 @@ complete HTML as bytes.
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
 from pathlib import Path
@@ -22,6 +23,15 @@ from sqlalchemy import select
 logger = logging.getLogger(__name__)
 
 TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "static" / "graph.html"
+
+
+@functools.lru_cache(maxsize=1)
+def _strand_meta() -> dict:
+    """Названия и порядок разделов (strands) из data-файла (в БД хранится только код)."""
+    path = Path(__file__).resolve().parent.parent / "data" / "cc_topics_v01.json"
+    d = json.loads(path.read_text(encoding="utf-8"))
+    return {s["code"]: {"name_ru": s["name_ru"], "name_kz": s["name_kz"], "order": s["order"]}
+            for s in d["strands"]}
 
 
 async def generate_graph_data(
@@ -40,6 +50,12 @@ async def generate_graph_data(
 
     edges_result = await session.execute(select(Edge.from_node, Edge.to_node))
     all_edges = edges_result.all()
+
+    # ── Слой тем ──
+    from db.models import Topic, TopicEdge
+    topic_rows = list((await session.execute(select(Topic))).scalars().all())
+    topic_edge_rows = (await session.execute(
+        select(TopicEdge.from_topic, TopicEdge.to_topic))).all()
 
     # ── Load mastery data ──
     mastery_result = await session.execute(
@@ -138,6 +154,7 @@ async def generate_graph_data(
             "is_blocked": node.id in blocked_ids,
             "difficulty": node.difficulty or 1,
             "downstream": downstream_counts.get(node.id, 0),
+            "topic_id": node.topic_id,
         }
 
         if details:
@@ -152,6 +169,48 @@ async def generate_graph_data(
         {"source": e[0], "target": e[1]}
         for e in edge_tuples
     ]
+
+    # ── Темы (только непустые — где есть ≥1 узел) ──
+    prereq_by_topic: dict[str, list[str]] = {}
+    for ft, tt in topic_edge_rows:
+        prereq_by_topic.setdefault(tt, []).append(ft)
+    nodes_by_topic: dict[str, list[str]] = {}
+    for n in all_nodes:
+        if n.topic_id:
+            nodes_by_topic.setdefault(n.topic_id, []).append(n.id)
+
+    topics_json = []
+    for t in topic_rows:
+        nids = nodes_by_topic.get(t.id, [])
+        if not nids:
+            continue
+        topics_json.append({
+            "id": t.id,
+            "strand": t.strand,
+            "grade": t.grade,
+            "name_ru": t.name_ru,
+            "name_kz": t.name_kz,
+            "order": t.order_idx,
+            "prereq": prereq_by_topic.get(t.id, []),
+            "node_ids": nids,
+        })
+    topics_json.sort(key=lambda x: x["order"])
+
+    # ── Разделы (только задействованные), имена/порядок из data-файла ──
+    used_strands = {t["strand"] for t in topics_json}
+    smeta = _strand_meta()
+    strands_json = sorted(
+        (
+            {
+                "code": code,
+                "name_ru": smeta.get(code, {}).get("name_ru", code),
+                "name_kz": smeta.get(code, {}).get("name_kz", code),
+                "order": smeta.get(code, {}).get("order", 999),
+            }
+            for code in used_strands
+        ),
+        key=lambda x: x["order"],
+    )
 
     # ── Stats ──
     mastered = sum(1 for m in mastery_map.values() if m["p_mastery"] >= 0.7)
@@ -186,6 +245,8 @@ async def generate_graph_data(
         "student_name": student_name,
         "nodes": nodes_json,
         "edges": edges_json,
+        "topics": topics_json,
+        "strands": strands_json,
         "stats": {
             "mastered": mastered,
             "in_progress": in_progress,
