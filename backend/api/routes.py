@@ -48,7 +48,7 @@ limiter = Limiter(key_func=get_remote_address)
 from core.grading import check_answer, check_with_claude
 from core.selector import select_next_problem
 from db.base import async_session
-from db.models import Attempt, Edge, Mastery, Node, Problem, ProblemReport, Student
+from db.models import Attempt, Edge, Mastery, Node, Problem, ProblemReport, Student, Topic, TopicEdge
 
 logger = logging.getLogger(__name__)
 
@@ -386,6 +386,7 @@ async def graph_me(request: Request, lang: str = "ru"):
             _compute_zones,
             _determine_status,
             _load_answer_details,
+            build_topics_payload,
         )
         from core.diagnostic import compute_outer_fringe
 
@@ -395,6 +396,11 @@ async def graph_me(request: Request, lang: str = "ru"):
         edges_result = await session.execute(select(Edge.from_node, Edge.to_node))
         all_edges = edges_result.all()
         edge_tuples = [(e[0], e[1]) for e in all_edges]
+
+        # загружаем темы и рёбра между темами для слоя тем
+        topic_rows = list((await session.execute(select(Topic))).scalars().all())
+        topic_edge_rows = (await session.execute(
+            select(TopicEdge.from_topic, TopicEdge.to_topic))).all()
 
         mastery_result = await session.execute(
             select(Mastery.node_id, Mastery.p_mastery, Mastery.attempts_correct,
@@ -462,6 +468,7 @@ async def graph_me(request: Request, lang: str = "ru"):
                 "is_blocked": node.id in blocked_ids,
                 "difficulty": node.difficulty or 1,
                 "downstream": downstream_counts.get(node.id, 0),
+                "topic_id": node.topic_id,
                 "q_total": details.get("q_total", 0) if details else 0,
                 "q_correct": details.get("q_correct", 0) if details else 0,
             }
@@ -469,9 +476,13 @@ async def graph_me(request: Request, lang: str = "ru"):
 
         edges_json = [{"source": e[0], "target": e[1]} for e in edge_tuples]
 
+        # слой тем и разделов через общий хелпер
+        topics_json, strands_json = build_topics_payload(topic_rows, topic_edge_rows, all_nodes)
         return {
             "nodes": nodes_json,
             "edges": edges_json,
+            "topics": topics_json,
+            "strands": strands_json,
         }
     finally:
         await session.close()

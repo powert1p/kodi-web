@@ -39,6 +39,57 @@ def _strand_meta() -> dict:
             for s in d["strands"]}
 
 
+def build_topics_payload(
+    topic_rows: list,
+    topic_edge_rows: list,
+    all_nodes: list,
+) -> tuple[list[dict], list[dict]]:
+    """Собрать topics[] (только непустые темы) и strands[] из строк БД и узлов.
+
+    topic_rows: list[Topic]; topic_edge_rows: list[(from_topic, to_topic)];
+    all_nodes: list[Node] (нужен node.id и node.topic_id).
+    Возвращает (topics_json, strands_json).
+    """
+    # пред-требования между темами: to_topic → [from_topic, ...]
+    prereq_by_topic: dict[str, list[str]] = {}
+    for ft, tt in topic_edge_rows:
+        prereq_by_topic.setdefault(tt, []).append(ft)
+
+    # узлы, принадлежащие каждой теме
+    nodes_by_topic: dict[str, list[str]] = {}
+    for n in all_nodes:
+        if n.topic_id:
+            nodes_by_topic.setdefault(n.topic_id, []).append(n.id)
+
+    # темы без узлов отбрасываем — они не визуализируются
+    topics_json = []
+    for t in topic_rows:
+        nids = nodes_by_topic.get(t.id, [])
+        if not nids:
+            continue
+        topics_json.append({
+            "id": t.id, "strand": t.strand, "grade": t.grade,
+            "name_ru": t.name_ru, "name_kz": t.name_kz, "order": t.order_idx,
+            "prereq": prereq_by_topic.get(t.id, []), "node_ids": nids,
+        })
+    topics_json.sort(key=lambda x: x["order"])
+
+    # разделы — только задействованные, имена/порядок из data-файла
+    used_strands = {t["strand"] for t in topics_json}
+    smeta = _strand_meta()
+    strands_json = sorted(
+        (
+            {"code": code,
+             "name_ru": smeta.get(code, {}).get("name_ru", code),
+             "name_kz": smeta.get(code, {}).get("name_kz", code),
+             "order": smeta.get(code, {}).get("order", 999)}
+            for code in used_strands
+        ),
+        key=lambda x: x["order"],
+    )
+    return topics_json, strands_json
+
+
 async def generate_graph_data(
     session: AsyncSession,
     student_id: int,
@@ -174,47 +225,8 @@ async def generate_graph_data(
         for e in edge_tuples
     ]
 
-    # ── Темы (только непустые — где есть ≥1 узел) ──
-    prereq_by_topic: dict[str, list[str]] = {}
-    for ft, tt in topic_edge_rows:
-        prereq_by_topic.setdefault(tt, []).append(ft)
-    nodes_by_topic: dict[str, list[str]] = {}
-    for n in all_nodes:
-        if n.topic_id:
-            nodes_by_topic.setdefault(n.topic_id, []).append(n.id)
-
-    topics_json = []
-    for t in topic_rows:
-        nids = nodes_by_topic.get(t.id, [])
-        if not nids:
-            continue
-        topics_json.append({
-            "id": t.id,
-            "strand": t.strand,
-            "grade": t.grade,
-            "name_ru": t.name_ru,
-            "name_kz": t.name_kz,
-            "order": t.order_idx,
-            "prereq": prereq_by_topic.get(t.id, []),
-            "node_ids": nids,
-        })
-    topics_json.sort(key=lambda x: x["order"])
-
-    # ── Разделы (только задействованные), имена/порядок из data-файла ──
-    used_strands = {t["strand"] for t in topics_json}
-    smeta = _strand_meta()
-    strands_json = sorted(
-        (
-            {
-                "code": code,
-                "name_ru": smeta.get(code, {}).get("name_ru", code),
-                "name_kz": smeta.get(code, {}).get("name_kz", code),
-                "order": smeta.get(code, {}).get("order", 999),
-            }
-            for code in used_strands
-        ),
-        key=lambda x: x["order"],
-    )
+    # ── Темы и разделы через общий хелпер ──
+    topics_json, strands_json = build_topics_payload(topic_rows, topic_edge_rows, all_nodes)
 
     # ── Stats ──
     mastered = sum(1 for m in mastery_map.values() if m["p_mastery"] >= 0.7)

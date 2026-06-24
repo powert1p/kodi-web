@@ -1,5 +1,7 @@
 """Контракт API /graph/me: темы и разделы присутствуют, старые поля целы (integration)."""
 
+from sqlalchemy import select as _select
+
 from db.seed import seed_graph, seed_topics
 from core.web_graph import generate_graph_data
 
@@ -28,3 +30,27 @@ async def test_graph_data_has_topics_and_strands(db_session, seeded_student):
     # prereq — список строк
     for t in data["topics"]:
         assert isinstance(t["prereq"], list)
+
+
+async def test_build_topics_payload_helper(db_session):
+    """Детерминированная проверка хелпера build_topics_payload через seed-данные."""
+    from db.models import Node, Topic, TopicEdge
+    from core.web_graph import build_topics_payload
+
+    await seed_graph(db_session)
+    await seed_topics(db_session)
+
+    topic_rows = list((await db_session.execute(_select(Topic))).scalars().all())
+    edge_rows = (await db_session.execute(_select(TopicEdge.from_topic, TopicEdge.to_topic))).all()
+    all_nodes = list((await db_session.execute(_select(Node))).scalars().all())
+
+    topics_json, strands_json = build_topics_payload(topic_rows, edge_rows, all_nodes)
+
+    # только непустые темы (у каждой есть хотя бы один узел)
+    assert all(t["node_ids"] for t in topics_json)
+    # темы отсортированы по order
+    assert [t["order"] for t in topics_json] == sorted(t["order"] for t in topics_json)
+    # все разделы тем присутствуют в strands
+    assert {t["strand"] for t in topics_json} <= {s["code"] for s in strands_json}
+    # сумма узлов по темам == число узлов с topic_id
+    assert sum(len(t["node_ids"]) for t in topics_json) == sum(1 for n in all_nodes if n.topic_id)
