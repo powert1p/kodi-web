@@ -1,4 +1,9 @@
-"""Контракт API /graph/me: темы и разделы присутствуют, старые поля целы (integration)."""
+"""Контракт слоя тем (integration).
+
+Тестирует generate_graph_data (HTML-экспорт) и общий хелпер build_topics_payload,
+который питает и REST-роут /graph/me. Сам HTTP-роут /graph/me проверен live
+(curl + Playwright против реального сервера) — здесь покрыта общая логика сборки.
+"""
 
 from sqlalchemy import select as _select
 

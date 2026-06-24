@@ -87,7 +87,7 @@ def main() -> None:
         "topic_edges": topic_edges,
         "node_topic": node_topic,
     }
-    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(f"OK: {len(topics)} тем, {len(topic_edges)} рёбер, {len(node_topic)} узлов -> {OUT}")
 
 

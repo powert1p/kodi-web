@@ -70,7 +70,10 @@ def build_topics_payload(
         topics_json.append({
             "id": t.id, "strand": t.strand, "grade": t.grade,
             "name_ru": t.name_ru, "name_kz": t.name_kz, "order": t.order_idx,
-            "prereq": prereq_by_topic.get(t.id, []), "node_ids": nids,
+            # только пререквизиты, которые реально рендерятся (тема с узлами) —
+            # иначе "Опирается на:" ссылался бы на отброшенные пустые темы
+            "prereq": [p for p in prereq_by_topic.get(t.id, []) if p in nodes_by_topic],
+            "node_ids": nids,
         })
     topics_json.sort(key=lambda x: x["order"])
 
