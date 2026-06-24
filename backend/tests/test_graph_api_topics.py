@@ -22,6 +22,9 @@ async def test_graph_data_has_topics_and_strands(db_session, seeded_student):
     assert all(t["strand"] in strand_codes for t in data["topics"])
     # имена разделов есть
     assert all(s["name_ru"] and s["name_kz"] for s in data["strands"])
+    # сортировка по order
+    assert [t["order"] for t in data["topics"]] == sorted(t["order"] for t in data["topics"])
+    assert [s["order"] for s in data["strands"]] == sorted(s["order"] for s in data["strands"])
     # prereq — список строк
     for t in data["topics"]:
         assert isinstance(t["prereq"], list)

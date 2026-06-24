@@ -16,7 +16,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.diagnostic import compute_outer_fringe
-from db.models import Edge, Mastery, Node
+from db.models import Edge, Mastery, Node, Topic, TopicEdge
 
 from sqlalchemy import select
 
@@ -29,7 +29,12 @@ TEMPLATE_PATH = Path(__file__).resolve().parent.parent / "static" / "graph.html"
 def _strand_meta() -> dict:
     """Названия и порядок разделов (strands) из data-файла (в БД хранится только код)."""
     path = Path(__file__).resolve().parent.parent / "data" / "cc_topics_v01.json"
-    d = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        d = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        # Файл имён разделов отсутствует — не валим весь /graph/me, отдаём пустую мету
+        logger.warning("cc_topics file not found: %s", path)
+        return {}
     return {s["code"]: {"name_ru": s["name_ru"], "name_kz": s["name_kz"], "order": s["order"]}
             for s in d["strands"]}
 
@@ -52,7 +57,6 @@ async def generate_graph_data(
     all_edges = edges_result.all()
 
     # ── Слой тем ──
-    from db.models import Topic, TopicEdge
     topic_rows = list((await session.execute(select(Topic))).scalars().all())
     topic_edge_rows = (await session.execute(
         select(TopicEdge.from_topic, TopicEdge.to_topic))).all()

@@ -32,15 +32,15 @@ async def db_session():
     import db.models  # noqa: F401 — регистрация таблиц в metadata
 
     engine = create_async_engine(_TEST_URL)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
-
-    session_factory = async_sessionmaker(engine, expire_on_commit=False)
-    async with session_factory() as session:
-        yield session
-
-    await engine.dispose()
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+        session_factory = async_sessionmaker(engine, expire_on_commit=False)
+        async with session_factory() as session:
+            yield session
+    finally:
+        await engine.dispose()
 
 
 @pytest_asyncio.fixture
