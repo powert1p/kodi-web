@@ -280,9 +280,11 @@ async def diagnose_photo(
             logger.warning("OpenAI timeout (model=%s, %.1fs)", model, _OPENAI_TIMEOUT)
             last_exc = exc
         except Exception as exc:  # noqa: BLE001
-            logger.warning("OpenAI error (model=%s): %s", model, exc)
+            # Логируем только тип исключения — тело может содержать фрагменты ключа API
+            logger.warning("OpenAI error (model=%s): %s", model, type(exc).__name__)
             last_exc = exc
 
+    # В сообщении исключения — только тип, не тело (утечка ключа)
     raise LlmUnavailable(
-        f"Все модели в openai_model_chain недоступны. Последняя ошибка: {last_exc}"
+        f"Все модели в openai_model_chain недоступны (последняя ошибка: {type(last_exc).__name__})"
     )

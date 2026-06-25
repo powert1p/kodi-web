@@ -114,12 +114,9 @@ async def test_diagnose_photo_prompt_contains_correct_answer_and_steps() -> None
             fingerprint_hint="eq_transpose",
         )
 
-    # Извлекаем аргументы вызова
-    call_kwargs = fake_client.chat.completions.create.call_args
-    messages = call_kwargs.kwargs.get("messages") or call_kwargs.args[0] if call_kwargs.args else None
-    if messages is None:
-        # positional-only — берём из kwargs
-        messages = call_kwargs.kwargs["messages"]
+    # W1: messages всегда передаётся как kwargs — берём напрямую, без хрупкого args-fallback
+    create_mock = fake_client.chat.completions.create
+    messages = create_mock.call_args.kwargs["messages"]
 
     # Собираем весь текст из messages
     all_text = ""
@@ -134,6 +131,8 @@ async def test_diagnose_photo_prompt_contains_correct_answer_and_steps() -> None
 
     assert "42" in all_text, "correct_answer должен присутствовать в промпте"
     assert "Перенести слагаемое" in all_text, "canonical_steps должны присутствовать в промпте"
+    # W2: проверяем что инструкция «не раскрывать ответ» включена в промпт
+    assert "НИКОГДА не раскрывай" in all_text, "промпт должен содержать инструкцию не раскрывать ответ"
 
 
 # ─── тест 3: пустой ключ → LlmUnavailable ────────────────────────────────────
