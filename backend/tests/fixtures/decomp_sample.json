@@ -1,0 +1,95 @@
+{
+  "topic": "test",
+  "catalog": {
+    "micro_skills": [
+      {"code": "int_add_sub", "label_ru": "Сложение и вычитание целых чисел", "domain": "arithmetic", "freq": 649},
+      {"code": "int_mul", "label_ru": "Умножение целых чисел", "domain": "arithmetic", "freq": 339}
+    ],
+    "by_domain": {},
+    "total": 2
+  },
+  "stats": {},
+  "problems": [
+    {
+      "idx": 0,
+      "node_id": "AR01",
+      "answer": "68",
+      "primary_micro_skill": "int_add_sub",
+      "all_steps_verified": true,
+      "needs_review": false,
+      "review_reason": null,
+      "steps": [
+        {
+          "n": 1,
+          "instruction_ru": "Сложи 23 и 45: 23 + 45 = 68.",
+          "micro_skill": "int_add_sub",
+          "expected_value": "68",
+          "verified": "sympy_ok"
+        }
+      ],
+      "fingerprints": [
+        {
+          "wrong_answer": "23",
+          "mistake_ru": "Забыл прибавить второе слагаемое.",
+          "micro_skill": "int_add_sub"
+        }
+      ]
+    },
+    {
+      "idx": 1,
+      "node_id": "AR01",
+      "answer": "999",
+      "primary_micro_skill": "int_add_sub",
+      "all_steps_verified": false,
+      "needs_review": true,
+      "review_reason": "unusual answer",
+      "steps": [
+        {
+          "n": 1,
+          "instruction_ru": "Шаг без совпадения в БД.",
+          "micro_skill": "int_add_sub",
+          "expected_value": "999",
+          "verified": null
+        }
+      ],
+      "fingerprints": []
+    },
+    {
+      "idx": 2,
+      "node_id": "AR01",
+      "answer": "46",
+      "primary_micro_skill": "int_mul",
+      "all_steps_verified": true,
+      "needs_review": false,
+      "review_reason": null,
+      "steps": [
+        {
+          "n": 1,
+          "instruction_ru": "Вычисли 63 + 28 − 45 = 46.",
+          "micro_skill": "int_add_sub",
+          "expected_value": "46",
+          "verified": "sympy_ok"
+        },
+        {
+          "n": 2,
+          "instruction_ru": "Проверь знак результата.",
+          "micro_skill": "int_mul",
+          "expected_value": "positive",
+          "verified": "manual_ok"
+        }
+      ],
+      "fingerprints": [
+        {
+          "wrong_answer": "80",
+          "mistake_ru": "Перепутал знаки: вычел 28 вместо сложения.",
+          "micro_skill": "int_add_sub"
+        },
+        {
+          "wrong_answer": "47",
+          "mistake_ru": "Ошибся при сложении в первом шаге.",
+          "micro_skill": "int_add_sub"
+        }
+      ]
+    }
+  ]
+}

@@ -14,6 +14,7 @@ from web import app
 from core.config import settings
 from db.base import Base, async_session, engine
 from db.seed import seed_graph, seed_problems, seed_topics
+from db.seed_decomposition import seed_decomposition
 
 logging.basicConfig(
     level=logging.INFO,
@@ -148,6 +149,21 @@ async def on_startup():
     # seed_topics вызывается всегда (и на свежей, и на уже засеянной БД) — идемпотентен
     async with async_session() as session:
         await seed_topics(session)
+
+    # Сид декомпозиций: запускается только если таблица пуста (или FORCE_RESEED=1)
+    async with async_session() as session:
+        decomp_result = await seed_decomposition(session)
+        if decomp_result["decomp_problems"] > 0:
+            logger.info(
+                "Декомпозиции засеяны: %d задач, %d linked (%.1f%%), %d шагов, %d fingerprints.",
+                decomp_result["decomp_problems"],
+                decomp_result["db_linked"],
+                decomp_result["db_linked"] / decomp_result["decomp_problems"] * 100,
+                decomp_result["steps"],
+                decomp_result["fingerprints"],
+            )
+        else:
+            logger.info("Декомпозиции уже засеяны — пропуск.")
 
 
 async def main():
