@@ -879,6 +879,18 @@ abstract class AppLocalizations {
   /// **'Граф'**
   String get graphBtn;
 
+  /// Кнопка на странице логина для перехода к публичному графу
+  ///
+  /// In ru, this message translates to:
+  /// **'Посмотреть граф знаний'**
+  String get graphPublicCta;
+
+  /// Кнопка входа на публичной странице графа
+  ///
+  /// In ru, this message translates to:
+  /// **'Войти'**
+  String get publicGraphLogin;
+
   /// No description provided for @logoutTooltip.
   ///
   /// In ru, this message translates to:

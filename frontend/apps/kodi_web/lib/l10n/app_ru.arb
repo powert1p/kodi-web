@@ -148,6 +148,10 @@
 
   "graphTitle": "Граф знаний",
   "graphBtn": "Граф",
+  "graphPublicCta": "Посмотреть граф знаний",
+  "@graphPublicCta": { "description": "Кнопка на странице логина для перехода к публичному графу" },
+  "publicGraphLogin": "Войти",
+  "@publicGraphLogin": { "description": "Кнопка входа на публичной странице графа" },
   "logoutTooltip": "Выйти",
   "legendMastered": "Освоено",
   "legendPartial": "Частично",

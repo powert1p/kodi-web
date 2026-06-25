@@ -426,6 +426,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get graphBtn => 'Граф';
 
   @override
+  String get graphPublicCta => 'Посмотреть граф знаний';
+
+  @override
+  String get publicGraphLogin => 'Войти';
+
+  @override
   String get logoutTooltip => 'Выйти';
 
   @override

@@ -156,6 +156,10 @@ class NisApiClient {
     return await _get('/api/graph/me?lang=$lang');
   }
 
+  Future<Map<String, dynamic>> getPublicGraphData() async {
+    return await _get('/api/graph/public?lang=$lang');
+  }
+
   Future<List<GraphNode>> getGraphNodes() async {
     final data = await getGraphData();
     final nodes = data['nodes'] as List<dynamic>;

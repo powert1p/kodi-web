@@ -148,6 +148,10 @@
 
   "graphTitle": "Білім графы",
   "graphBtn": "Граф",
+  "graphPublicCta": "Білім графын қарау",
+  "@graphPublicCta": { "description": "Кіру бетіндегі жалпыға қолжетімді графқа өту түймесі" },
+  "publicGraphLogin": "Кіру",
+  "@publicGraphLogin": { "description": "Жалпыға қолжетімді граф бетіндегі кіру түймесі" },
   "logoutTooltip": "Шығу",
   "legendMastered": "Меңгерілді",
   "legendPartial": "Жартылай",

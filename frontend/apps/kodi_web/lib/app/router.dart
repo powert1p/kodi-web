@@ -37,6 +37,8 @@ Route<dynamic>? onGenerateRoute(RouteSettings settings) {
         settings: settings),
     GraphPage.routeName => MaterialPageRoute(
         builder: (_) => const GraphPage(), settings: settings),
+    PublicGraphPage.routeName => MaterialPageRoute(
+        builder: (_) => const PublicGraphPage(), settings: settings),
     DiagnosticPage.routeName => MaterialPageRoute(
         builder: (ctx) => BlocProvider(
           create: (ctx) => DiagnosticBloc(api: ctx.read<NisApiClient>())

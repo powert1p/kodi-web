@@ -5,6 +5,7 @@ import 'package:kodi_core/kodi_core.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../../app/colors.dart';
 import '../../../app/error_l10n.dart';
+import '../../auth/pages/login_page.dart';
 
 class GraphPage extends StatelessWidget {
   const GraphPage({super.key});
@@ -52,6 +53,82 @@ class GraphPage extends StatelessWidget {
               ]),
             ),
           _ => const Center(child: CircularProgressIndicator()),
+        },
+      ),
+    );
+  }
+}
+
+// ── Публичная страница графа (без авторизации) ──────────────────
+class PublicGraphPage extends StatefulWidget {
+  const PublicGraphPage({super.key});
+  static const routeName = '/graph-public';
+
+  @override
+  State<PublicGraphPage> createState() => _PublicGraphPageState();
+}
+
+class _PublicGraphPageState extends State<PublicGraphPage> {
+  late Future<Map<String, dynamic>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = context.read<NisApiClient>().getPublicGraphData();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final api = context.read<NisApiClient>();
+    return Scaffold(
+      backgroundColor: AppColors.surfaceAlt,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(l.graphTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+        leading: Navigator.of(context).canPop() ? const BackButton() : null,
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pushReplacementNamed(LoginPage.routeName),
+            child: Text(l.publicGraphLogin),
+          ),
+        ],
+      ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _future,
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError || snap.data == null) {
+            return Center(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                const SizedBox(height: 12),
+                Text(l.dashboardLoadError, textAlign: TextAlign.center),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => setState(() =>
+                      _future = context.read<NisApiClient>().getPublicGraphData()),
+                  child: Text(l.retryBtn),
+                ),
+              ]),
+            );
+          }
+          final data = snap.data!;
+          final nodes = (data['nodes'] as List<dynamic>)
+              .map((n) => GraphNode.fromJson(n as Map<String, dynamic>))
+              .toList();
+          final topics = (data['topics'] as List<dynamic>? ?? [])
+              .map((t) => GraphTopic.fromJson(t as Map<String, dynamic>))
+              .toList();
+          final strands = (data['strands'] as List<dynamic>? ?? [])
+              .map((s) => GraphStrand.fromJson(s as Map<String, dynamic>))
+              .toList();
+          return _GraphBody(
+              nodes: nodes, topics: topics, strands: strands, lang: api.lang);
         },
       ),
     );

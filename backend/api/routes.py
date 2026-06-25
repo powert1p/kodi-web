@@ -488,6 +488,41 @@ async def graph_me(request: Request, lang: str = "ru"):
         await session.close()
 
 
+@router.get("/graph/public")
+@limiter.limit("60/minute")
+async def graph_public(request: Request, lang: str = "ru"):
+    """Публичный граф знаний (без авторизации): структура Раздел→Тема→навык,
+    без личного прогресса — все узлы 'untested'. Для анонимного просмотра."""
+    from core.web_graph import build_topics_payload
+
+    async with async_session() as session:
+        all_nodes = list((await session.execute(select(Node))).scalars().all())
+        edge_rows = (await session.execute(select(Edge.from_node, Edge.to_node))).all()
+        topic_rows = list((await session.execute(select(Topic))).scalars().all())
+        topic_edge_rows = (await session.execute(
+            select(TopicEdge.from_topic, TopicEdge.to_topic))).all()
+
+        nodes_json = [{
+            "id": n.id,
+            "name_ru": n.name_ru,
+            "name_kz": n.name_kz or n.name_ru,
+            "tag": n.tag or "other",
+            "topic_id": n.topic_id,
+            "status": "untested",
+            "p_mastery": None,
+            "is_fringe": False,
+            "is_blocked": False,
+            "difficulty": n.difficulty or 1,
+            "downstream": 0,
+            "zone": 3,
+        } for n in all_nodes]
+        edges_json = [{"source": a, "target": b} for a, b in edge_rows]
+        topics_json, strands_json = build_topics_payload(topic_rows, topic_edge_rows, all_nodes)
+
+    return {"nodes": nodes_json, "edges": edges_json,
+            "topics": topics_json, "strands": strands_json, "public": True}
+
+
 # ══════════════════════════════════════════════════════════════
 #  PRACTICE ROUTES
 # ══════════════════════════════════════════════════════════════

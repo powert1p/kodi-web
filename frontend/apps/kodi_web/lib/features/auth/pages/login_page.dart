@@ -10,6 +10,7 @@ import 'package:kodi_web/l10n/app_localizations.dart';
 import '../../../app/error_l10n.dart';
 import '../bloc/auth_bloc.dart';
 import '../../dashboard/pages/dashboard_page.dart';
+import '../../dashboard/pages/graph_page.dart';
 import 'phone_login_page.dart';
 import '../../../shared/utils/responsive.dart';
 
@@ -165,6 +166,14 @@ class _LoginPageState extends State<LoginPage> {
                             foregroundColor: AppColors.telegram,
                             side: const BorderSide(color: AppColors.telegram)),
                         ),
+                      ),
+
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () => Navigator.of(context)
+                            .pushNamed(PublicGraphPage.routeName),
+                        icon: const Icon(Icons.account_tree_rounded, size: 18),
+                        label: Text(l.graphPublicCta),
                       ),
 
                       const SizedBox(height: 24),

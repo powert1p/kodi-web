@@ -426,6 +426,12 @@ class AppLocalizationsKk extends AppLocalizations {
   String get graphBtn => 'Граф';
 
   @override
+  String get graphPublicCta => 'Білім графын қарау';
+
+  @override
+  String get publicGraphLogin => 'Кіру';
+
+  @override
   String get logoutTooltip => 'Шығу';
 
   @override
