@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass
+from typing import NamedTuple
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,6 +28,39 @@ logger = logging.getLogger(__name__)
 # ── Пороги маршрута (Task 6 добавит route_level/pickers, не трогать) ─────────
 LEVEL1_MAX: float = 0.40   # ниже — revisit
 LEVEL2_MAX: float = 0.70   # ниже — almost, выше или равно — got
+
+
+# ── Типизированные результаты запросов (явные контракты вместо object|None) ───
+
+class DecompRow(NamedTuple):
+    """Строка decomposition_problems, возвращаемая из resolve_decomp."""
+
+    idx: int
+    node_id: str
+    answer: str
+    primary_micro_skill: str | None
+    all_steps_verified: bool
+
+
+class EasierDecompRow(NamedTuple):
+    """Строка decomposition_problems из pick_easier_decomp (включает step_count)."""
+
+    idx: int
+    node_id: str
+    answer: str
+    primary_micro_skill: str | None
+    all_steps_verified: bool
+    step_count: int
+
+
+class VerificationProblemRow(NamedTuple):
+    """Строка problems из pick_verification_problem."""
+
+    id: int
+    node_id: str
+    text_ru: str
+    answer: str
+    sub_difficulty: int | None
 
 
 @dataclass(frozen=True)
@@ -203,13 +237,24 @@ class WrongTask:
     mastery: float
 
 
+def _coerce_answer_given(answer_given: str | None, problem_id: int) -> str:
+    """Возвращает ответ ученика; если None — логируем предупреждение и фолбэчим на пустую строку."""
+    if answer_given is None:
+        logger.warning(
+            "build_wrong_tasks: answer_given is None для problem_id=%d, используем ''",
+            problem_id,
+        )
+        return ""
+    return answer_given
+
+
 async def resolve_decomp(
     session: AsyncSession,
     *,
     problem_id: int,
     node_id: str,
     answer: str,
-) -> object | None:
+) -> DecompRow | None:
     """Ищет подходящую декомпозицию для задачи.
 
     Приоритет выбора:
@@ -218,7 +263,7 @@ async def resolve_decomp(
          предпочитая запись с answer = задачи (нормализованное сравнение).
       3. None — декомпозиция недоступна.
 
-    Возвращает строку (Row) decomposition_problems или None.
+    Возвращает DecompRow или None.
     """
     # ── Шаг 1: linked decomp ─────────────────────────────────────────────────
     linked = await session.execute(
@@ -232,7 +277,13 @@ async def resolve_decomp(
     )
     row = linked.fetchone()
     if row is not None:
-        return row
+        return DecompRow(
+            idx=row.idx,
+            node_id=row.node_id,
+            answer=row.answer,
+            primary_micro_skill=row.primary_micro_skill,
+            all_steps_verified=row.all_steps_verified,
+        )
 
     # ── Шаг 2: same-node all_steps_verified decomp ────────────────────────────
     same_node = await session.execute(
@@ -252,10 +303,23 @@ async def resolve_decomp(
     norm_answer = _normalise(answer)
     for c in candidates:
         if _normalise(c.answer) == norm_answer:
-            return c
+            return DecompRow(
+                idx=c.idx,
+                node_id=c.node_id,
+                answer=c.answer,
+                primary_micro_skill=c.primary_micro_skill,
+                all_steps_verified=c.all_steps_verified,
+            )
 
     # Любая verified-запись на том же узле
-    return candidates[0]
+    c = candidates[0]
+    return DecompRow(
+        idx=c.idx,
+        node_id=c.node_id,
+        answer=c.answer,
+        primary_micro_skill=c.primary_micro_skill,
+        all_steps_verified=c.all_steps_verified,
+    )
 
 
 async def build_wrong_tasks(
@@ -275,42 +339,44 @@ async def build_wrong_tasks(
       5. Mastery берём из таблицы mastery (default 0.0).
       6. state = route_state(mastery).
     """
-    # ── Запрос неверных попыток за окно ──────────────────────────────────────
-    # Интервал параметризован через make_interval(days => :days) — integer-friendly,
-    # asyncpg не принимает int в ($N || ' days')::interval.
+    # ── Запрос неверных попыток за окно с дедупликацией на уровне SQL ───────
+    # DISTINCT ON (problem_id) + ORDER BY problem_id, created_at DESC:
+    #   для каждого problem_id берём строку с самым поздним created_at (самая свежая).
+    # Внешний запрос затем сортирует по created_at DESC и отсекает limit —
+    #   это даёт «limit самых свежих уникальных задач» без потери при большой истории.
+    # make_interval(days => :days) — integer-friendly интервал (asyncpg не принимает
+    #   int в '$N days'::interval).
     # = ANY(:sources) — asyncpg-native синтаксис для text[] (нет f-строк).
     raw = await session.execute(
         text(
-            "SELECT "
-            "  a.problem_id, a.node_id, a.answer_given, a.created_at, "
-            "  p.text_ru AS statement, p.answer, "
-            "  n.name_ru AS topic_label "
-            "FROM attempts a "
-            "JOIN problems p ON p.id = a.problem_id "
-            "JOIN nodes   n ON n.id = a.node_id "
-            "WHERE a.student_id = :sid "
-            "  AND a.is_correct = false "
-            "  AND a.source = ANY(:sources) "
-            "  AND a.created_at >= now() - make_interval(days => :days) "
-            "ORDER BY a.created_at DESC "
+            "SELECT problem_id, node_id, answer_given, created_at, statement, answer, topic_label "
+            "FROM ("
+            "  SELECT DISTINCT ON (a.problem_id) "
+            "    a.problem_id, a.node_id, a.answer_given, a.created_at, "
+            "    p.text_ru AS statement, p.answer, "
+            "    n.name_ru AS topic_label "
+            "  FROM attempts a "
+            "  JOIN problems p ON p.id = a.problem_id "
+            "  JOIN nodes   n ON n.id = a.node_id "
+            "  WHERE a.student_id = :sid "
+            "    AND a.is_correct = false "
+            "    AND a.source = ANY(:sources) "
+            "    AND a.created_at >= now() - make_interval(days => :days) "
+            "  ORDER BY a.problem_id, a.created_at DESC"
+            ") latest "
+            "ORDER BY created_at DESC "
             "LIMIT :lim"
         ),
         {
             "sid": student_id,
             "sources": ["diagnostic", "exam", "practice"],
             "days": days,
-            "lim": limit * 10,  # берём с запасом — дедупликация в Python
+            "lim": limit,
         },
     )
     rows = raw.fetchall()
 
-    # ── Дедупликация по problem_id (первая встреченная = самая свежая, DESC) ──
-    seen: dict[int, object] = {}
-    for row in rows:
-        if row.problem_id not in seen:
-            seen[row.problem_id] = row
-
-    deduped = list(seen.values())[:limit]
+    deduped = list(rows)
 
     if not deduped:
         return []
@@ -378,7 +444,7 @@ async def build_wrong_tasks(
                 decomp_idx=decomp_idx,
                 steps=steps,
                 state=route_state(mastery_val),
-                wrong_answer=row.answer_given or "",
+                wrong_answer=_coerce_answer_given(row.answer_given, row.problem_id),
                 mastery=mastery_val,
             )
         )
@@ -416,7 +482,7 @@ async def pick_easier_decomp(
     *,
     micro_skill: str,
     exclude_idx: int | None,
-) -> object | None:
+) -> EasierDecompRow | None:
     """Ищет decomp-запись с наименьшим числом шагов для заданного micro_skill.
 
     Условия:
@@ -425,7 +491,7 @@ async def pick_easier_decomp(
       - exclude_idx исключается (поддержка climb-down: не возвращать текущий rung)
 
     Сортировка: число шагов по возрастанию (COUNT(ps.id)), тай-брейк по idx.
-    Возвращает строку (Row) decomposition_problems или None если подходящих нет.
+    Возвращает EasierDecompRow или None если подходящих нет.
 
     Параметризованный SQL; f-строки и конкатенация не используются.
     """
@@ -463,14 +529,24 @@ async def pick_easier_decomp(
             {"ms": micro_skill},
         )
 
-    return rows.fetchone()
+    row = rows.fetchone()
+    if row is None:
+        return None
+    return EasierDecompRow(
+        idx=row.idx,
+        node_id=row.node_id,
+        answer=row.answer,
+        primary_micro_skill=row.primary_micro_skill,
+        all_steps_verified=row.all_steps_verified,
+        step_count=row.step_count,
+    )
 
 
 async def pick_verification_problem(
     session: AsyncSession,
     node_id: str,
     exclude_problem_id: int,
-) -> object | None:
+) -> VerificationProblemRow | None:
     """Ищет проверочную задачу того же узла, отличную от текущей.
 
     Алгоритм:
@@ -496,6 +572,8 @@ async def pick_verification_problem(
                 "SELECT id, node_id, text_ru, answer, sub_difficulty "
                 "FROM problems "
                 "WHERE node_id = :nid AND id != :excl "
+                # COALESCE(sub_difficulty, :ref): NULL-сложность трактуется как ref →
+                # расстояние 0, задача считается равнопредпочтительной (умышленно).
                 "ORDER BY ABS(COALESCE(sub_difficulty, :ref) - :ref) ASC, id ASC "
                 "LIMIT 1"
             ),
@@ -514,4 +592,13 @@ async def pick_verification_problem(
             {"nid": node_id, "excl": exclude_problem_id},
         )
 
-    return rows.fetchone()
+    row = rows.fetchone()
+    if row is None:
+        return None
+    return VerificationProblemRow(
+        id=row.id,
+        node_id=row.node_id,
+        text_ru=row.text_ru,
+        answer=row.answer,
+        sub_difficulty=row.sub_difficulty,
+    )

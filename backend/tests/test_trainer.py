@@ -556,6 +556,227 @@ async def test_pick_verification_problem_exclude_works(db_session) -> None:
     assert result is None, f"Ожидался None при единственной задаче, получен {result}"
 
 
+# ═══════════════════════════════════════════════════════════════
+# Review: resolve_decomp / match_fingerprint / pick_easier_decomp
+# ═══════════════════════════════════════════════════════════════
+
+# ─── resolve_decomp: linked-preferred ───────────────────────────────────────
+
+@pytest.mark.asyncio
+async def test_resolve_decomp_linked_preferred(db_session) -> None:
+    """Linked decomp (problems_db_id == problem_id) возвращается первым,
+    даже если есть same-node verified запись с совпадающим ответом.
+    """
+    from core.trainer import resolve_decomp, DecompRow
+
+    NODE = "RD01"
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'LinkedTest', 'LinkedTest', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+    # Вставляем DB-задачу
+    r = await db_session.execute(
+        text("INSERT INTO problems (node_id, text_ru, answer) VALUES (:nid, 'Задача', '42') RETURNING id"),
+        {"nid": NODE},
+    )
+    pid = r.scalar_one()
+
+    # Linked decomp — привязан к задаче напрямую
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, all_steps_verified, problems_db_id) "
+            "VALUES (:idx, :nid, '42', true, :pid)"
+        ),
+        {"idx": 800, "nid": NODE, "pid": pid},
+    )
+    # Same-node verified decomp (idx меньше, но НЕ linked)
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, all_steps_verified, problems_db_id) "
+            "VALUES (:idx, :nid, '42', true, NULL)"
+        ),
+        {"idx": 799, "nid": NODE},
+    )
+    await db_session.commit()
+
+    result = await resolve_decomp(db_session, problem_id=pid, node_id=NODE, answer="42")
+    assert result is not None
+    assert isinstance(result, DecompRow)
+    # Linked decomp (800) предпочтительнее, несмотря на меньший idx unlinked (799)
+    assert result.idx == 800, f"Ожидался linked decomp idx=800, получен {result.idx}"
+
+
+# ─── resolve_decomp: same-node fallback — answer-match > any-verified ────────
+
+@pytest.mark.asyncio
+async def test_resolve_decomp_same_node_prefers_answer_match(db_session) -> None:
+    """Когда linked decomp нет, same-node fallback предпочитает запись с совпадающим answer,
+    а не первую по idx.
+    """
+    from core.trainer import resolve_decomp, DecompRow
+
+    NODE = "RD02"
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'FallbackTest', 'FallbackTest', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+    # Задача с answer='64'
+    r = await db_session.execute(
+        text("INSERT INTO problems (node_id, text_ru, answer) VALUES (:nid, 'Задача', '64') RETURNING id"),
+        {"nid": NODE},
+    )
+    pid = r.scalar_one()
+
+    # decomp 901 — verified, answer НЕ совпадает (сортируется первым по idx)
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, all_steps_verified, problems_db_id) "
+            "VALUES (:idx, :nid, '99', true, NULL)"
+        ),
+        {"idx": 901, "nid": NODE},
+    )
+    # decomp 902 — verified, answer совпадает
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, all_steps_verified, problems_db_id) "
+            "VALUES (:idx, :nid, '64', true, NULL)"
+        ),
+        {"idx": 902, "nid": NODE},
+    )
+    await db_session.commit()
+
+    result = await resolve_decomp(db_session, problem_id=pid, node_id=NODE, answer="64")
+    assert result is not None
+    assert isinstance(result, DecompRow)
+    # Должен выбрать 902 (совпадает answer), а не 901 (меньший idx, но другой answer)
+    assert result.idx == 902, f"Ожидался decomp с совпадающим answer idx=902, получен {result.idx}"
+
+
+# ─── resolve_decomp: same-node fallback — any-verified когда нет answer-match ─
+
+@pytest.mark.asyncio
+async def test_resolve_decomp_same_node_fallback_any_verified(db_session) -> None:
+    """Когда нет ни linked, ни совпадающего answer, возвращается любая verified-запись (первая по idx)."""
+    from core.trainer import resolve_decomp, DecompRow
+
+    NODE = "RD03"
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'AnyVerified', 'AnyVerified', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+    r = await db_session.execute(
+        text("INSERT INTO problems (node_id, text_ru, answer) VALUES (:nid, 'Задача', '77') RETURNING id"),
+        {"nid": NODE},
+    )
+    pid = r.scalar_one()
+
+    # Только одна verified-запись, answer не совпадает
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, all_steps_verified, problems_db_id) "
+            "VALUES (:idx, :nid, '55', true, NULL)"
+        ),
+        {"idx": 950, "nid": NODE},
+    )
+    await db_session.commit()
+
+    result = await resolve_decomp(db_session, problem_id=pid, node_id=NODE, answer="77")
+    assert result is not None
+    assert isinstance(result, DecompRow)
+    # Единственная verified → возвращается, несмотря на несовпадение answer
+    assert result.idx == 950
+
+
+# ─── match_fingerprint: problem_id не существует → None (warning path) ───────
+
+@pytest.mark.asyncio
+async def test_match_fingerprint_nonexistent_problem_returns_none(db_session) -> None:
+    """Если problem_id отсутствует в problems — возвращается None (с предупреждением в лог).
+    Decomp для несуществующего problem_id тоже нет → проходим fallback-путь → prob is None.
+    """
+    from core.trainer import match_fingerprint
+
+    # Используем ID, который гарантированно не существует в тест-БД
+    NON_EXISTENT_PID = 999_999_999
+
+    result = await match_fingerprint(db_session, problem_id=NON_EXISTENT_PID, answer_given="42")
+    assert result is None, f"Ожидался None для несуществующего problem_id, получен {result}"
+
+
+# ─── pick_easier_decomp: тайм-брейк по idx при равном числе шагов ────────────
+
+@pytest.mark.asyncio
+async def test_pick_easier_decomp_tiebreak_by_idx(db_session) -> None:
+    """Два decomp с одним micro_skill и одинаковым числом шагов →
+    тай-брейк по idx ASC: возвращается запись с меньшим idx.
+    exclude_idx=None (нет текущего rung).
+    """
+    from core.trainer import pick_easier_decomp, EasierDecompRow
+
+    NODE = "AR08"
+    MICRO = "eq_solve"
+
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'Уравнения', 'Уравнения', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+
+    # decomp 1001 — 2 шага
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, primary_micro_skill, all_steps_verified) "
+            "VALUES (:idx, :nid, 'x=3', :ms, true)"
+        ),
+        {"idx": 1001, "nid": NODE, "ms": MICRO},
+    )
+    for sn in (1, 2):
+        await db_session.execute(
+            text(
+                "INSERT INTO problem_steps (decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+                "VALUES (:didx, :n, 'Шаг', :ms, '0')"
+            ),
+            {"didx": 1001, "n": sn, "ms": MICRO},
+        )
+
+    # decomp 1002 — тоже 2 шага (равное число), но idx больше
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems (idx, node_id, answer, primary_micro_skill, all_steps_verified) "
+            "VALUES (:idx, :nid, 'x=5', :ms, true)"
+        ),
+        {"idx": 1002, "nid": NODE, "ms": MICRO},
+    )
+    for sn in (1, 2):
+        await db_session.execute(
+            text(
+                "INSERT INTO problem_steps (decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+                "VALUES (:didx, :n, 'Шаг', :ms, '0')"
+            ),
+            {"didx": 1002, "n": sn, "ms": MICRO},
+        )
+
+    await db_session.commit()
+
+    result = await pick_easier_decomp(db_session, micro_skill=MICRO, exclude_idx=None)
+    assert result is not None, "Ожидалась запись при двух равных кандидатах"
+    assert isinstance(result, EasierDecompRow)
+    # Оба имеют step_count=2; тай-брейк — меньший idx (1001)
+    assert result.idx == 1001, f"Тай-брейк по idx: ожидался 1001, получен {result.idx}"
+    assert result.step_count == 2
+
+
 # ─── тест: попытки за пределами окна не включаются ───────────────────────────
 
 @pytest.mark.asyncio
