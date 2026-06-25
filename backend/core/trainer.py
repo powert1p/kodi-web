@@ -1,12 +1,16 @@
-"""Тренажёр ошибок: сопоставление ответа с банком отпечатков ошибок.
+"""Тренажёр ошибок: сопоставление ответа с банком отпечатков + список задач «срез».
 
-Модуль предоставляет match_fingerprint — основную функцию для поиска
-гипотезы о причине ошибки ученика по его ответу на задачу.
+Модуль предоставляет:
+  - match_fingerprint   — поиск гипотезы об ошибке ученика по ответу.
+  - resolve_decomp      — поиск подходящей декомпозиции для задачи.
+  - build_wrong_tasks   — список задач из срезовых попыток с декомпозицией и маршрутом.
+  - route_state         — маршрутный статус по порогу владения.
 """
 
 from __future__ import annotations
 
 import logging
+import uuid
 from dataclasses import dataclass
 
 from sqlalchemy import text
@@ -16,6 +20,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.grading import _normalise, _try_as_number
 
 logger = logging.getLogger(__name__)
+
+# ── Пороги маршрута (Task 6 добавит route_level/pickers, не трогать) ─────────
+LEVEL1_MAX: float = 0.40   # ниже — revisit
+LEVEL2_MAX: float = 0.70   # ниже — almost, выше или равно — got
 
 
 @dataclass(frozen=True)
@@ -141,3 +149,235 @@ async def match_fingerprint(
 
     # Ни один wrong_answer не совпал — вероятно, правильный ответ или неизвестная ошибка
     return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Task 5: route_state / resolve_decomp / build_wrong_tasks
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def route_state(mastery: float) -> str:
+    """Маршрутный статус по владению узлом.
+
+    revisit  — mastery < LEVEL1_MAX (0.40): повторить тему.
+    almost   — LEVEL1_MAX <= mastery < LEVEL2_MAX (0.70): почти.
+    got      — mastery >= LEVEL2_MAX: усвоено.
+    """
+    if mastery < LEVEL1_MAX:
+        return "revisit"
+    if mastery < LEVEL2_MAX:
+        return "almost"
+    return "got"
+
+
+@dataclass
+class StepDTO:
+    """Один шаг декомпозиции задачи для тренажёра."""
+
+    n: int
+    instruction_ru: str
+    micro_skill: str
+    expected_value: str
+    kind: str = "compute"
+    reveal: None = None
+
+
+@dataclass
+class WrongTask:
+    """Задача из неверных попыток ученика с декомпозицией и маршрутом."""
+
+    id: str                          # UUID-строка для идентификации на клиенте
+    problem_id: int
+    node_id: str
+    topic_label: str
+    statement: str
+    answer: str
+    primary_micro_skill: str | None
+    decomp_idx: int | None
+    steps: list[StepDTO]
+    state: str
+    wrong_answer: str
+    mastery: float
+
+
+async def resolve_decomp(
+    session: AsyncSession,
+    *,
+    problem_id: int,
+    node_id: str,
+    answer: str,
+) -> object | None:
+    """Ищет подходящую декомпозицию для задачи.
+
+    Приоритет выбора:
+      1. Linked: decomposition_problems.problems_db_id == problem_id.
+      2. Same-node verified: all_steps_verified=true + node_id совпадает,
+         предпочитая запись с answer = задачи (нормализованное сравнение).
+      3. None — декомпозиция недоступна.
+
+    Возвращает строку (Row) decomposition_problems или None.
+    """
+    # ── Шаг 1: linked decomp ─────────────────────────────────────────────────
+    linked = await session.execute(
+        text(
+            "SELECT idx, node_id, answer, primary_micro_skill, all_steps_verified "
+            "FROM decomposition_problems "
+            "WHERE problems_db_id = :pid "
+            "LIMIT 1"
+        ),
+        {"pid": problem_id},
+    )
+    row = linked.fetchone()
+    if row is not None:
+        return row
+
+    # ── Шаг 2: same-node all_steps_verified decomp ────────────────────────────
+    same_node = await session.execute(
+        text(
+            "SELECT idx, node_id, answer, primary_micro_skill, all_steps_verified "
+            "FROM decomposition_problems "
+            "WHERE node_id = :nid AND all_steps_verified = true "
+            "ORDER BY idx"
+        ),
+        {"nid": node_id},
+    )
+    candidates = same_node.fetchall()
+    if not candidates:
+        return None
+
+    # Предпочитаем запись с нормализованно совпадающим answer
+    norm_answer = _normalise(answer)
+    for c in candidates:
+        if _normalise(c.answer) == norm_answer:
+            return c
+
+    # Любая verified-запись на том же узле
+    return candidates[0]
+
+
+async def build_wrong_tasks(
+    session: AsyncSession,
+    student_id: int,
+    days: int = 14,
+    limit: int = 30,
+) -> list[WrongTask]:
+    """Строит список задач для тренажёра ошибок на основе срезовых попыток.
+
+    Алгоритм:
+      1. Берём последние «days» дней: попытки источников diagnostic/exam/practice,
+         где is_correct=false. Используем индекс ix_attempts_student_source.
+      2. Джойним problems (statement, answer) и nodes (topic_label).
+      3. Дедуплицируем в Python по problem_id — оставляем самую свежую попытку.
+      4. Для каждой задачи вызываем resolve_decomp → mapим шаги в StepDTO.
+      5. Mastery берём из таблицы mastery (default 0.0).
+      6. state = route_state(mastery).
+    """
+    # ── Запрос неверных попыток за окно ──────────────────────────────────────
+    # Интервал параметризован через make_interval(days => :days) — integer-friendly,
+    # asyncpg не принимает int в ($N || ' days')::interval.
+    # = ANY(:sources) — asyncpg-native синтаксис для text[] (нет f-строк).
+    raw = await session.execute(
+        text(
+            "SELECT "
+            "  a.problem_id, a.node_id, a.answer_given, a.created_at, "
+            "  p.text_ru AS statement, p.answer, "
+            "  n.name_ru AS topic_label "
+            "FROM attempts a "
+            "JOIN problems p ON p.id = a.problem_id "
+            "JOIN nodes   n ON n.id = a.node_id "
+            "WHERE a.student_id = :sid "
+            "  AND a.is_correct = false "
+            "  AND a.source = ANY(:sources) "
+            "  AND a.created_at >= now() - make_interval(days => :days) "
+            "ORDER BY a.created_at DESC "
+            "LIMIT :lim"
+        ),
+        {
+            "sid": student_id,
+            "sources": ["diagnostic", "exam", "practice"],
+            "days": days,
+            "lim": limit * 10,  # берём с запасом — дедупликация в Python
+        },
+    )
+    rows = raw.fetchall()
+
+    # ── Дедупликация по problem_id (первая встреченная = самая свежая, DESC) ──
+    seen: dict[int, object] = {}
+    for row in rows:
+        if row.problem_id not in seen:
+            seen[row.problem_id] = row
+
+    deduped = list(seen.values())[:limit]
+
+    if not deduped:
+        return []
+
+    # ── Mastery: загружаем оптом для уникальных node_id ──────────────────────
+    node_ids = list({r.node_id for r in deduped})
+    mastery_rows = await session.execute(
+        text(
+            "SELECT node_id, p_mastery "
+            "FROM mastery "
+            "WHERE student_id = :sid AND node_id = ANY(:nids)"
+        ),
+        {"sid": student_id, "nids": node_ids},
+    )
+    mastery_map: dict[str, float] = {r.node_id: r.p_mastery for r in mastery_rows}
+
+    # ── Строим WrongTask для каждой задачи ───────────────────────────────────
+    result: list[WrongTask] = []
+    for row in deduped:
+        decomp = await resolve_decomp(
+            session,
+            problem_id=row.problem_id,
+            node_id=row.node_id,
+            answer=row.answer,
+        )
+
+        # Маппинг шагов из ProblemStep → StepDTO
+        if decomp is not None:
+            steps_raw = await session.execute(
+                text(
+                    "SELECT n, instruction_ru, micro_skill, expected_value "
+                    "FROM problem_steps "
+                    "WHERE decomp_idx = :didx "
+                    "ORDER BY n"
+                ),
+                {"didx": decomp.idx},
+            )
+            steps = [
+                StepDTO(
+                    n=s.n,
+                    instruction_ru=s.instruction_ru,
+                    micro_skill=s.micro_skill,
+                    expected_value=s.expected_value,
+                )
+                for s in steps_raw
+            ]
+            decomp_idx = decomp.idx
+            primary_micro_skill = decomp.primary_micro_skill
+        else:
+            steps = []
+            decomp_idx = None
+            primary_micro_skill = None
+
+        mastery_val = mastery_map.get(row.node_id, 0.0)
+
+        result.append(
+            WrongTask(
+                id=str(uuid.uuid4()),
+                problem_id=row.problem_id,
+                node_id=row.node_id,
+                topic_label=row.topic_label,
+                statement=row.statement,
+                answer=row.answer,
+                primary_micro_skill=primary_micro_skill,
+                decomp_idx=decomp_idx,
+                steps=steps,
+                state=route_state(mastery_val),
+                wrong_answer=row.answer_given or "",
+                mastery=mastery_val,
+            )
+        )
+
+    return result

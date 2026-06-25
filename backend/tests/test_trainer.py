@@ -163,3 +163,239 @@ async def test_match_fingerprint_unlinked_fallback(db_session, node_id, correct_
     assert result is not None, "Fallback по (node_id, answer) должен найти fingerprint"
     assert result.micro_skill == "int_add_sub"
     assert result.decomp_idx == 300
+
+
+# ═══════════════════════════════════════════════════════════════
+# Task 5: route_state + build_wrong_tasks
+# ═══════════════════════════════════════════════════════════════
+
+# ─── route_state: table-driven ───────────────────────────────────────────────
+
+@pytest.mark.parametrize("mastery,expected_state", [
+    (0.0,  "revisit"),
+    (0.39, "revisit"),
+    (0.40, "almost"),   # граница: 0.40 уже НЕ revisit
+    (0.5,  "almost"),
+    (0.69, "almost"),
+    (0.70, "got"),      # граница: 0.70 уже got
+    (0.9,  "got"),
+    (1.0,  "got"),
+])
+def test_route_state(mastery: float, expected_state: str) -> None:
+    """route_state возвращает правильный уровень по трём порогам."""
+    from core.trainer import route_state
+
+    assert route_state(mastery) == expected_state
+
+
+# ─── вспомогательные seed-функции для build_wrong_tasks ─────────────────────
+
+async def _seed_student(session, student_id: int) -> None:
+    """Вставляет студента с заданным id."""
+    await session.execute(
+        text(
+            "INSERT INTO students (id, registered, lang, created_at, diagnostic_complete) "
+            "VALUES (:sid, true, 'ru', NOW(), false) "
+            "ON CONFLICT (id) DO NOTHING"
+        ),
+        {"sid": student_id},
+    )
+
+
+async def _seed_node(session, node_id: str, name_ru: str) -> None:
+    """Вставляет узел графа."""
+    await session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, :name, :name, 0.3, 0.05, 0.1) "
+            "ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": node_id, "name": name_ru},
+    )
+
+
+async def _seed_problem(session, node_id: str, text_ru: str, answer: str) -> int:
+    """Вставляет задачу, возвращает её id."""
+    row = await session.execute(
+        text(
+            "INSERT INTO problems (node_id, text_ru, answer) "
+            "VALUES (:nid, :txt, :ans) RETURNING id"
+        ),
+        {"nid": node_id, "txt": text_ru, "ans": answer},
+    )
+    return row.scalar_one()
+
+
+async def _seed_decomp_with_steps(
+    session,
+    decomp_idx: int,
+    node_id: str,
+    answer: str,
+    problems_db_id: int | None,
+    *,
+    verified: bool = True,
+) -> None:
+    """Вставляет decomp-запись + один шаг решения."""
+    await session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, all_steps_verified, problems_db_id) "
+            "VALUES (:idx, :nid, :ans, :verified, :dbid)"
+        ),
+        {"idx": decomp_idx, "nid": node_id, "ans": answer,
+         "verified": verified, "dbid": problems_db_id},
+    )
+    await session.execute(
+        text(
+            "INSERT INTO problem_steps "
+            "(decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+            "VALUES (:didx, 1, 'Шаг 1', 'test_skill', '42')"
+        ),
+        {"didx": decomp_idx},
+    )
+
+
+async def _seed_attempt(
+    session,
+    student_id: int,
+    problem_id: int,
+    node_id: str,
+    answer_given: str,
+    source: str = "diagnostic",
+    created_at_offset_days: int = 0,
+) -> None:
+    """Вставляет неверную попытку."""
+    await session.execute(
+        text(
+            "INSERT INTO attempts "
+            "(student_id, problem_id, node_id, answer_given, is_correct, source, created_at) "
+            "VALUES (:sid, :pid, :nid, :ans, false, :src, "
+            "        NOW() - make_interval(days => :offset))"
+        ),
+        {
+            "sid": student_id, "pid": problem_id, "nid": node_id,
+            "ans": answer_given, "src": source, "offset": created_at_offset_days,
+        },
+    )
+
+
+async def _seed_mastery(session, student_id: int, node_id: str, p_mastery: float) -> None:
+    """Вставляет/обновляет mastery студента по узлу."""
+    await session.execute(
+        text(
+            "INSERT INTO mastery (student_id, node_id, p_mastery, attempts_total, attempts_correct) "
+            "VALUES (:sid, :nid, :pm, 0, 0) "
+            "ON CONFLICT (student_id, node_id) DO UPDATE SET p_mastery = :pm"
+        ),
+        {"sid": student_id, "nid": node_id, "pm": p_mastery},
+    )
+
+
+# ─── тест: build_wrong_tasks основной сценарий ───────────────────────────────
+
+@pytest.mark.asyncio
+async def test_build_wrong_tasks_main(db_session) -> None:
+    """
+    Основной сценарий build_wrong_tasks:
+
+    - Проблема #1: привязана к decomp (linked) → steps из linked decomp.
+    - Проблема #2: нет linked decomp, но есть same-node verified → steps из него.
+    - Дубль попытки на задачу #1: оставляем только одну (latest).
+    - Возвращаются ровно 2 WrongTask.
+    """
+    from core.trainer import build_wrong_tasks
+
+    STUDENT_ID = 9001
+    NODE_A = "AR01"
+    NODE_B = "AR02"
+
+    # ── сиды ────────────────────────────────────────────────────
+    await _seed_student(db_session, STUDENT_ID)
+    await _seed_node(db_session, NODE_A, "Арифметика А")
+    await _seed_node(db_session, NODE_B, "Арифметика Б")
+
+    # Задача 1 — узел A, linked decomp
+    pid1 = await _seed_problem(db_session, NODE_A, "Задача 1", "108")
+    await _seed_decomp_with_steps(
+        db_session, decomp_idx=500, node_id=NODE_A,
+        answer="108", problems_db_id=pid1, verified=True,
+    )
+
+    # Задача 2 — узел B, нет linked decomp, но есть same-node verified decomp
+    pid2 = await _seed_problem(db_session, NODE_B, "Задача 2", "64")
+    await _seed_decomp_with_steps(
+        db_session, decomp_idx=501, node_id=NODE_B,
+        answer="64", problems_db_id=None, verified=True,
+    )
+
+    # Mastery
+    await _seed_mastery(db_session, STUDENT_ID, NODE_A, 0.55)
+    await _seed_mastery(db_session, STUDENT_ID, NODE_B, 0.30)
+
+    # Попытки: задача 1 — две неверные (старая + свежая), задача 2 — одна неверная
+    await _seed_attempt(db_session, STUDENT_ID, pid1, NODE_A,
+                        answer_given="90", created_at_offset_days=3)
+    await _seed_attempt(db_session, STUDENT_ID, pid1, NODE_A,
+                        answer_given="85", created_at_offset_days=1)  # самая свежая
+    await _seed_attempt(db_session, STUDENT_ID, pid2, NODE_B,
+                        answer_given="60", created_at_offset_days=2)
+
+    await db_session.commit()
+
+    # ── вызов ───────────────────────────────────────────────────
+    tasks = await build_wrong_tasks(db_session, STUDENT_ID, days=14, limit=30)
+
+    # ── утверждения ─────────────────────────────────────────────
+    assert len(tasks) == 2, f"Ожидалось 2 задачи, получено {len(tasks)}"
+
+    by_pid = {t.problem_id: t for t in tasks}
+
+    # Задача 1: дубль дедуплицирован → wrong_answer из самой свежей попытки ("85")
+    t1 = by_pid[pid1]
+    assert t1.wrong_answer == "85", f"Ожидался wrong_answer='85', получен '{t1.wrong_answer}'"
+    assert t1.statement == "Задача 1"
+    assert t1.answer == "108"
+    assert t1.topic_label == "Арифметика А"
+    assert t1.node_id == NODE_A
+    assert len(t1.steps) == 1, "Задача 1 должна иметь 1 шаг из linked decomp"
+    assert t1.decomp_idx == 500
+    assert t1.state == "almost"   # mastery=0.55 → "almost"
+
+    # Задача 2: same-node verified decomp → steps заполнены
+    t2 = by_pid[pid2]
+    assert t2.wrong_answer == "60"
+    assert t2.statement == "Задача 2"
+    assert t2.answer == "64"
+    assert t2.topic_label == "Арифметика Б"
+    assert len(t2.steps) == 1, "Задача 2 должна иметь 1 шаг из same-node decomp"
+    assert t2.decomp_idx == 501
+    assert t2.state == "revisit"  # mastery=0.30 → "revisit"
+
+
+# ─── тест: попытки за пределами окна не включаются ───────────────────────────
+
+@pytest.mark.asyncio
+async def test_build_wrong_tasks_window(db_session) -> None:
+    """Попытка старше days=7 не должна попасть в результат."""
+    from core.trainer import build_wrong_tasks
+
+    STUDENT_ID = 9002
+    NODE_A = "AR03"
+
+    await _seed_student(db_session, STUDENT_ID)
+    await _seed_node(db_session, NODE_A, "Арифметика В")
+
+    pid = await _seed_problem(db_session, NODE_A, "Старая задача", "10")
+
+    # Попытка 10 дней назад — за пределами дефолтного 14-дневного окна она видна,
+    # но если ограничить days=7 — не должна попасть.
+    await _seed_attempt(db_session, STUDENT_ID, pid, NODE_A,
+                        answer_given="9", created_at_offset_days=10)
+
+    await db_session.commit()
+
+    tasks_14 = await build_wrong_tasks(db_session, STUDENT_ID, days=14, limit=30)
+    assert len(tasks_14) == 1, "За 14 дней задача должна попасть"
+
+    tasks_7 = await build_wrong_tasks(db_session, STUDENT_ID, days=7, limit=30)
+    assert len(tasks_7) == 0, "За 7 дней задача не должна попасть (10 дней назад)"
