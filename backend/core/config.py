@@ -52,6 +52,21 @@ class Settings:
     port: int = int(os.getenv("PORT", "8000"))
     jwt_secret: str = os.getenv("JWT_SECRET") or os.getenv("BOT_TOKEN", "")
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
+    # OpenAI Vision — диагностика фото-решений
+    openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
+    openai_model_chain: list[str] = field(
+        default_factory=lambda: (
+            [m.strip() for m in os.getenv("OPENAI_MODEL_CHAIN", "").split(",") if m.strip()]
+            or ["gpt-5.4-mini", "gpt-5.4-nano", "gpt-4o-mini"]
+        )
+    )
+    # Папка для хранения загруженных фото ошибок
+    photo_dir: str = os.getenv(
+        "PHOTO_DIR",
+        os.path.join(os.path.dirname(__file__), "..", "data", "error_photos"),
+    )
+    # Telegram user_id владельца (для owner-only функций)
+    owner_student_id: int = int(os.getenv("OWNER_STUDENT_ID", "0") or 0)
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"
 
     def is_privileged(self, user_id: int) -> bool:
