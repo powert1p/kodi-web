@@ -276,13 +276,41 @@ async def post_diagnose(
         correct_answer: str = problem.answer
 
         # ── 2. Читаем байты фото; size-guard ─────────────────────────────────
+
+        # Быстрая проверка по Content-Length до чтения в память:
+        # реальный backstop — nginx client_max_body_size (задаётся при деплое)
+        if photo.size is not None and photo.size > _MAX_PHOTO_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Фото превышает лимит {_MAX_PHOTO_BYTES // (1024 * 1024)} МБ",
+            )
+
+        # Проверка content_type: только допустимые форматы изображений
+        _ALLOWED_CONTENT_TYPES = {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/heic",
+            "image/heif",
+        }
+        if photo.content_type is None:
+            # Если content_type не передан — считаем JPEG (мобильные клиенты)
+            content_type: str = "image/jpeg"
+        elif photo.content_type not in _ALLOWED_CONTENT_TYPES:
+            raise HTTPException(
+                status_code=415,
+                detail="Поддерживаются только JPEG/PNG/WEBP/HEIC",
+            )
+        else:
+            content_type = photo.content_type
+
         image_bytes = await photo.read()
+        # Постчтение-проверка: Content-Length может лгать, сверяемся по факту
         if len(image_bytes) > _MAX_PHOTO_BYTES:
             raise HTTPException(
                 status_code=413,
                 detail=f"Фото превышает лимит {_MAX_PHOTO_BYTES // (1024 * 1024)} МБ",
             )
-        content_type: str = photo.content_type or "image/jpeg"
 
         # ── 3. Определяем wrong_answer ────────────────────────────────────────
         wrong_answer: str | None = None
@@ -355,17 +383,9 @@ async def post_diagnose(
                 detail="Сервис анализа фото временно недоступен. Попробуйте позже.",
             ) from exc
 
-        # ── 7. Сохраняем файл фото на диск ───────────────────────────────────
-        # photo_dir из settings — абсолютный путь на хосте
-        photo_dir = Path(settings.photo_dir)
-        student_dir = photo_dir / str(student.id)
-        student_dir.mkdir(parents=True, exist_ok=True)
-
+        # ── 7. Вычисляем image_ref заранее (путь относительно photo_dir) ────────
+        # Вычисляем до коммита; запись файла — после коммита (во избежание orphan-файлов)
         file_name = f"{uuid4().hex}.jpg"
-        file_path = student_dir / file_name
-        file_path.write_bytes(image_bytes)
-
-        # image_ref — путь относительно photo_dir (не абсолютный, не в БД blob)
         image_ref = f"{student.id}/{file_name}"
 
         # ── 8. INSERT INTO error_captures ─────────────────────────────────────
@@ -421,10 +441,30 @@ async def post_diagnose(
                 },
             )
 
+        # ── Коммит DB ────────────────────────────────────────────────────────
+        # Сначала коммитим — строка в БД первична; файл на диске — артефакт.
+        # Если файл не запишется, строка уже сохранена и проблема детектируема.
         await session.commit()
 
     finally:
         await session.close()
+
+    # ── Запись файла фото на диск (ПОСЛЕ коммита) ────────────────────────────
+    # photo_dir из settings — абсолютный путь на хосте
+    # Делается вне try/finally-блока сессии: DB-строка уже есть, ошибка ФС не критична.
+    photo_dir = Path(settings.photo_dir)
+    student_dir = photo_dir / str(student.id)
+    try:
+        student_dir.mkdir(parents=True, exist_ok=True)
+        file_path = student_dir / file_name
+        file_path.write_bytes(image_bytes)
+    except Exception as exc:  # noqa: BLE001
+        # Логируем предупреждение; не возвращаем 500 — DB-запись уже успешна
+        logger.warning(
+            "Не удалось записать фото на диск (image_ref=%s): %s",
+            image_ref,
+            exc,
+        )
 
     return DiagnosisOut(
         transcription=result.transcription,

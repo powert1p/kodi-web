@@ -386,9 +386,6 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
     # Переопределяем photo_dir на tmp_path (изоляция файловой системы)
     from core.config import settings as app_settings
     monkeypatch.setattr(app_settings, "photo_dir", str(tmp_path))
-    # Также патчим в роутере если он захватил значение при импорте
-    import api.routers.trainer as trainer_module
-    monkeypatch.setattr(trainer_module, "_photo_dir_override", str(tmp_path), raising=False)
 
     import api.routes as routes_module
     import db.base as db_base
@@ -606,3 +603,59 @@ async def test_diagnose_404_unknown_problem(client_for_diagnose, monkeypatch):
         files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
     )
     assert resp.status_code == 404, f"Ожидался 404, получен {resp.status_code}: {resp.text}"
+
+
+# ── тест 12: 413 при превышении лимита размера ───────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_413_oversized_photo(client_for_diagnose, monkeypatch):
+    """POST /api/trainer/diagnose с фото > _MAX_PHOTO_BYTES → 413.
+
+    Устанавливаем минимальный лимит через monkeypatch, чтобы не гонять 8 МБ в тесте.
+    """
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    import api.routers.trainer as trainer_module
+
+    # Устанавливаем крохотный лимит — любой реальный файл превысит
+    monkeypatch.setattr(trainer_module, "_MAX_PHOTO_BYTES", 10)
+
+    jpeg = _make_tiny_jpeg()  # >10 байт → превысит лимит
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp.status_code == 413, f"Ожидался 413, получен {resp.status_code}: {resp.text}"
+
+    body = resp.json()
+    assert "detail" in body, "413-ответ должен содержать 'detail'"
+
+
+# ── тест 13: 415 при недопустимом content_type ───────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_415_bad_content_type(client_for_diagnose, monkeypatch):
+    """POST /api/trainer/diagnose с недопустимым content_type → 415."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    # diagnose_photo мокаем на случай, если проверка content_type пройдёт (не должна)
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    jpeg = _make_tiny_jpeg()
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test.gif", io.BytesIO(jpeg), "image/gif")},
+    )
+    assert resp.status_code == 415, f"Ожидался 415, получен {resp.status_code}: {resp.text}"
+
+    body = resp.json()
+    assert "detail" in body, "415-ответ должен содержать 'detail'"
