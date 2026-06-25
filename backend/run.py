@@ -45,6 +45,91 @@ async def on_startup():
             # ── fix NULLs in existing rows ──
             "UPDATE students SET practice_count = 0 WHERE practice_count IS NULL",
             "UPDATE students SET problems_on_current_node = 0 WHERE problems_on_current_node IS NULL",
+            # ── тренажёр ошибок: банк декомпозиций ──
+            # Каталог микро-умений (атомарные шаги решения)
+            """
+            CREATE TABLE IF NOT EXISTS micro_skills (
+                code        VARCHAR(50) PRIMARY KEY,
+                label_ru    TEXT        NOT NULL,
+                domain      VARCHAR(50),
+                freq        INTEGER
+            )
+            """,
+            # Банк задач с декомпозицией (автономный, ключ = idx из JSON)
+            """
+            CREATE TABLE IF NOT EXISTS decomposition_problems (
+                idx                 INTEGER     PRIMARY KEY,
+                node_id             VARCHAR(10) NOT NULL REFERENCES nodes(id) ON DELETE RESTRICT,
+                answer              TEXT        NOT NULL,
+                primary_micro_skill VARCHAR(50),
+                all_steps_verified  BOOLEAN     NOT NULL DEFAULT false,
+                needs_review        BOOLEAN     NOT NULL DEFAULT false,
+                problems_db_id      INTEGER     REFERENCES problems(id) ON DELETE SET NULL
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_decomp_node ON decomposition_problems (node_id)",
+            "CREATE INDEX IF NOT EXISTS idx_decomp_dbid  ON decomposition_problems (problems_db_id)",
+            # Шаги решения задачи (FK → decomposition_problems.idx)
+            """
+            CREATE TABLE IF NOT EXISTS problem_steps (
+                id              INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                decomp_idx      INTEGER     NOT NULL REFERENCES decomposition_problems(idx) ON DELETE CASCADE,
+                n               INTEGER     NOT NULL,
+                instruction_ru  TEXT        NOT NULL,
+                micro_skill     VARCHAR(50) NOT NULL,
+                expected_value  TEXT        NOT NULL,
+                verified        VARCHAR(20)
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_problem_steps_decomp ON problem_steps (decomp_idx)",
+            # Отпечатки типичных ошибок (FK → decomposition_problems.idx)
+            """
+            CREATE TABLE IF NOT EXISTS problem_fingerprints (
+                id          INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                decomp_idx  INTEGER     NOT NULL REFERENCES decomposition_problems(idx) ON DELETE CASCADE,
+                micro_skill VARCHAR(50) NOT NULL,
+                wrong_answer TEXT       NOT NULL,
+                mistake_ru  TEXT        NOT NULL
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_problem_fingerprints_decomp ON problem_fingerprints (decomp_idx)",
+            # ── тренажёр ошибок: захват и накопление ──
+            # Один факт ошибки студента (из AI-анализа среза)
+            """
+            CREATE TABLE IF NOT EXISTS error_captures (
+                id                  INTEGER         PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                student_id          BIGINT          NOT NULL REFERENCES students(id)  ON DELETE CASCADE,
+                attempt_id          INTEGER         REFERENCES attempts(id)           ON DELETE SET NULL,
+                problem_id          INTEGER         NOT NULL REFERENCES problems(id)  ON DELETE RESTRICT,
+                node_id             VARCHAR(10)     NOT NULL,
+                image_ref           TEXT            NOT NULL,
+                transcription       TEXT,
+                failed_step         INTEGER,
+                failed_micro_skill  VARCHAR(50),
+                cause_text          TEXT,
+                level               SMALLINT,
+                model               VARCHAR(50),
+                confidence          FLOAT,
+                created_at          TIMESTAMPTZ     NOT NULL DEFAULT now()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_error_captures_student_node ON error_captures (student_id, node_id)",
+            "CREATE INDEX IF NOT EXISTS idx_error_captures_created_at   ON error_captures (created_at)",
+            # Накопленная статистика повторяющихся ошибок (составной PK как у mastery)
+            """
+            CREATE TABLE IF NOT EXISTS recurring_errors (
+                student_id      BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                micro_skill     VARCHAR(50) NOT NULL,
+                node_id         VARCHAR(10),
+                error_count     INTEGER     NOT NULL DEFAULT 0,
+                last_seen_at    TIMESTAMPTZ,
+                last_cause_text TEXT,
+                resolved        BOOLEAN     NOT NULL DEFAULT false,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+                PRIMARY KEY (student_id, micro_skill)
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_recurring_errors_micro_skill ON recurring_errors (micro_skill)",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")

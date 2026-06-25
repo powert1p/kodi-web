@@ -199,3 +199,143 @@ class TopicEdge(Base):
 
     from_topic: Mapped[str] = mapped_column(String(20), ForeignKey("topics.id"), primary_key=True)
     to_topic: Mapped[str] = mapped_column(String(20), ForeignKey("topics.id"), primary_key=True)
+
+
+# ─────────────────────────────────────────────────────────────
+# Тренажёр ошибок: банк декомпозиций + захват/накопление ошибок
+# ─────────────────────────────────────────────────────────────
+
+
+class MicroSkill(Base):
+    """Каталог микро-умений (атомарных шагов решения задачи)."""
+
+    __tablename__ = "micro_skills"
+
+    code: Mapped[str] = mapped_column(String(50), primary_key=True)          # уникальный код умения
+    label_ru: Mapped[str] = mapped_column(Text, nullable=False)              # русское название
+    domain: Mapped[str | None] = mapped_column(String(50))                  # раздел математики
+    freq: Mapped[int | None] = mapped_column(Integer)                       # частота встречаемости в банке
+
+
+class DecompositionProblem(Base):
+    """Задача из банка декомпозиций (полностью автономный банк, 0..2524).
+
+    idx — явный PK из JSON (0-based), НЕ автоинкремент.
+    problems_db_id — ссылка на БД-задачу там, где совпадает (node_id, answer); ~42%.
+    """
+
+    __tablename__ = "decomposition_problems"
+    __table_args__ = (
+        # Индекс по узлу — быстрый выбор задач по теме
+        Index("idx_decomp_node", "node_id"),
+        # Индекс по связанной БД-задаче — быстрый join
+        Index("idx_decomp_dbid", "problems_db_id"),
+    )
+
+    idx: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)  # JSON-индекс
+    node_id: Mapped[str] = mapped_column(
+        String(10), ForeignKey("nodes.id", ondelete="RESTRICT"), nullable=False
+    )
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
+    primary_micro_skill: Mapped[str | None] = mapped_column(String(50))     # основное умение задачи
+    all_steps_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    needs_review: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+    # FK на problems.id, только там где (node_id, answer) однозначно совпадают (~42%)
+    problems_db_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="SET NULL"), nullable=True
+    )
+
+
+class ProblemStep(Base):
+    """Шаг решения задачи (один из N шагов декомпозиции)."""
+
+    __tablename__ = "problem_steps"
+    __table_args__ = (
+        Index("idx_problem_steps_decomp", "decomp_idx"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    decomp_idx: Mapped[int] = mapped_column(
+        Integer, ForeignKey("decomposition_problems.idx", ondelete="CASCADE"), nullable=False
+    )
+    n: Mapped[int] = mapped_column(Integer, nullable=False)                 # порядковый номер шага
+    instruction_ru: Mapped[str] = mapped_column(Text, nullable=False)       # текст инструкции на русском
+    micro_skill: Mapped[str] = mapped_column(String(50), nullable=False)    # код микро-умения
+    expected_value: Mapped[str] = mapped_column(Text, nullable=False)       # ожидаемый результат шага
+    verified: Mapped[str | None] = mapped_column(String(20))               # статус верификации шага
+
+
+class ProblemFingerprint(Base):
+    """Отпечаток типичной ошибки на задаче (micro_skill + wrong_answer → описание)."""
+
+    __tablename__ = "problem_fingerprints"
+    __table_args__ = (
+        Index("idx_problem_fingerprints_decomp", "decomp_idx"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    decomp_idx: Mapped[int] = mapped_column(
+        Integer, ForeignKey("decomposition_problems.idx", ondelete="CASCADE"), nullable=False
+    )
+    micro_skill: Mapped[str] = mapped_column(String(50), nullable=False)    # код умения, где ошибка
+    wrong_answer: Mapped[str] = mapped_column(Text, nullable=False)         # неверный ответ
+    mistake_ru: Mapped[str] = mapped_column(Text, nullable=False)           # описание ошибки на русском
+
+
+class ErrorCapture(Base):
+    """Один захваченный факт ошибки студента на задаче (результат AI-анализа среза)."""
+
+    __tablename__ = "error_captures"
+    __table_args__ = (
+        Index("idx_error_captures_student_node", "student_id", "node_id"),
+        Index("idx_error_captures_created_at", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    # attempt_id — опционально: ссылка на попытку (если захват произошёл в контексте attempt)
+    attempt_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("attempts.id", ondelete="SET NULL"), nullable=True
+    )
+    problem_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="RESTRICT"), nullable=False
+    )
+    node_id: Mapped[str] = mapped_column(String(10), nullable=False)        # дублируется для быстрого фильтра
+    image_ref: Mapped[str] = mapped_column(Text, nullable=False)            # ссылка на изображение среза
+    transcription: Mapped[str | None] = mapped_column(Text)                 # OCR-текст из среза
+    failed_step: Mapped[int | None] = mapped_column(Integer)               # номер шага, где ошибка
+    failed_micro_skill: Mapped[str | None] = mapped_column(String(50))     # код умения, где ошибка
+    cause_text: Mapped[str | None] = mapped_column(Text)                   # AI-объяснение причины
+    level: Mapped[int | None] = mapped_column(SmallInteger)                # уровень сложности задачи
+    model: Mapped[str | None] = mapped_column(String(50))                  # AI-модель, сделавшая анализ
+    confidence: Mapped[float | None] = mapped_column(Float)                # уверенность модели (0..1)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
+class RecurringError(Base):
+    """Накопленная статистика повторяющихся ошибок студента по умению.
+
+    Составной PK (student_id, micro_skill) — аналогично Mastery (student_id, node_id).
+    """
+
+    __tablename__ = "recurring_errors"
+    __table_args__ = (
+        Index("idx_recurring_errors_micro_skill", "micro_skill"),
+    )
+
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), primary_key=True
+    )
+    micro_skill: Mapped[str] = mapped_column(String(50), primary_key=True)  # код умения
+    node_id: Mapped[str | None] = mapped_column(String(10))                 # последний узел, где встретилась ошибка
+    error_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_cause_text: Mapped[str | None] = mapped_column(Text)              # последнее AI-объяснение
+    resolved: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
