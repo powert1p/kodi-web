@@ -1,10 +1,13 @@
 """Тренажёр ошибок: сопоставление ответа с банком отпечатков + список задач «срез».
 
 Модуль предоставляет:
-  - match_fingerprint   — поиск гипотезы об ошибке ученика по ответу.
-  - resolve_decomp      — поиск подходящей декомпозиции для задачи.
-  - build_wrong_tasks   — список задач из срезовых попыток с декомпозицией и маршрутом.
-  - route_state         — маршрутный статус по порогу владения.
+  - match_fingerprint          — поиск гипотезы об ошибке ученика по ответу.
+  - resolve_decomp             — поиск подходящей декомпозиции для задачи.
+  - build_wrong_tasks          — список задач из срезовых попыток с декомпозицией и маршрутом.
+  - route_state                — маршрутный статус по порогу владения.
+  - route_level                — числовой уровень 1/2/3 по порогу владения (Task 6).
+  - pick_easier_decomp         — decomp-запись с наименьшим числом шагов для умения (Task 6).
+  - pick_verification_problem  — проверочная задача того же узла, другая (Task 6).
 """
 
 from __future__ import annotations
@@ -381,3 +384,134 @@ async def build_wrong_tasks(
         )
 
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Task 6: route_level / pick_easier_decomp / pick_verification_problem
+#
+# Пороги LEVEL1_MAX=0.40 и LEVEL2_MAX=0.70 специфичны для тренажёра ошибок.
+# Они НЕ совпадают с BKT-порогом владения (0.85, core/bkt.py) и
+# UX-порогом графа (0.7, web_graph.py) — разные алгоритмические контексты.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def route_level(mastery: float) -> int:
+    """Числовой уровень задания по владению узлом.
+
+    1 — mastery < LEVEL1_MAX (0.40): не знаю тему («revisit»).
+    2 — LEVEL1_MAX <= mastery < LEVEL2_MAX (0.70): почти вспомнил («almost»).
+    3 — mastery >= LEVEL2_MAX (0.70): усвоено («got»).
+
+    Использует те же константы, что и route_state — не переопределять пороги.
+    """
+    if mastery < LEVEL1_MAX:
+        return 1
+    if mastery < LEVEL2_MAX:
+        return 2
+    return 3
+
+
+async def pick_easier_decomp(
+    session: AsyncSession,
+    *,
+    micro_skill: str,
+    exclude_idx: int | None,
+) -> object | None:
+    """Ищет decomp-запись с наименьшим числом шагов для заданного micro_skill.
+
+    Условия:
+      - primary_micro_skill == micro_skill
+      - all_steps_verified = true
+      - exclude_idx исключается (поддержка climb-down: не возвращать текущий rung)
+
+    Сортировка: число шагов по возрастанию (COUNT(ps.id)), тай-брейк по idx.
+    Возвращает строку (Row) decomposition_problems или None если подходящих нет.
+
+    Параметризованный SQL; f-строки и конкатенация не используются.
+    """
+    if exclude_idx is not None:
+        rows = await session.execute(
+            text(
+                "SELECT dp.idx, dp.node_id, dp.answer, dp.primary_micro_skill, "
+                "       dp.all_steps_verified, "
+                "       COUNT(ps.id) AS step_count "
+                "FROM decomposition_problems dp "
+                "LEFT JOIN problem_steps ps ON ps.decomp_idx = dp.idx "
+                "WHERE dp.primary_micro_skill = :ms "
+                "  AND dp.all_steps_verified = true "
+                "  AND dp.idx != :excl "
+                "GROUP BY dp.idx "
+                "ORDER BY step_count ASC, dp.idx ASC "
+                "LIMIT 1"
+            ),
+            {"ms": micro_skill, "excl": exclude_idx},
+        )
+    else:
+        rows = await session.execute(
+            text(
+                "SELECT dp.idx, dp.node_id, dp.answer, dp.primary_micro_skill, "
+                "       dp.all_steps_verified, "
+                "       COUNT(ps.id) AS step_count "
+                "FROM decomposition_problems dp "
+                "LEFT JOIN problem_steps ps ON ps.decomp_idx = dp.idx "
+                "WHERE dp.primary_micro_skill = :ms "
+                "  AND dp.all_steps_verified = true "
+                "GROUP BY dp.idx "
+                "ORDER BY step_count ASC, dp.idx ASC "
+                "LIMIT 1"
+            ),
+            {"ms": micro_skill},
+        )
+
+    return rows.fetchone()
+
+
+async def pick_verification_problem(
+    session: AsyncSession,
+    node_id: str,
+    exclude_problem_id: int,
+) -> object | None:
+    """Ищет проверочную задачу того же узла, отличную от текущей.
+
+    Алгоритм:
+      - same node_id, id != exclude_problem_id
+      - предпочитаем задачу с похожим sub_difficulty (ORDER BY ABS разница по sub_difficulty,
+        затем по id для детерминированности)
+      - если задач на узле нет кроме исключённой — None
+
+    Параметризованный SQL; f-строки не используются.
+    """
+    # Сначала получаем sub_difficulty исключённой задачи для сортировки похожести
+    excl_row = await session.execute(
+        text("SELECT sub_difficulty FROM problems WHERE id = :pid"),
+        {"pid": exclude_problem_id},
+    )
+    excl = excl_row.fetchone()
+    ref_diff: int | None = excl.sub_difficulty if excl else None
+
+    if ref_diff is not None:
+        # Предпочитаем похожую сложность: ABS(sub_difficulty - ref) ASC, тай-брейк по id
+        rows = await session.execute(
+            text(
+                "SELECT id, node_id, text_ru, answer, sub_difficulty "
+                "FROM problems "
+                "WHERE node_id = :nid AND id != :excl "
+                "ORDER BY ABS(COALESCE(sub_difficulty, :ref) - :ref) ASC, id ASC "
+                "LIMIT 1"
+            ),
+            {"nid": node_id, "excl": exclude_problem_id, "ref": ref_diff},
+        )
+    else:
+        # sub_difficulty недоступен — просто берём следующую по id
+        rows = await session.execute(
+            text(
+                "SELECT id, node_id, text_ru, answer, sub_difficulty "
+                "FROM problems "
+                "WHERE node_id = :nid AND id != :excl "
+                "ORDER BY id ASC "
+                "LIMIT 1"
+            ),
+            {"nid": node_id, "excl": exclude_problem_id},
+        )
+
+    return rows.fetchone()

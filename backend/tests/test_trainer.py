@@ -372,6 +372,190 @@ async def test_build_wrong_tasks_main(db_session) -> None:
     assert t2.state == "revisit"  # mastery=0.30 → "revisit"
 
 
+# ═══════════════════════════════════════════════════════════════
+# Task 6: route_level + pick_easier_decomp + pick_verification_problem
+# ═══════════════════════════════════════════════════════════════
+
+# ─── route_level: table-driven ──────────────────────────────────────────────
+
+@pytest.mark.parametrize("mastery,expected_level", [
+    (0.0,  1),
+    (0.39, 1),
+    (0.40, 2),   # граница: 0.40 уже уровень 2
+    (0.5,  2),
+    (0.69, 2),
+    (0.70, 3),   # граница: 0.70 уже уровень 3
+    (0.9,  3),
+])
+def test_route_level(mastery: float, expected_level: int) -> None:
+    """route_level корректно разбивает mastery по трём уровням."""
+    from core.trainer import route_level
+    assert route_level(mastery) == expected_level
+
+
+# ─── pick_easier_decomp: возвращает запись с меньшим числом шагов ───────────
+
+@pytest.mark.asyncio
+async def test_pick_easier_decomp_fewest_steps(db_session) -> None:
+    """
+    Два decomp-записи с одним micro_skill — pick_easier_decomp выбирает ту, у
+    которой меньше шагов (1 шаг vs 3 шага).
+    """
+    from core.trainer import pick_easier_decomp
+
+    NODE = "AR04"
+    MICRO = "frac_simplify"
+
+    # Вставляем узел
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'Дроби', 'Дроби', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+
+    # decomp 601 — 3 шага
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, primary_micro_skill, all_steps_verified) "
+            "VALUES (:idx, :nid, '1/2', :ms, true)"
+        ),
+        {"idx": 601, "nid": NODE, "ms": MICRO},
+    )
+    for step_n in (1, 2, 3):
+        await db_session.execute(
+            text(
+                "INSERT INTO problem_steps "
+                "(decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+                "VALUES (:didx, :n, 'Шаг', :ms, '0')"
+            ),
+            {"didx": 601, "n": step_n, "ms": MICRO},
+        )
+
+    # decomp 602 — 1 шаг
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, primary_micro_skill, all_steps_verified) "
+            "VALUES (:idx, :nid, '3/4', :ms, true)"
+        ),
+        {"idx": 602, "nid": NODE, "ms": MICRO},
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO problem_steps "
+            "(decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+            "VALUES (:didx, 1, 'Шаг', :ms, '0')"
+        ),
+        {"didx": 602, "ms": MICRO},
+    )
+
+    await db_session.commit()
+
+    result = await pick_easier_decomp(db_session, micro_skill=MICRO, exclude_idx=None)
+    assert result is not None, "Ожидалась запись с наименьшим числом шагов"
+    assert result.idx == 602, f"Ожидался decomp 602 (1 шаг), получен {result.idx}"
+
+
+@pytest.mark.asyncio
+async def test_pick_easier_decomp_excludes_idx(db_session) -> None:
+    """Если единственный подходящий decomp исключён — возвращается None."""
+    from core.trainer import pick_easier_decomp
+
+    NODE = "AR05"
+    MICRO = "int_multiply"
+
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'Умножение', 'Умножение', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, primary_micro_skill, all_steps_verified) "
+            "VALUES (:idx, :nid, '6', :ms, true)"
+        ),
+        {"idx": 700, "nid": NODE, "ms": MICRO},
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO problem_steps "
+            "(decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+            "VALUES (700, 1, 'Умножь', :ms, '6')"
+        ),
+        {"ms": MICRO},
+    )
+    await db_session.commit()
+
+    # Исключаем единственный decomp — ожидаем None
+    result = await pick_easier_decomp(db_session, micro_skill=MICRO, exclude_idx=700)
+    assert result is None, f"Ожидался None при exclude_idx={700}, получен {result}"
+
+
+# ─── pick_verification_problem: другая задача того же узла ──────────────────
+
+@pytest.mark.asyncio
+async def test_pick_verification_problem_returns_other(db_session) -> None:
+    """Два problem на одном node — pick_verification_problem возвращает второй."""
+    from core.trainer import pick_verification_problem
+
+    NODE = "AR06"
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'Проверка', 'Проверка', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+
+    r1 = await db_session.execute(
+        text("INSERT INTO problems (node_id, text_ru, answer) VALUES (:nid, 'Задача A', '10') RETURNING id"),
+        {"nid": NODE},
+    )
+    pid1 = r1.scalar_one()
+
+    r2 = await db_session.execute(
+        text("INSERT INTO problems (node_id, text_ru, answer) VALUES (:nid, 'Задача B', '20') RETURNING id"),
+        {"nid": NODE},
+    )
+    pid2 = r2.scalar_one()
+
+    await db_session.commit()
+
+    result = await pick_verification_problem(db_session, NODE, exclude_problem_id=pid1)
+    assert result is not None, "Ожидалась вторая задача того же узла"
+    assert result.id == pid2, f"Ожидался problem_id={pid2}, получен {result.id}"
+
+
+@pytest.mark.asyncio
+async def test_pick_verification_problem_exclude_works(db_session) -> None:
+    """Если единственная задача исключена — возвращается None."""
+    from core.trainer import pick_verification_problem
+
+    NODE = "AR07"
+    await db_session.execute(
+        text(
+            "INSERT INTO nodes (id, name_ru, name_kz, bkt_p_t, bkt_p_g, bkt_p_s) "
+            "VALUES (:nid, 'Одна задача', 'Одна задача', 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+        ),
+        {"nid": NODE},
+    )
+    r = await db_session.execute(
+        text("INSERT INTO problems (node_id, text_ru, answer) VALUES (:nid, 'Только одна', '5') RETURNING id"),
+        {"nid": NODE},
+    )
+    only_pid = r.scalar_one()
+    await db_session.commit()
+
+    result = await pick_verification_problem(db_session, NODE, exclude_problem_id=only_pid)
+    assert result is None, f"Ожидался None при единственной задаче, получен {result}"
+
+
 # ─── тест: попытки за пределами окна не включаются ───────────────────────────
 
 @pytest.mark.asyncio
