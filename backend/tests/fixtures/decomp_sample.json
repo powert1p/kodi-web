@@ -90,6 +90,25 @@
           "micro_skill": "int_add_sub"
         }
       ]
+    },
+    {
+      "idx": 3,
+      "node_id": "AR01",
+      "answer": "77",
+      "primary_micro_skill": "int_add_sub",
+      "all_steps_verified": true,
+      "needs_review": false,
+      "review_reason": null,
+      "steps": [
+        {
+          "n": 1,
+          "instruction_ru": "Вычисли 40 + 37 = 77.",
+          "micro_skill": "int_add_sub",
+          "expected_value": "77",
+          "verified": "sympy_ok"
+        }
+      ],
+      "fingerprints": []
     }
   ]
 }

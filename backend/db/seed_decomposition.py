@@ -67,7 +67,7 @@ _DEFAULT_JSON = (
     pathlib.Path(__file__).parent.parent.parent / "docs" / "specs" / "full_decomposition_v1.json"
 )
 
-# Размер batch при вставке строк
+# Размер batch при flush (не commit!) шагов и fingerprints
 _BATCH_SIZE = 500
 
 
@@ -82,7 +82,8 @@ async def seed_decomposition(
     Идемпотентность:
     - Пропускает полный сид если decomposition_problems уже не пуста,
       кроме случая когда задана переменная среды FORCE_RESEED=1.
-    - micro_skills всегда обновляются через ON CONFLICT DO UPDATE.
+    - micro_skills всегда обновляются через ON CONFLICT DO UPDATE,
+      но только ПОСЛЕ гарда идемпотентности (один commit в конце).
 
     Возвращает словарь с количеством затронутых строк:
       {"micro_skills": int, "decomp_problems": int, "db_linked": int,
@@ -99,7 +100,34 @@ async def seed_decomposition(
     micro_skills_list: list[dict] = catalog["micro_skills"]
     problems_list: list[dict] = data["problems"]
 
-    # ── 2. Всегда upsert micro_skills ────────────────────────────────────────
+    # ── 2. Гард идемпотентности: пропустить если таблица не пуста ────────────
+    # Читаем ДО любых записей — гард возвращает без единого commit.
+    force = os.getenv("FORCE_RESEED", "0") == "1"
+    existing = (
+        await session.execute(text("SELECT count(*) FROM decomposition_problems"))
+    ).scalar_one()
+
+    if existing > 0 and not force:
+        logger.info(
+            "decomposition_problems уже содержит %d строк. Пропуск сида (FORCE_RESEED не задан).",
+            existing,
+        )
+        # Возвращаем нули — ничего нового не записано, commit не вызываем.
+        return {
+            "micro_skills": 0,
+            "decomp_problems": 0,
+            "db_linked": 0,
+            "steps": 0,
+            "fingerprints": 0,
+        }
+
+    if force and existing > 0:
+        logger.warning("FORCE_RESEED=1: таблицы очищаются для повторного сида.")
+        # Каскадное удаление: problem_steps / problem_fingerprints удалятся автоматически
+        await session.execute(text("DELETE FROM decomposition_problems"))
+        # Не коммитим — DELETE войдёт в единственную финальную транзакцию
+
+    # ── 3. Upsert micro_skills (внутри той же транзакции) ────────────────────
     ms_count = 0
     for ms in micro_skills_list:
         await session.execute(
@@ -121,33 +149,9 @@ async def seed_decomposition(
             },
         )
         ms_count += 1
-    await session.commit()
-    logger.info("micro_skills upsert: %d записей.", ms_count)
-
-    # ── 3. Гард идемпотентности: пропустить если таблица не пуста ────────────
-    force = os.getenv("FORCE_RESEED", "0") == "1"
-    existing = (
-        await session.execute(text("SELECT count(*) FROM decomposition_problems"))
-    ).scalar_one()
-
-    if existing > 0 and not force:
-        logger.info(
-            "decomposition_problems уже содержит %d строк. Пропуск сида (FORCE_RESEED не задан).",
-            existing,
-        )
-        return {
-            "micro_skills": ms_count,
-            "decomp_problems": 0,
-            "db_linked": 0,
-            "steps": 0,
-            "fingerprints": 0,
-        }
-
-    if force and existing > 0:
-        logger.warning("FORCE_RESEED=1: таблицы очищаются для повторного сида.")
-        # Каскадное удаление: problem_steps / problem_fingerprints удалятся автоматически
-        await session.execute(text("DELETE FROM decomposition_problems"))
-        await session.commit()
+    # Flush без commit — данные в буфере сессии, видны в рамках транзакции
+    await session.flush()
+    logger.info("micro_skills upsert (flush): %d записей.", ms_count)
 
     # ── 4. Построить lookup: (node_id, answer) → problems.id (только UNIQUE match) ──
     logger.info("Строю lookup (node_id, answer) → problems.id …")
@@ -175,7 +179,7 @@ async def seed_decomposition(
     steps_count = 0
     fp_count = 0
 
-    # Буферы для batch-вставки шагов и fingerprints
+    # Буферы для batch-flush шагов и fingerprints
     steps_buf: list[dict] = []
     fp_buf: list[dict] = []
 
@@ -225,9 +229,8 @@ async def seed_decomposition(
         if problems_db_id is not None:
             db_linked += 1
 
-        # Удаляем старые шаги/fingerprints (на случай FORCE_RESEED или повторного вызова)
+        # Удаляем старые шаги/fingerprints на случай FORCE_RESEED или повторного вызова
         # decomposition_problems ON DELETE CASCADE → достаточно удалить родительскую строку
-        # Но мы здесь делаем insert/replace: сначала удаляем если есть, потом вставляем
         await session.execute(
             text("DELETE FROM decomposition_problems WHERE idx = :idx"),
             {"idx": idx},
@@ -281,22 +284,26 @@ async def seed_decomposition(
                 }
             )
 
-        # Сбрасываем буфер при накоплении
+        # Flush буферов при накоплении (flush ≠ commit, транзакция не прерывается)
         if len(steps_buf) >= _BATCH_SIZE:
             await _flush_steps()
         if len(fp_buf) >= _BATCH_SIZE:
             await _flush_fp()
 
-        # Коммит батчами для снижения нагрузки на транзакцию
+        # Периодический flush для снижения давления на буфер сессии
         if decomp_count % _BATCH_SIZE == 0:
             await _flush_steps()
             await _flush_fp()
-            await session.commit()
-            logger.info("Сидировано %d/%d задач декомпозиции…", decomp_count, len(problems_list))
+            await session.flush()
+            logger.info("Flush: %d/%d задач декомпозиции…", decomp_count, len(problems_list))
 
-    # Финальный сброс остатков
+    # Финальный сброс остатков в буферах
     await _flush_steps()
     await _flush_fp()
+
+    # ── 6. Единственный commit всей транзакции ────────────────────────────────
+    # Если здесь произойдёт исключение — весь сид откатится, гард не заблокирует
+    # повторный запуск (таблица останется пустой).
     await session.commit()
 
     logger.info(
