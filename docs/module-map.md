@@ -2,7 +2,7 @@
 
 > **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-06-24 (слой тем CC).** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
 
-**Масштаб:** 10 core-модулей (+ ~40 модулей в `scorers/`+`classifiers/` — DEAD CODE в рантайме), `routes.py` ~1070 строк (монолит, 17 эндпоинтов), 5 Flutter-фич (auth/dashboard/practice/diagnostic/exam), 10 DB-таблиц (`__tablename__` ×10: +`topics`,`topic_edges` со слоя тем 2026-06-24), 2525 задач / 118 нод графа / 43 темы CC.
+**Масштаб:** 10 core-модулей (+ ~40 модулей в `scorers/`+`classifiers/` — DEAD CODE в рантайме), `routes.py` ~1070 строк (монолит, 19 эндпоинтов, вкл. публичный `graph/public` без auth), 5 Flutter-фич (auth/dashboard/practice/diagnostic/exam), 10 DB-таблиц (`__tablename__` ×10: +`topics`,`topic_edges` со слоя тем 2026-06-24), 2525 задач / 118 нод графа / 43 темы CC.
 
 ## Backend: Core (`backend/core/`)
 
@@ -26,7 +26,7 @@
 
 | File | Назначение | Ключевое | ~Lines |
 |------|-----------|----------|--------|
-| api/routes.py | **Монолит, все 17 REST-эндпоинтов** (`prefix=/api`): auth (telegram/phone), stats/me, graph/me, practice (next/answer/skip/report/exam/start), diagnostic (start/question/answer/finish/cancel/status). JWT inline, slowapi limiter | `router`, `_diagnostic_states` (process-local in-memory dict, бэкап в `student.paused_diagnostic`), `JWT_*` | 1070 |
+| api/routes.py | **Монолит, все 19 REST-эндпоинтов** (`prefix=/api`): auth (telegram/phone), stats/me, graph/me, **graph/public (БЕЗ auth — публичный граф)**, practice (next/answer/skip/report/exam/start), diagnostic (start/question/answer/finish/cancel/status). JWT inline, slowapi limiter | `router`, `_diagnostic_states` (process-local in-memory dict, бэкап в `student.paused_diagnostic`), `JWT_*` | 1070 |
 | web.py | FastAPI app: middleware (security headers, CORS, rate-limit 60/min), `/health`, mount `/static`, отдача HTML-stats, SPA-фолбэк на `index.html` | `app`, `SecurityHeadersMiddleware`, `spa_fallback`, `save_html` | 125 |
 | run.py | Точка входа: `Base.metadata.create_all` + `ALTER TABLE … IF NOT EXISTS` для отсутствующих колонок, сидинг при пустой БД, запуск uvicorn | `on_startup`, `main` | 67 |
 
@@ -66,7 +66,7 @@
 | features/auth/pages/phone_login_page.dart | Вход/регистрация по телефону+PIN | — | 219 |
 | features/auth/pages/login_page.dart | Лендинг входа: Telegram OAuth (через `dart:html`) + переход на phone | использует `AppConfig.telegramBotName` | 187 |
 | features/dashboard/pages/widgets/onboarding_view.dart | Онбординг для нового ученика (CTA на диагностику) | `OnboardingView` | 180 |
-| features/dashboard/pages/graph_page.dart | Граф знаний: вложенная иерархия **Раздел→Тема→навык** (аккордеон, прогресс на уровнях, «Опирается на: …», fallback «Прочее»). CC-коды скрыты | `GraphPage`, `_StrandSection`, `_TopicSubCard`, `_NodeRow` | 599 |
+| features/dashboard/pages/graph_page.dart | Граф знаний: вложенная иерархия **Раздел→Тема→навык** (аккордеон, прогресс на уровнях, «Опирается на: …», fallback «Прочее»). CC-коды скрыты. **`PublicGraphPage`** (роут `/graph-public`, без auth) переиспользует `_GraphBody` | `GraphPage`, `PublicGraphPage`, `_StrandSection`, `_TopicSubCard`, `_NodeRow` | 676 |
 | features/dashboard/pages/widgets/problem_section_card.dart | Карточка секции с задачами | `ProblemSectionCard` (Stateful) | 170 |
 | features/auth/bloc/auth_bloc.dart | BLoC auth: check/telegram/phone-login, токен в SharedPreferences | `AuthCheckRequested`, `AuthAuthenticated`/`AuthUnauthenticated` | 128 |
 | features/dashboard/pages/widgets/hero_card.dart | Hero-карточка дашборда (прогресс/CTA) | `HeroCard` | 128 |

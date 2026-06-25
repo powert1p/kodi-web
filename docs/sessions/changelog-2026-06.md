@@ -106,3 +106,15 @@
 **Открытые вопросы:** критик пропустил 1 (PC04) — multi-judge/голоса если понадобится строже. Methodology-апгрейды из research (ECD-язык в DoD, overgenerate-and-rank дистракторов, grounding из full_decomposition_v1.json) — следующие слои. SymPy-гейт на числа.
 **Файлы:** cabinet/engine/{author-prompt,critic-prompt}.md, cabinet/engine/ladder-engine.workflow.js, cabinet/src/mock/srez.ts, docs/specs/2026-06-24-engine-norm.md
 **Issue:** —
+
+## 2026-06-25 12:50
+**Тип:** ad-hoc (фича + деплой)
+**Зачем:** владелец: «задеплой страницу графа чтобы была доступна без регистрации» — публичный просмотр структуры графа знаний (Раздел→Тема→навык) без входа.
+**Что сделано:**
+- Backend: `GET /api/graph/public` (без JWT, rate-limit 60/min) — структура графа (nodes/edges/topics/strands), все узлы `untested` (без личного прогресса), темы через тот же `build_topics_payload`.
+- Frontend: `getPublicGraphData()`; новый `PublicGraphPage` (FutureBuilder → переиспользует `_GraphBody`); роут `/graph-public` в `onGenerateRoute` (вне auth-гейта `main.dart`); кнопка «Посмотреть граф знаний» на экране логина; ключи l10n `graphPublicCta`/`publicGraphLogin` в оба `.arb`.
+**Решение:** аноним видит каркас без прогресса (status untested) — личных данных нет, показывать нечего кроме структуры. Доступ двумя путями: прямой URL `/#/graph-public` (шарится) + кнопка на логине. Auth-гейт в kodi-web только в `main.dart` `home:` → именованные роуты через `onGenerateRoute` НЕ гейтятся, поэтому публичный роут не требует логина by construction.
+**Итог:** ✅ задеплоено на VPS (commit `ec1fb8a`, main). flutter analyze 0 новых ошибок + build web; **live на проде**: `/api/graph/public` без токена → 200 (118 узлов untested, 36 тем, 10 разделов), контроль `/api/graph/me` без токена → 401 (личный граф защищён); Playwright локально — публичный граф рендерится без токена и прямым URL, и кнопкой с логина, 0 ошибок консоли.
+**Открытые вопросы:** доступ всё ещё за SSH-туннелем (порт 8300) — публичный интернет нужен nginx vhost + SSL (root/Умид, внешняя зависимость).
+**Файлы:** backend/api/routes.py (graph_public), frontend/packages/kodi_core/lib/api/nis_api.dart, frontend/apps/kodi_web/lib/features/dashboard/pages/graph_page.dart (PublicGraphPage), frontend/apps/kodi_web/lib/app/router.dart, frontend/apps/kodi_web/lib/features/auth/pages/login_page.dart, l10n
+**Issue:** —
