@@ -19,6 +19,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
 from api.routes import router as api_router
+from api.routers.trainer import router as trainer_router
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(trainer_router)
 
 
 @app.get("/health")
