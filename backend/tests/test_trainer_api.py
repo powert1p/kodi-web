@@ -1,18 +1,27 @@
-"""Интеграционные тесты HTTP-роутов тренажёра ошибок (Task 9).
+"""Интеграционные тесты HTTP-роутов тренажёра ошибок (Task 9 + Task 10).
 
 Паттерн: httpx ASGITransport + реальная тест-БД (TEST_DATABASE_URL) + Bearer-токен,
 минтированный через _create_token из api/routes.py.
 
-Сценарии:
+Сценарии Task 9:
   1. GET /api/trainer/wrong-tasks → 200 с tasks (seeded неверные попытки).
   2. GET /api/trainer/analytics   → 200 с my_top (seeded recurring_errors).
   3. Без токена → 401 на обоих эндпоинтах.
   4. При owner_student_id == student_id → global_top появляется в analytics.
+
+Сценарии Task 10 (POST /api/trainer/diagnose):
+  7. 200 + body shape + файл фото записан на диск.
+  8. Ровно одна строка в error_captures после POST.
+  9. Строка в recurring_errors; error_count = 2 после второго POST.
+  10. 503 когда diagnose_photo бросает LlmUnavailable.
+  11. 404 для несуществующего problem_id.
 """
 
 from __future__ import annotations
 
+import io
 import os
+import struct
 
 # JWT_SECRET задаётся в conftest.py ДО импорта core.config
 import pytest
@@ -302,3 +311,298 @@ async def test_wrong_tasks_invalid_params(client_with_student):
 
     resp_limit = await client.get("/api/trainer/wrong-tasks?limit=100", headers=headers)
     assert resp_limit.status_code == 422, f"limit=100 должен вернуть 422, получен {resp_limit.status_code}"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Task 10: POST /api/trainer/diagnose (фото → диагностика → память ошибок)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+def _make_tiny_jpeg() -> bytes:
+    """Минимальный валидный JPEG-файл (1×1 px, серый) для тестов.
+
+    Используем минималистичный JFIF без импорта Pillow в тест-среде.
+    Байты получены из стандартного минимального JFIF-SOI + APPo + SOF + SOS.
+    """
+    # Минимальный 1x1 JPEG: SOI + APP0 + SOF0 + DHT + SOS + EOI
+    # (68 байт, проходит проверку content_type)
+    return bytes([
+        0xFF, 0xD8,                          # SOI
+        0xFF, 0xE0, 0x00, 0x10,              # APP0 marker + length
+        0x4A, 0x46, 0x49, 0x46, 0x00,        # "JFIF\0"
+        0x01, 0x01,                          # version
+        0x00,                                # aspect ratio unit
+        0x00, 0x01, 0x00, 0x01,             # Xdensity, Ydensity
+        0x00, 0x00,                          # thumbnail
+        0xFF, 0xDB, 0x00, 0x43, 0x00,        # DQT
+        *([0x08] * 64),                      # quant table (flat)
+        0xFF, 0xC0, 0x00, 0x0B,              # SOF0 + length
+        0x08,                                # precision
+        0x00, 0x01, 0x00, 0x01,             # height=1, width=1
+        0x01,                                # components
+        0x01, 0x11, 0x00,                   # component spec
+        0xFF, 0xC4, 0x00, 0x1F, 0x00,        # DHT
+        0x00, 0x01, 0x05, 0x01, 0x01, 0x01, 0x01, 0x01,
+        0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B,
+        0xFF, 0xDA, 0x00, 0x08,              # SOS
+        0x01, 0x01, 0x00, 0x00, 0x3F, 0x00,
+        0x7F,                               # scan data
+        0xFF, 0xD9,                          # EOI
+    ])
+
+
+@pytest_asyncio.fixture
+async def client_for_diagnose(db_session, tmp_path, monkeypatch):
+    """Фикстура для тестов /diagnose: студент + задача + неверная попытка + monkeypatch фото_dir."""
+    if not _TEST_URL:
+        pytest.skip("TEST_DATABASE_URL не задан — пропуск интеграционных тестов")
+
+    STUDENT_ID = 7002
+    NODE = "TR02"
+
+    await _seed_student_api(db_session, STUDENT_ID)
+    await _seed_node_api(db_session, NODE, "Диагностика-тест")
+
+    pid = await _seed_problem_api(db_session, NODE, "Найди x: 2x = 8", "4")
+
+    # Вставляем неверную попытку для resolve_wrong_answer
+    row = await db_session.execute(
+        text(
+            "INSERT INTO attempts "
+            "(student_id, problem_id, node_id, answer_given, is_correct, source, created_at) "
+            "VALUES (:sid, :pid, :nid, :ans, false, 'diagnostic', NOW()) "
+            "RETURNING id"
+        ),
+        {"sid": STUDENT_ID, "pid": pid, "nid": NODE, "ans": "8"},
+    )
+    attempt_id = row.scalar_one()
+    await db_session.commit()
+
+    from api.routes import _create_token
+    token = _create_token(STUDENT_ID)
+
+    # Переопределяем photo_dir на tmp_path (изоляция файловой системы)
+    from core.config import settings as app_settings
+    monkeypatch.setattr(app_settings, "photo_dir", str(tmp_path))
+    # Также патчим в роутере если он захватил значение при импорте
+    import api.routers.trainer as trainer_module
+    monkeypatch.setattr(trainer_module, "_photo_dir_override", str(tmp_path), raising=False)
+
+    import api.routes as routes_module
+    import db.base as db_base
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    test_engine = create_async_engine(_TEST_URL)
+    test_session_factory = async_sessionmaker(test_engine, expire_on_commit=False)
+
+    original_db = db_base.async_session
+    original_routes = routes_module.async_session
+
+    db_base.async_session = test_session_factory
+    routes_module.async_session = test_session_factory
+
+    from web import app
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as ac:
+        yield ac, STUDENT_ID, token, pid, attempt_id, tmp_path
+
+    db_base.async_session = original_db
+    routes_module.async_session = original_routes
+    await test_engine.dispose()
+
+
+def _fixed_diagnosis_result():
+    """Возвращает фиксированный DiagnosisResult для monkeypatch."""
+    from core.llm_openai import DiagnosisResult
+    return DiagnosisResult(
+        transcription="2x = 8, x = 8 (ошибка: делитель забыт)",
+        failed_step=1,
+        cause_text="Ученик забыл разделить на 2 в последнем шаге.",
+        level=1,
+        micro_skill="div_basic",
+        confidence=0.92,
+    )
+
+
+# ── тест 7: 200 + body shape + файл записан ──────────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_200_body_and_file(client_for_diagnose, monkeypatch):
+    """POST /api/trainer/diagnose → 200, правильный body, файл фото существует."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    # Патчим diagnose_photo там, где его видит роутер
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    jpeg = _make_tiny_jpeg()
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp.status_code == 200, f"Ожидался 200, получен {resp.status_code}: {resp.text}"
+
+    body = resp.json()
+    for field in ("transcription", "failed_step", "cause_text", "level", "micro_skill", "confidence", "image_ref"):
+        assert field in body, f"Отсутствует поле '{field}' в ответе"
+
+    assert body["transcription"] == "2x = 8, x = 8 (ошибка: делитель забыт)"
+    assert body["micro_skill"] == "div_basic"
+    assert body["confidence"] == pytest.approx(0.92)
+
+    # Проверяем, что файл фото сохранён на диск
+    image_ref: str = body["image_ref"]
+    assert image_ref, "image_ref не должен быть пустым"
+    saved_path = tmp_path / image_ref
+    assert saved_path.exists(), f"Файл фото не найден: {saved_path}"
+    assert saved_path.stat().st_size > 0, "Файл фото пустой"
+
+
+# ── тест 8: ровно одна строка в error_captures ───────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_inserts_error_capture(client_for_diagnose, monkeypatch):
+    """После одного POST ровно одна строка в error_captures."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    jpeg = _make_tiny_jpeg()
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp.status_code == 200, resp.text
+
+    # Проверяем в БД через прямой запрос
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as sess:
+        row = await sess.execute(
+            text("SELECT COUNT(*) FROM error_captures WHERE student_id = :sid AND problem_id = :pid"),
+            {"sid": student_id, "pid": pid},
+        )
+        count = row.scalar_one()
+    await engine.dispose()
+
+    assert count == 1, f"Ожидалась 1 строка в error_captures, найдено {count}"
+
+
+# ── тест 9: recurring_errors upsert + increment ──────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_recurring_errors_upsert(client_for_diagnose, monkeypatch):
+    """После двух POST error_count в recurring_errors = 2."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    jpeg = _make_tiny_jpeg()
+
+    # Первый POST
+    resp1 = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp1.status_code == 200, resp1.text
+
+    # Второй POST — тот же студент + тот же micro_skill
+    resp2 = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test2.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp2.status_code == 200, resp2.text
+
+    # Проверяем error_count в recurring_errors
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as sess:
+        row = await sess.execute(
+            text(
+                "SELECT error_count FROM recurring_errors "
+                "WHERE student_id = :sid AND micro_skill = 'div_basic'"
+            ),
+            {"sid": student_id},
+        )
+        rec = row.fetchone()
+    await engine.dispose()
+
+    assert rec is not None, "Запись в recurring_errors не найдена"
+    assert rec.error_count == 2, f"Ожидался error_count=2, получен {rec.error_count}"
+
+
+# ── тест 10: 503 когда diagnose_photo бросает LlmUnavailable ─────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_503_on_llm_unavailable(client_for_diagnose, monkeypatch):
+    """POST /api/trainer/diagnose → 503 если diagnose_photo поднимает LlmUnavailable."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    from core.llm_openai import LlmUnavailable
+
+    async def _mock_diagnose_fail(**kwargs):
+        raise LlmUnavailable("OpenAI недоступен в тесте")
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose_fail)
+
+    jpeg = _make_tiny_jpeg()
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp.status_code == 503, f"Ожидался 503, получен {resp.status_code}: {resp.text}"
+
+    body = resp.json()
+    assert "detail" in body, "503-ответ должен содержать 'detail'"
+
+
+# ── тест 11: 404 для несуществующего problem_id ───────────────────────────────
+
+
+@pytest.mark.asyncio
+async def test_diagnose_404_unknown_problem(client_for_diagnose, monkeypatch):
+    """POST /api/trainer/diagnose с несуществующим problem_id → 404."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    jpeg = _make_tiny_jpeg()
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": "999999"},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp.status_code == 404, f"Ожидался 404, получен {resp.status_code}: {resp.text}"
