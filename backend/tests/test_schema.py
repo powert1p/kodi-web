@@ -5,22 +5,33 @@ TDD-GREEN: пройдёт после добавления ORM-моделей и 
 """
 
 import pytest
-from sqlalchemy import inspect
+from sqlalchemy import text
+
+# Ожидаемые таблицы тренажёра ошибок
+_EXPECTED_TABLES = {
+    "micro_skills",
+    "decomposition_problems",
+    "problem_steps",
+    "problem_fingerprints",
+    "error_captures",
+    "recurring_errors",
+}
 
 
 @pytest.mark.asyncio
 async def test_new_tables_exist(db_session):
-    """Шесть новых таблиц тренажёра должны присутствовать в схеме."""
-    async with db_session.bind.connect() as conn:
-        names = await conn.run_sync(lambda c: inspect(c).get_table_names())
+    """Шесть новых таблиц тренажёра должны присутствовать в схеме.
 
-    expected = (
-        "micro_skills",
-        "decomposition_problems",
-        "problem_steps",
-        "problem_fingerprints",
-        "error_captures",
-        "recurring_errors",
+    Проверяем через pg_tables напрямую через сессию — надёжнее, чем
+    AsyncSession.bind.connect() + inspect (зависит от версии SQLAlchemy).
+    asyncpg-native массив: = ANY(:names) вместо IN-tuple.
+    """
+    result = await db_session.execute(
+        text(
+            "SELECT tablename FROM pg_tables "
+            "WHERE schemaname = 'public' AND tablename = ANY(:names)"
+        ).bindparams(names=list(_EXPECTED_TABLES))
     )
-    for table in expected:
-        assert table in names, f"отсутствует таблица: {table}"
+    found = {row[0] for row in result}
+    missing = _EXPECTED_TABLES - found
+    assert not missing, f"отсутствуют таблицы: {missing}"
