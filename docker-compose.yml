@@ -43,9 +43,11 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       PORT: "8000"
-    # Только localhost: наружу через host nginx (порт 8300; 8200 занят CDP).
+    # Публично на 0.0.0.0:8300 (прямой биндинг, как kodi-cabinet:8301) — без nginx/root.
+    # ⚠️ FastAPI смотрит в интернет напрямую: личные данные защищены JWT, регистрация публична by design.
+    # TODO: убрать наружу за host nginx + SSL, когда будет домен/root.
     ports:
-      - "127.0.0.1:8300:8000"
+      - "0.0.0.0:8300:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=8).status==200 else 1)"]
       interval: 30s
