@@ -1,7 +1,7 @@
 """Тесты для core/llm_openai.py — mocked, без реального API.
 
-Все тесты работают без TEST_DATABASE_URL и без реального ключа OpenAI.
-Паттерн: monkeypatch _get_openai_client → возвращает fake-клиент.
+Все тесты работают без TEST_DATABASE_URL и без реального ключа OpenAI/Gemini.
+Паттерн: monkeypatch _get_active_client → возвращает (fake_client, model_chain).
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import json
 import os
 import types
 from dataclasses import dataclass
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 
@@ -23,7 +23,7 @@ os.environ.setdefault("JWT_SECRET", "test-secret")
 # ─── helpers ──────────────────────────────────────────────────────────────────
 
 def _make_fake_completion(payload: dict) -> MagicMock:
-    """Создаёт фейковый объект ответа OpenAI (chat.completions.create)."""
+    """Создаёт фейковый объект ответа (chat.completions.create)."""
     choice = MagicMock()
     choice.message.content = json.dumps(payload)
     completion = MagicMock()
@@ -64,6 +64,9 @@ _CANONICAL_STEPS = [
     {"n": 2, "instruction_ru": "Разделить обе части", "expected_value": "1"},
 ]
 
+# Тестовая цепочка моделей
+_TEST_MODEL_CHAIN = ["test-model-v1"]
+
 
 # ─── тест 1: happy path — parse DiagnosisResult ──────────────────────────────
 
@@ -74,7 +77,7 @@ async def test_diagnose_photo_parses_result() -> None:
 
     fake_client = _make_fake_client(_KNOWN_PAYLOAD)
 
-    with patch("core.llm_openai._get_openai_client", return_value=fake_client):
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
         result = await diagnose_photo(
             image_bytes=_TINY_PNG,
             content_type="image/png",
@@ -98,12 +101,12 @@ async def test_diagnose_photo_parses_result() -> None:
 
 @pytest.mark.asyncio
 async def test_diagnose_photo_prompt_contains_correct_answer_and_steps() -> None:
-    """Промпт, отправляемый в OpenAI, содержит correct_answer и canonical_steps."""
+    """Промпт, отправляемый провайдеру, содержит correct_answer и canonical_steps."""
     from core.llm_openai import diagnose_photo
 
     fake_client = _make_fake_client(_KNOWN_PAYLOAD)
 
-    with patch("core.llm_openai._get_openai_client", return_value=fake_client):
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
         await diagnose_photo(
             image_bytes=_TINY_PNG,
             content_type="image/png",
@@ -114,7 +117,7 @@ async def test_diagnose_photo_prompt_contains_correct_answer_and_steps() -> None
             fingerprint_hint="eq_transpose",
         )
 
-    # W1: messages всегда передаётся как kwargs — берём напрямую, без хрупкого args-fallback
+    # messages всегда передаётся как kwargs
     create_mock = fake_client.chat.completions.create
     messages = create_mock.call_args.kwargs["messages"]
 
@@ -135,14 +138,15 @@ async def test_diagnose_photo_prompt_contains_correct_answer_and_steps() -> None
     assert "НИКОГДА не раскрывай" in all_text, "промпт должен содержать инструкцию не раскрывать ответ"
 
 
-# ─── тест 3: пустой ключ → LlmUnavailable ────────────────────────────────────
+# ─── тест 3: клиент None → LlmUnavailable ────────────────────────────────────
 
 @pytest.mark.asyncio
-async def test_diagnose_photo_no_key_raises_llm_unavailable() -> None:
-    """Пустой openai_api_key → raises LlmUnavailable."""
+async def test_diagnose_photo_no_client_raises_llm_unavailable() -> None:
+    """Клиент None (нет пакета openai) → raises LlmUnavailable."""
     from core.llm_openai import LlmUnavailable, diagnose_photo
 
-    with patch("core.llm_openai._get_openai_client", return_value=None):
+    # _get_active_client возвращает (None, []) — пакет не установлен
+    with patch("core.llm_openai._get_active_client", return_value=(None, [])):
         with pytest.raises(LlmUnavailable):
             await diagnose_photo(
                 image_bytes=_TINY_PNG,
@@ -176,7 +180,7 @@ async def test_diagnose_photo_heic_triggers_conversion() -> None:
     fake_pil_open = MagicMock(return_value=fake_img)
 
     with (
-        patch("core.llm_openai._get_openai_client", return_value=fake_client),
+        patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)),
         patch("core.llm_openai._register_heif_opener") as mock_register,
         patch("PIL.Image.open", fake_pil_open),
     ):
@@ -215,7 +219,7 @@ async def test_diagnose_photo_heic_detected_by_bytes() -> None:
     fake_pil_open = MagicMock(return_value=fake_img)
 
     with (
-        patch("core.llm_openai._get_openai_client", return_value=fake_client),
+        patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)),
         patch("core.llm_openai._register_heif_opener"),
         patch("PIL.Image.open", fake_pil_open),
     ):
@@ -243,12 +247,12 @@ async def test_diagnose_photo_all_models_fail_raises() -> None:
     fake_client = MagicMock()
     fake_client.chat = MagicMock()
     fake_client.chat.completions = MagicMock()
-    # Все вызовы бросают ошибку
+    # Все вызовы бросают ошибку (не содержит "strict" → не триггерит fallback)
     fake_client.chat.completions.create = AsyncMock(
         side_effect=Exception("API error")
     )
 
-    with patch("core.llm_openai._get_openai_client", return_value=fake_client):
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
         with pytest.raises(LlmUnavailable):
             await diagnose_photo(
                 image_bytes=_TINY_PNG,
@@ -259,3 +263,114 @@ async def test_diagnose_photo_all_models_fail_raises() -> None:
                 wrong_answer=None,
                 fingerprint_hint=None,
             )
+
+
+# ─── тест 7: Gemini provider — AsyncOpenAI вызывается с Gemini base_url ──────
+
+def test_gemini_client_factory_uses_gemini_base_url() -> None:
+    """При vision_provider=gemini AsyncOpenAI создаётся с Gemini endpoint и ключом."""
+    import core.llm_openai as llm_mod
+    from core.llm_openai import _GEMINI_BASE_URL
+
+    captured_kwargs: dict = {}
+
+    class FakeAsyncOpenAI:
+        def __init__(self, **kwargs):
+            captured_kwargs.update(kwargs)
+
+    # Сбрасываем кэш lazy-клиента
+    original = llm_mod._gemini_client
+    llm_mod._gemini_client = None
+
+    try:
+        with (
+            patch("core.llm_openai.openai", create=True) as mock_openai_mod,
+            patch("core.config.settings") as mock_settings,
+        ):
+            mock_settings.gemini_api_key = "test-gemini-key-xyz"
+            mock_settings.vision_provider = "gemini"
+            mock_openai_mod.AsyncOpenAI = FakeAsyncOpenAI
+
+            # Патчим импорт openai внутри _get_gemini_client
+            import openai as real_openai
+            with patch.object(real_openai, "AsyncOpenAI", FakeAsyncOpenAI):
+                with patch("core.config.settings", mock_settings):
+                    llm_mod._gemini_client = None  # сброс кэша перед вызовом
+                    client = llm_mod._get_gemini_client()
+
+        assert captured_kwargs.get("base_url") == _GEMINI_BASE_URL, (
+            f"base_url должен быть {_GEMINI_BASE_URL}, получили: {captured_kwargs.get('base_url')}"
+        )
+        assert captured_kwargs.get("api_key") == "test-gemini-key-xyz", (
+            "api_key должен быть передан gemini-ключ"
+        )
+    finally:
+        llm_mod._gemini_client = original
+
+
+# ─── тест 8: пустой GEMINI_API_KEY → LlmUnavailable ─────────────────────────
+
+def test_gemini_empty_key_raises_llm_unavailable() -> None:
+    """Пустой GEMINI_API_KEY при vision_provider=gemini → LlmUnavailable немедленно."""
+    import core.llm_openai as llm_mod
+    from core.llm_openai import LlmUnavailable
+
+    original = llm_mod._gemini_client
+    llm_mod._gemini_client = None
+
+    try:
+        with patch("core.config.settings") as mock_settings:
+            mock_settings.gemini_api_key = ""  # пустой ключ
+            mock_settings.vision_provider = "gemini"
+
+            with pytest.raises(LlmUnavailable, match="GEMINI_API_KEY"):
+                llm_mod._get_gemini_client()
+    finally:
+        llm_mod._gemini_client = original
+
+
+# ─── тест 9: Gemini strict-rejected → fallback без strict ────────────────────
+
+@pytest.mark.asyncio
+async def test_gemini_strict_rejected_falls_back_to_no_strict() -> None:
+    """Если Gemini бросает исключение с 'strict' в тексте — повтор без strict field."""
+    from core.llm_openai import DiagnosisResult, diagnose_photo
+
+    # Первый вызов (со strict) бросает — в тексте есть 'strict'
+    # Второй вызов (без strict) успешен
+    fake_client = MagicMock()
+    fake_client.chat = MagicMock()
+    fake_client.chat.completions = MagicMock()
+    fake_client.chat.completions.create = AsyncMock(
+        side_effect=[
+            Exception("strict not supported by this model"),
+            _make_fake_completion(_KNOWN_PAYLOAD),
+        ]
+    )
+
+    with (
+        patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)),
+        patch("core.config.settings") as mock_settings,
+    ):
+        mock_settings.vision_provider = "gemini"
+        result = await diagnose_photo(
+            image_bytes=_TINY_PNG,
+            content_type="image/png",
+            statement="Задача",
+            canonical_steps=_CANONICAL_STEPS,
+            correct_answer="1",
+            wrong_answer=None,
+            fingerprint_hint=None,
+        )
+
+    # Метод вызван дважды (strict → no-strict)
+    assert fake_client.chat.completions.create.call_count == 2
+    # Результат корректно распарсен из второго вызова
+    assert isinstance(result, DiagnosisResult)
+    assert result.transcription == "x = 5"
+
+    # Второй вызов НЕ должен содержать "strict" в json_schema
+    second_call_kwargs = fake_client.chat.completions.create.call_args_list[1].kwargs
+    rf = second_call_kwargs.get("response_format", {})
+    schema_sent = rf.get("json_schema", {})
+    assert "strict" not in schema_sent, "повторный запрос не должен содержать strict в json_schema"

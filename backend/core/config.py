@@ -52,7 +52,17 @@ class Settings:
     port: int = int(os.getenv("PORT", "8000"))
     jwt_secret: str = os.getenv("JWT_SECRET") or os.getenv("BOT_TOKEN", "")
     anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
-    # OpenAI Vision — диагностика фото-решений
+    # Vision-провайдер: "gemini" (default) или "openai"
+    vision_provider: str = os.getenv("VISION_PROVIDER", "gemini")
+    # Gemini Vision — диагностика фото-решений через OpenAI-совместимый endpoint
+    gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
+    gemini_model_chain: list[str] = field(
+        default_factory=lambda: (
+            [m.strip() for m in os.getenv("GEMINI_MODEL_CHAIN", "").split(",") if m.strip()]
+            or ["gemini-2.5-flash", "gemini-2.0-flash"]
+        )
+    )
+    # OpenAI Vision — запасной провайдер (VISION_PROVIDER=openai)
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     openai_model_chain: list[str] = field(
         default_factory=lambda: (

@@ -1,14 +1,17 @@
-"""Grounded photo diagnosis via OpenAI Vision API.
+"""Grounded photo diagnosis via Vision API (Gemini default / OpenAI fallback).
 
 Принимает фото рукописного решения ученика, список канонических шагов,
 правильный и неправильный ответы — и просит модель локализовать ошибку,
 сформулировать сократический комментарий, вернуть структурированный JSON.
 
 Архитектура:
-  - Lazy-init AsyncOpenAI (как _get_anthropic_client в grading.py).
+  - Провайдер выбирается по settings.vision_provider: "gemini" (default) или "openai".
+  - Gemini использует OpenAI-совместимый endpoint (base_url отличается от OpenAI).
+  - Lazy-init клиент на провайдер (отдельные глобалы _openai_client / _gemini_client).
   - HEIC → JPEG через pillow-heif (lazy import) если нужно.
-  - Fallback по openai_model_chain; LlmUnavailable при полной недоступности.
+  - Fallback по model_chain; LlmUnavailable при полной недоступности.
   - asyncio.wait_for с таймаутом (vision медленнее текста).
+  - strict:true в json_schema: если Gemini отвергает — повторяет без strict, парсит вручную.
 """
 from __future__ import annotations
 
@@ -24,8 +27,12 @@ logger = logging.getLogger(__name__)
 # Таймаут одного запроса vision (секунды)
 _OPENAI_TIMEOUT = 30.0
 
-# Глобальный lazy-клиент (None пока не инициализирован)
+# Lazy-клиенты по провайдеру (None пока не инициализированы)
 _openai_client = None
+_gemini_client = None
+
+# Базовый URL Gemini OpenAI-совместимого endpoint
+_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 
 # ─── публичные типы ────────────────────────────────────────────────────────────
@@ -125,10 +132,10 @@ def _convert_heic_to_jpeg(image_bytes: bytes) -> bytes:
     return buf.getvalue()
 
 
-# ─── lazy OpenAI client ───────────────────────────────────────────────────────
+# ─── lazy клиенты по провайдеру ──────────────────────────────────────────────
 
 def _get_openai_client():
-    """Lazy-init AsyncOpenAI клиент.
+    """Lazy-init AsyncOpenAI клиент для провайдера OpenAI.
 
     Возвращает None если пакет не установлен или ключ пуст.
     Зеркалит паттерн _get_anthropic_client из grading.py.
@@ -143,6 +150,45 @@ def _get_openai_client():
         except ImportError:
             logger.warning("openai package не установлен, vision diagnosis недоступен")
     return _openai_client
+
+
+def _get_gemini_client():
+    """Lazy-init AsyncOpenAI клиент, направленный на Gemini OpenAI-совместимый endpoint.
+
+    Бросает LlmUnavailable если GEMINI_API_KEY не задан.
+    Возвращает None если пакет openai не установлен.
+    """
+    global _gemini_client
+    if _gemini_client is None:
+        try:
+            import openai  # noqa: PLC0415
+            from core.config import settings  # noqa: PLC0415
+            if not settings.gemini_api_key:
+                raise LlmUnavailable(
+                    "Gemini клиент недоступен: GEMINI_API_KEY не задан в окружении."
+                )
+            _gemini_client = openai.AsyncOpenAI(
+                api_key=settings.gemini_api_key,
+                base_url=_GEMINI_BASE_URL,
+            )
+        except LlmUnavailable:
+            raise
+        except ImportError:
+            logger.warning("openai package не установлен, vision diagnosis недоступен")
+    return _gemini_client
+
+
+def _get_active_client():
+    """Возвращает (client, model_chain) для активного провайдера из settings.
+
+    Raises:
+        LlmUnavailable: если провайдер — gemini и ключ не задан.
+    """
+    from core.config import settings  # noqa: PLC0415
+    if settings.vision_provider == "gemini":
+        return _get_gemini_client(), settings.gemini_model_chain
+    # Fallback — OpenAI
+    return _get_openai_client(), settings.openai_model_chain
 
 
 # ─── grounded prompt ──────────────────────────────────────────────────────────
@@ -212,13 +258,18 @@ async def diagnose_photo(
     Raises:
         LlmUnavailable: Если ключ не задан или все модели в chain недоступны.
     """
-    client = _get_openai_client()
+    # Получаем активный клиент и цепочку моделей (может бросить LlmUnavailable)
+    client, model_chain = _get_active_client()
     if client is None:
         raise LlmUnavailable(
-            "OpenAI клиент недоступен: пустой OPENAI_API_KEY или пакет openai не установлен."
+            "Vision клиент недоступен: пустой API-ключ или пакет openai не установлен."
         )
 
-    # HEIC → JPEG если нужно (OpenAI не принимает HEIC)
+    from core.config import settings  # noqa: PLC0415
+
+    provider = settings.vision_provider
+
+    # HEIC → JPEG если нужно (ни OpenAI, ни Gemini не принимают HEIC)
     actual_bytes = image_bytes
     actual_mime = content_type
     if _is_heic(image_bytes, content_type):
@@ -251,12 +302,10 @@ async def diagnose_photo(
         }
     ]
 
-    from core.config import settings  # noqa: PLC0415
-
     last_exc: Exception | None = None
-    for model in settings.openai_model_chain:
+    for model in model_chain:
         try:
-            logger.debug("Attempting OpenAI model: %s", model)
+            logger.debug("Attempting %s model: %s", provider, model)
             response = await asyncio.wait_for(
                 client.chat.completions.create(
                     model=model,
@@ -277,14 +326,49 @@ async def diagnose_photo(
                 confidence=float(data["confidence"]),
             )
         except asyncio.TimeoutError as exc:
-            logger.warning("OpenAI timeout (model=%s, %.1fs)", model, _OPENAI_TIMEOUT)
+            logger.warning("%s timeout (model=%s, %.1fs)", provider, model, _OPENAI_TIMEOUT)
             last_exc = exc
         except Exception as exc:  # noqa: BLE001
-            # Логируем только тип исключения — тело может содержать фрагменты ключа API
-            logger.warning("OpenAI error (model=%s): %s", model, type(exc).__name__)
-            last_exc = exc
+            # Логируем только тип — тело может содержать фрагменты ключа API
+            exc_type = type(exc).__name__
+            logger.warning("%s error (model=%s): %s", provider, model, exc_type)
+            # Gemini может отвергнуть strict:true — пробуем без него
+            if provider == "gemini" and "strict" in str(exc).lower():
+                logger.info(
+                    "Gemini отверг strict json_schema, повтор без strict (model=%s)", model
+                )
+                schema_no_strict = {k: v for k, v in _DIAGNOSIS_JSON_SCHEMA.items() if k != "strict"}
+                try:
+                    response = await asyncio.wait_for(
+                        client.chat.completions.create(
+                            model=model,
+                            messages=messages,
+                            response_format={"type": "json_schema", "json_schema": schema_no_strict},
+                            max_tokens=1024,
+                        ),
+                        timeout=_OPENAI_TIMEOUT,
+                    )
+                    content = response.choices[0].message.content
+                    data = json.loads(content)
+                    return DiagnosisResult(
+                        transcription=data["transcription"],
+                        failed_step=data.get("failed_step"),
+                        cause_text=data["cause_text"],
+                        level=int(data["level"]),
+                        micro_skill=data.get("micro_skill"),
+                        confidence=float(data["confidence"]),
+                    )
+                except Exception as inner_exc:  # noqa: BLE001
+                    logger.warning(
+                        "%s fallback-no-strict error (model=%s): %s",
+                        provider, model, type(inner_exc).__name__,
+                    )
+                    last_exc = inner_exc
+            else:
+                last_exc = exc
 
-    # В сообщении исключения — только тип, не тело (утечка ключа)
+    # В сообщении — только тип, не тело (предотвращаем утечку ключа)
     raise LlmUnavailable(
-        f"Все модели в openai_model_chain недоступны (последняя ошибка: {type(last_exc).__name__})"
+        f"Все модели в {provider}_model_chain недоступны "
+        f"(последняя ошибка: {type(last_exc).__name__})"
     )
