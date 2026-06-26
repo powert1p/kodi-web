@@ -20,14 +20,15 @@ const ITEMS: NavItem[] = [
   },
 ]
 
-// Нижняя навигация — плавающая глиняная плашка. Тапабельные зоны ≥44px, safe-area снизу.
+// Нижняя навигация — плоская белая плашка с тонким тёплым бордером.
+// Активная вкладка подсвечена оранжевым. Тап-зоны ≥44px, safe-area снизу.
 export function BottomNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-20"
-      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      style={{ paddingBottom: 'max(0.625rem, env(safe-area-inset-bottom))' }}
     >
-      <ul className="clay mx-auto flex w-[calc(100%-2rem)] max-w-[24rem] items-stretch justify-around gap-2 rounded-(--radius-card) p-1.5">
+      <ul className="card-flat mx-auto flex w-[calc(100%-2rem)] max-w-[24rem] items-stretch justify-around gap-2 rounded-(--radius-card) p-1.5">
         {ITEMS.map((item) => (
           <li key={item.to} className="flex-1">
             <NavLink
@@ -35,10 +36,10 @@ export function BottomNav() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 [
-                  'press flex min-h-[3rem] flex-col items-center justify-center gap-1 rounded-(--radius-button) text-[0.72rem] font-extrabold',
+                  'flex min-h-12 flex-col items-center justify-center gap-1 rounded-(--radius-button) text-[0.72rem] font-extrabold transition-colors',
                   isActive
-                    ? 'bg-brand text-on-brand'
-                    : 'text-ink-mute hover:bg-surface-muted hover:text-ink',
+                    ? 'bg-primary text-on-primary'
+                    : 'text-ink-mute hover:bg-surface-soft hover:text-primary-ink',
                 ].join(' ')
               }
             >

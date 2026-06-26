@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { WrongTask } from '../../lib/types'
 import { MathText } from '../../components/MathText'
+import { Button3D } from '../../components/Button3D'
 import { StateChip } from './StateChip'
 import { STATE_META } from './stateConfig'
 
@@ -11,9 +12,9 @@ interface TaskCardProps {
   delay: number
 }
 
-// Глиняная плитка-ошибка (тихая, дисциплинированная — boldness потрачена на hero-кольцо).
+// Плоская плитка-ошибка (тихая, дисциплинированная — boldness живёт в 3D-кнопке).
 // Тема сверху (читаемо, не обрезается), математика в центре (KaTeX, скролл на обёртке),
-// снизу — поддерживающий мини-маскот + CTA. Крупный тап-таргет, пружинный squish.
+// снизу — поддерживающая микрокопия + чанковая 3D-кнопка «Разобрать».
 export function TaskCard({ task, delay }: TaskCardProps) {
   const navigate = useNavigate()
   const meta = STATE_META[task.state]
@@ -24,20 +25,15 @@ export function TaskCard({ task, delay }: TaskCardProps) {
   } as CSSProperties
 
   return (
-    <button
-      type="button"
-      onClick={() => navigate(`/drill/${task.id}`)}
+    <article
       style={style}
-      className="clay press reveal group flex w-full flex-col gap-3 rounded-(--radius-tile) p-4 text-left"
+      className="card-flat reveal flex flex-col gap-3 rounded-(--radius-tile) p-4"
     >
       {/* Шапка: тема + чип состояния */}
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-2">
-          <span
-            aria-hidden
-            className="size-2.5 shrink-0 rounded-full bg-(--c)"
-          />
-          <span className="truncate text-sm font-extrabold text-ink-soft">
+          <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-(--c)" />
+          <span className="truncate text-sm font-extrabold text-ink">
             {task.topic_label}
           </span>
         </span>
@@ -49,25 +45,30 @@ export function TaskCard({ task, delay }: TaskCardProps) {
         <MathText text={task.statement} />
       </p>
 
-      {/* Подвал: поддерживающая микрокопия + CTA */}
-      <div className="flex items-center justify-between gap-2 pt-0.5">
+      {/* Подвал: поддерживающая микрокопия + чанковая 3D-кнопка */}
+      <div className="mt-0.5 flex items-center justify-between gap-3">
         <span className="text-xs font-bold text-ink-mute">{meta.hint}</span>
-        <span className="inline-flex items-center gap-1 rounded-(--radius-pill) bg-brand px-3 py-1.5 text-xs font-extrabold text-on-brand transition-transform duration-200 ease-(--ease-spring) group-hover:translate-x-0.5 motion-reduce:transition-none">
+        <Button3D
+          variant="primary"
+          size="md"
+          onClick={() => navigate(`/drill/${task.id}`)}
+          aria-label={`Разобрать: ${task.topic_label}`}
+        >
           Разобрать
           <svg
             viewBox="0 0 16 16"
-            className="size-3.5"
+            className="size-4"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.4"
+            strokeWidth="2.6"
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden
           >
             <path d="M3 8h9M9 4l4 4-4 4" />
           </svg>
-        </span>
+        </Button3D>
       </div>
-    </button>
+    </article>
   )
 }

@@ -31,11 +31,11 @@
     font-size: 16px;
   }
 
-  /* Видимый фокус для клавиатуры (не мыши) */
+  /* Видимый фокус для клавиатуры (не мыши) — оранжевое кольцо */
   :focus-visible {
-    outline: 3px solid var(--color-brand);
+    outline: 3px solid var(--color-primary);
     outline-offset: 3px;
-    border-radius: 6px;
+    border-radius: 8px;
   }
   :focus:not(:focus-visible) {
     outline: none;
@@ -58,28 +58,12 @@
   white-space: nowrap;
 }
 
-/* ---- Глиняные поверхности (двойная тень: внешний drop + внутренний хайлайт) ---- */
-@utility clay {
+/* ---- Чистая плоская карточка: тонкий тёплый бордер + крошечная тень.
+   Глубина намеренно НЕ здесь — она в 3D-кнопках. ---- */
+@utility card-flat {
   background: var(--color-surface);
-  box-shadow:
-    10px 12px 26px rgba(37, 99, 235, 0.13),
-    -7px -7px 18px rgba(255, 255, 255, 0.95),
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -3px 8px rgba(37, 99, 235, 0.05);
-}
-/* Утопленная («впрессованная») поверхность — для трека прогресс-кольца. */
-@utility clay-inset {
-  background: var(--color-surface-muted);
-  box-shadow:
-    inset 5px 6px 12px rgba(37, 99, 235, 0.14),
-    inset -5px -5px 12px rgba(255, 255, 255, 0.92);
-}
-/* Приподнятая пилюля-чип. */
-@utility clay-chip {
-  box-shadow:
-    4px 5px 12px rgba(37, 99, 235, 0.1),
-    -3px -3px 9px rgba(255, 255, 255, 0.9),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  border: 1.5px solid var(--color-border);
+  box-shadow: 0 2px 0 rgba(43, 39, 36, 0.05);
 }
 
 /* ---- Утилиты ---- */
@@ -89,20 +73,28 @@
     letter-spacing: -0.01em;
   }
 
-  /* Пружинный «squish» при нажатии (только transform). */
-  .press {
-    transition: transform 200ms var(--ease-spring);
+  /* SIGNATURE: чанковая 3D-кнопка. Сплошной нижний край через box-shadow
+     (без блюра). При нажатии — translateY(4px) + схлопывание края до 0
+     = механический «клик». Цвет края задаётся через --edge. */
+  .btn-3d {
+    position: relative;
+    box-shadow: 0 4px 0 0 var(--edge, var(--color-primary-edge));
+    transition:
+      transform 140ms var(--ease-press),
+      box-shadow 140ms var(--ease-press);
+    will-change: transform;
   }
-  .press:active {
-    transform: scale(0.94);
+  .btn-3d:active {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 0 var(--edge, var(--color-primary-edge));
   }
 
   /* Оркестрованный stagger-reveal при загрузке (только transform/opacity).
      Контент виден без JS — класс лишь анимирует появление. */
   .reveal {
     opacity: 0;
-    transform: translateY(16px);
-    animation: reveal 520ms var(--ease-out-soft) forwards;
+    transform: translateY(14px);
+    animation: reveal 480ms var(--ease-out-soft) forwards;
     animation-delay: var(--reveal-delay, 0ms);
   }
   @keyframes reveal {
@@ -124,7 +116,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.75),
+      rgba(255, 255, 255, 0.7),
       transparent
     );
     animation: shimmer 1.6s infinite;
@@ -135,23 +127,13 @@
     }
   }
 
-  /* Медленно дрейфующие декоративные блобы фона. */
-  .blob {
-    animation: drift 22s var(--ease-out-soft) infinite alternate;
-    will-change: transform;
+  /* Лёгкое «дыхание» маскота при празднике (только transform). */
+  .bob {
+    animation: bob 2.6s var(--ease-out-soft) infinite alternate;
   }
-  .blob-2 {
-    animation: drift2 28s var(--ease-out-soft) infinite alternate;
-    will-change: transform;
-  }
-  @keyframes drift {
+  @keyframes bob {
     to {
-      transform: translate3d(28px, -34px, 0) scale(1.08);
-    }
-  }
-  @keyframes drift2 {
-    to {
-      transform: translate3d(-32px, 26px, 0) scale(1.1);
+      transform: translateY(-6px);
     }
   }
 }
@@ -162,15 +144,15 @@
     opacity: 1;
     transform: none;
   }
-  .press {
+  .btn-3d {
     transition: none;
   }
-  .press:active {
+  .btn-3d:active {
     transform: none;
+    box-shadow: 0 4px 0 0 var(--edge, var(--color-primary-edge));
   }
   .shimmer::after,
-  .blob,
-  .blob-2 {
+  .bob {
     animation: none;
   }
 }

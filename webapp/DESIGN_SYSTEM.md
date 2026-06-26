@@ -1,55 +1,52 @@
-# Kodi Error Trainer — Design System (v2, claymorphism-light)
+# Kodi Error Trainer — Design System (v3, Duolingo-style / warm orange)
 
-> Replaces the rejected dark "brain-gym" attempt. Evidence-based via ui-ux-pro-max: claymorphism is the documented best-fit style for children's math-education apps. Direction: **bold + energetic but friendly and tactile** — light, candy-colored, soft-3D, springy. NOT dark, NOT edgy, NOT generic.
+> Owner direction: **Duolingo-style, warm orange (NOT bright/neon)**. Friendly, gamified, encouraging, mascot-led. Clean light/cream surfaces; depth lives in chunky 3D push-buttons, not heavy clay shadows. Growth-mindset tone. (Supersedes v2 claymorphism.)
 
-## Style — Claymorphism (light)
-- Soft inflated 3D "toy" surfaces. Big rounded radii. Multi-layer soft shadows (outer drop + inner highlight), never hard lines.
-- Tactile micro-interactions: press = spring squish `scale(0.94)` with bounce `cubic-bezier(0.34, 1.56, 0.64, 1)`, ~180–220ms. Restore on release. Cards/buttons feel pressable.
-- Background never pure white: soft tinted base + slow-drifting decorative blobs (respect `prefers-reduced-motion`).
-- Energetic via vibrant candy color + chunky shapes + springy motion — NOT via darkness.
+## Style — "Duolingo-ish" gamified education
+- Clean, light, generous whitespace. ONE dominant brand color = **warm orange**. Cards are fairly FLAT (thin subtle border + tiny shadow), NOT soft-blurry clay.
+- **Signature = chunky 3D push-button** (the most important element): rounded, solid fill, a SOLID darker bottom edge via `box-shadow: 0 4px 0 var(--edge)` (no blur). On press: `translateY(4px)` + shrink the edge to `0 0 0` — the satisfying "mechanical press". Use for every primary CTA, answer options, big actions. ~56px tall, bold uppercase-ish label.
+- Rounded everything (cards ~16–20px, buttons ~16px, pills 999px). Bold, chunky, confident — but smart, not babyish (NIS students).
+- **Mascot**: a small ORIGINAL friendly character (do NOT copy Duo the owl / any trademark) — e.g. a rounded encouraging creature/sprout. It reacts/encourages across the flow (speech bubbles, celebration). Simple inline SVG.
+- **Gamification**: streak (flame), big rounded lesson progress bar, points/XP-like reward, celebratory feedback on closure.
 
-## Color tokens (CSS variables) — "Kids Learning (Math)" palette
+## Color tokens — warm orange (not neon)
 ```
---bg:            #EFF6FF   /* soft light-blue base (never pure white) */
---surface:       #FFFFFF   /* clay cards */
---surface-muted: #F1F5FD
---text:          #0F172A   /* primary (AA on white/light) */
---text-muted:    #64748B
---border:        #E4ECFC
---primary:       #2563EB   /* learning blue — primary actions, focus ring */
---on-primary:    #FFFFFF
---secondary:     #F59E0B   /* play amber — rewards, accents */
---accent:        #EC4899   /* fun pink — sparingly, highlights */
---success:       #16A34A   /* progress green (AA) */
---warning:       #F59E0B
---danger:        #DC2626   /* use rarely; mistakes are NOT framed as red errors */
+--bg:           #FFF8F1   /* warm cream, never pure white */
+--surface:      #FFFFFF   /* cards */
+--surface-soft: #FFF3E8
+--text:         #2B2724   /* warm near-black */
+--text-muted:   #8A817A
+--border:       #ECE3D9   /* warm subtle border on cards */
+--primary:      #EA580C   /* warm orange — main brand/CTA (orange-600, not neon) */
+--primary-edge: #B8460B   /* darker bottom edge for 3D button press */
+--on-primary:   #FFFFFF
+--secondary:    #F59E0B   /* amber — streak/rewards */
+--info:         #2A91C4   /* friendly blue — secondary/info actions */
+--success:      #4F9D00   /* deep friendly green — "верно/готово" (AA on white) */
+--success-edge: #3D7A00
+--danger:       #DC2626   /* rare; mistakes are NOT framed as angry red */
 ```
-Mistake states (growth-mindset, supportive — never harsh red):
-```
---state-revisit: #6366F1 (indigo, "разберём")   --state-almost: #F59E0B (amber, "почти")   --state-got: #16A34A (green, "готово")
-```
-Radii: `--r-card: 28px`, `--r-tile: 24px`, `--r-button: 18px`, `--r-pill: 999px`.
-Clay shadow (light): `box-shadow: 10px 12px 24px rgba(37,99,235,.12), -6px -6px 16px rgba(255,255,255,.9), inset 0 1px 0 rgba(255,255,255,.6);`
+Supportive mistake states (NEVER red): `--state-revisit:#2A91C4 (blue, «разберём»)`, `--state-almost:#F59E0B (amber, «почти»)`, `--state-got:#4F9D00 (green, «готово»)`.
+Radii: `--r-card:18px`, `--r-button:16px`, `--r-pill:999px`. Card depth: `border:1.5px solid --border; box-shadow:0 2px 0 rgba(43,39,36,.05)`.
 
-## Typography — rounded + FULL CYRILLIC (ru/kz), self-hosted for offline
-- Display / headings / big numerals: **M PLUS Rounded 1c** 700/800/900 (cyrillic + cyrillic-ext, chunky rounded clay feel).
-- Body / labels / buttons: **Nunito** 400/600/700/800 (cyrillic, highly readable, rounded).
-- NEVER Inter / Roboto / Arial. Inputs ≥16px (no iOS zoom). Tabular numerals for scores/counters.
-- Math: KaTeX, `throwOnError:false`, `overflow-x:auto` on a WRAPPER div (not `.katex`).
+## Typography — rounded + FULL CYRILLIC (ru/kz), self-hosted woff2 incl. cyrillic subset
+- Display / headings / numerals / button labels: **M PLUS Rounded 1c** 700/800/900 (chunky rounded, Duolingo-adjacent, cyrillic ✓).
+- Body / supporting: **Nunito** 400/600/700/800 (cyrillic ✓, highly readable).
+- NEVER Inter/Roboto/Arial. Inputs ≥16px. Tabular numerals for streak/points/counters.
+- Math: KaTeX, `throwOnError:false`, `overflow-x:auto` on a WRAPPER div.
 
 ## Motion
-- Animate only `transform` / `opacity`. Staggered list reveal 30–50ms/item, 180–260ms each, ease-out enter.
-- Press squish (above). Celebrations use spring/confetti on closure. Wrap all non-essential motion in `@media (prefers-reduced-motion: reduce)`.
+- Animate only `transform`/`opacity`. Button mechanical press (above), ~120–180ms. Staggered list reveal 30–50ms/item. Celebration = spring/confetti on closure + mascot. `@media (prefers-reduced-motion: reduce)` disables non-essential motion.
 
-## Information architecture (this product)
-- Bottom nav ≤3, label+icon, active highlighted: **Срез** (hub) · **Прогресс** (analytics) · (later: Профиль).
-- **Hub:** warm greeting + a "today's срез" hero summary (count + supportive line + progress ring), then claymorphic error TILES grouped/ordered by priority — each tile shows topic, the math (KaTeX), a friendly supportive state (mood chip/мини-маскот, not a red badge), tap → drill. States: loading (clay skeletons), empty (celebratory "Всё разобрано 🎉" + go-practice), error (retry).
-- **Drill (headline):** big friendly problem card; level intro (1 «разберём тему» / 2 «вспомним» / 3 «почти — проверим где»); vertical step **ladder** with "шаг 2 из 4" progress; hint reveal (never the answer); big tactile **«Сфотографировать решение»** button → diagnosis card with the located step highlighted + collapsible transcription ("что я увидел" — receipts) + supportive cause. Reveal worked step only as last resort.
-- **Closure:** celebratory reward (spring/confetti), verification problem solved hint-free → "ошибка закрыта".
-- **Analytics:** friendly "твои частые ошибки" with playful bars.
+## Information architecture
+- Bottom nav ≤3 (label+icon, active highlighted in orange): **Учёба/Срез** · **Прогресс** · (later Профиль).
+- **Hub:** top status row (streak flame + points). Mascot greeting with a growth-mindset line + today's срез summary + big rounded progress bar. Then error TILES (clean, flat, rounded, thin border): topic, the math (KaTeX), a SUPPORTIVE state pill (blue/amber/green, never red), big chunky 3D **«Разобрать»** button → `/drill/:id`. States: loading (skeleton), empty (celebratory + mascot), error (retry).
+- **Drill (headline):** mascot + level intro (1 «разберём тему» / 2 «вспомним» / 3 «почти — проверим, где»); big problem card; vertical step **ladder** with «шаг 2 из 4» progress bar; hints reveal (never the answer); big chunky **«Сфотографировать решение»** button → diagnosis card: located step highlighted + collapsible transcription ("что я увидел" receipts) + supportive cause from the mascot. Worked step only as last resort.
+- **Closure:** big celebration (confetti + mascot + points), verification solved hint-free → "ошибка закрыта".
+- **Analytics:** friendly "твои частые ошибки" with chunky bars.
 
 ## Accessibility / mobile (must)
-- Contrast ≥4.5:1 text (clay pastels are low-contrast — verify each pair). Touch targets ≥44px, 8px gaps. `viewport-fit=cover`, safe-area insets, `min-h-dvh`. Focus rings visible (use --primary). Color never the only signal (icon/text + color). Dynamic Type / reduced-motion safe.
+- Text contrast ≥4.5:1 (verify orange-on-white for text: use --primary for fills, darker for text-on-white). Touch targets ≥44px, 8px gaps. `viewport-fit=cover`, safe-area, `min-h-dvh`. Visible focus ring (orange). Color never the only signal. Reduced-motion + Dynamic Type safe.
 
-## Tone (growth-mindset)
-Mistake = «где растёт мозг». Praise effort, not ability. No angry red "НЕПРАВИЛЬНО". Encouraging, warm, a little playful — smart, not babyish (NIS students).
+## Tone
+Mistake = «где растёт мозг». Mascot praises effort, never shames. No angry red. Encouraging, warm, gamified, a bit fun — smart, not babyish.

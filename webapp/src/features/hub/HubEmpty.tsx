@@ -1,27 +1,25 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { Mascot } from '../../components/Mascot'
+import { Button3D } from '../../components/Button3D'
 
-// Empty: всё разобрано — праздничное, ободряющее, одна строка + CTA.
+// Empty: всё разобрано — праздничное, ободряющее. Маскот празднует, одна строка + CTA.
 export function HubEmpty() {
+  const navigate = useNavigate()
+
   return (
-    <div className="clay reveal flex flex-col items-center gap-5 rounded-(--radius-card) px-6 py-12 text-center">
-      <div
-        className="clay-chip flex size-24 items-center justify-center rounded-full text-5xl"
-        style={{ backgroundColor: 'color-mix(in oklab, var(--color-got) 16%, white)' }}
-      >
-        🎉
-      </div>
+    <div className="card-flat reveal flex flex-col items-center gap-5 rounded-(--radius-card) px-6 py-12 text-center">
+      <Mascot mood="celebrate" size={104} className="bob" />
       <div className="flex flex-col gap-1.5">
-        <h2 className="font-display text-2xl font-black text-ink">Всё разобрано</h2>
+        <h2 className="font-display text-2xl font-black text-ink">
+          Всё разобрано 🎉
+        </h2>
         <p className="max-w-[16rem] text-sm font-semibold text-ink-mute">
-          Ни одной незакрытой ошибки. Мозг сегодня прокачан — так держать.
+          Ни одной незакрытой ошибки. Мозг сегодня прокачан — так держать!
         </p>
       </div>
-      <Link
-        to="/analytics"
-        className="press clay-chip inline-flex min-h-12 items-center rounded-(--radius-button) bg-brand px-6 font-extrabold text-on-brand hover:bg-brand-strong"
-      >
+      <Button3D variant="success" size="lg" onClick={() => navigate('/analytics')}>
         Посмотреть прогресс
-      </Link>
+      </Button3D>
     </div>
   )
 }

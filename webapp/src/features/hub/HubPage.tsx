@@ -1,15 +1,22 @@
 import type { CSSProperties } from 'react'
 import { useWrongTasks } from './useWrongTasks'
+import { StatusRow } from './StatusRow'
 import { HubHero } from './HubHero'
 import { TaskCard } from './TaskCard'
 import { HubSkeleton } from './HubSkeleton'
 import { HubEmpty } from './HubEmpty'
 import { HubError } from './HubError'
 import { STATE_PRIORITY } from './stateConfig'
-import type { TaskState } from '../../lib/types'
 
-// Hub — «срез» ошибок. Главный экран: тёплое приветствие + hero-кольцо прогресса,
-// затем глиняные плитки-ошибки, отсортированные по приоритету разбора.
+// Hub — «срез» ошибок. Главный экран: статус-строка геймификации (streak + XP),
+// приветствие маскота с полосой прогресса, затем плоские плитки-ошибки,
+// отсортированные по приоритету разбора. Каждое действие — чанковая 3D-кнопка.
+//
+// Геймификация: streak/points — заглушка до соответствующего эндпоинта
+// (на сегодня показываем демо-значения; форму подключим позже).
+const STREAK = 5
+const POINTS = 1280
+
 export function HubPage() {
   const { data, isPending, isError, refetch } = useWrongTasks()
 
@@ -23,34 +30,45 @@ export function HubPage() {
 
   const total = tasks.length
   const done = tasks.filter((t) => t.state === 'got').length
-  const leadState: TaskState = tasks[0]?.state ?? 'revisit'
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {isPending && <HubSkeleton />}
       {isError && <HubError onRetry={() => void refetch()} />}
       {!isPending && !isError && total === 0 && <HubEmpty />}
 
       {!isPending && !isError && total > 0 && (
         <>
-          <HubHero total={total} done={done} leadState={leadState} />
+          <div
+            className="reveal"
+            style={{ '--reveal-delay': '0ms' } as CSSProperties}
+          >
+            <StatusRow streak={STREAK} points={POINTS} />
+          </div>
 
           <div
-            className="reveal flex items-baseline justify-between px-1"
-            style={{ '--reveal-delay': '90ms' } as CSSProperties}
+            className="reveal"
+            style={{ '--reveal-delay': '60ms' } as CSSProperties}
+          >
+            <HubHero total={total} done={done} />
+          </div>
+
+          <div
+            className="reveal flex items-baseline justify-between px-1 pt-1"
+            style={{ '--reveal-delay': '120ms' } as CSSProperties}
           >
             <h2 className="font-display text-lg font-extrabold text-ink">
               Твои ошибки
             </h2>
-            <span className="font-num text-sm font-extrabold text-ink-soft tabular-nums">
+            <span className="font-num text-sm font-extrabold tabular-nums text-ink-mute">
               {total}
             </span>
           </div>
 
-          <ul className="flex flex-col gap-3.5">
+          <ul className="flex flex-col gap-3">
             {tasks.map((task, i) => (
               <li key={task.id}>
-                <TaskCard task={task} delay={150 + i * 60} />
+                <TaskCard task={task} delay={170 + i * 60} />
               </li>
             ))}
           </ul>

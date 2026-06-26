@@ -1,24 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="brand" x1="0.1" y1="0" x2="0.9" y2="1">
-      <stop offset="0" stop-color="#2563EB"/>
-      <stop offset="0.6" stop-color="#6366F1"/>
-      <stop offset="1" stop-color="#EC4899"/>
-    </linearGradient>
-    <radialGradient id="hi" cx="0.32" cy="0.24" r="0.9">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
-      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.08"/>
-      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <!-- глиняная скруглённая плитка -->
-  <rect width="512" height="512" rx="128" fill="url(#brand)"/>
-  <!-- мягкий верхний хайлайт (clay inflate) -->
-  <rect width="512" height="512" rx="128" fill="url(#hi)"/>
-  <!-- восходящий «рост» — бренд-глиф белым, скруглённые шапки -->
-  <path d="M150 348 L236 256 L300 312 L398 176"
-        fill="none" stroke="#ffffff" stroke-width="54"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- финальная искра роста -->
-  <circle cx="398" cy="176" r="34" fill="#F59E0B"/>
+  <!-- Бренд-плитка: тёплый оранжевый с тонким светлым верхним бликом -->
+  <rect width="512" height="512" rx="120" fill="#EA580C"/>
+  <rect width="512" height="512" rx="120" fill="#ffffff" opacity="0.06"/>
+
+  <!-- Маскот «Кёди»: росток-капля. Два листочка + тельце-капля, белым по оранжевому -->
+  <!-- листочки -->
+  <path d="M256 150 C 214 86, 124 86, 134 158 C 196 168, 244 156, 256 150 Z" fill="#4F9D00"/>
+  <path d="M256 150 C 298 86, 388 86, 378 158 C 316 168, 268 156, 256 150 Z" fill="#3D7A00"/>
+  <rect x="244" y="138" width="24" height="44" rx="12" fill="#3D7A00"/>
+
+  <!-- тельце-капля (белая, читается как «семечко роста») -->
+  <path d="M256 168
+           C 360 168, 400 250, 400 312
+           C 400 388, 338 428, 256 428
+           C 174 428, 112 388, 112 312
+           C 112 250, 152 168, 256 168 Z"
+        fill="#ffffff"/>
+
+  <!-- мимика: тёплые глаза + улыбка оранжевым -->
+  <circle cx="212" cy="296" r="17" fill="#2B2724"/>
+  <circle cx="300" cy="296" r="17" fill="#2B2724"/>
+  <path d="M216 344 q40 34 80 0" fill="none" stroke="#EA580C" stroke-width="16" stroke-linecap="round"/>
+  <!-- щёчки -->
+  <circle cx="172" cy="332" r="14" fill="#EA580C" opacity="0.35"/>
+  <circle cx="340" cy="332" r="14" fill="#EA580C" opacity="0.35"/>
 </svg>
