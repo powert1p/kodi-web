@@ -2,7 +2,8 @@ import { Routes, Route } from 'react-router-dom'
 import { AppShell } from './components/AppShell'
 import { HubPage } from './features/hub/HubPage'
 import { DrillPage } from './features/drill/DrillPage'
-import { PlaceholderPage } from './features/placeholder/PlaceholderPage'
+import { ClosurePage } from './features/closure/ClosurePage'
+import { AnalyticsPage } from './features/analytics/AnalyticsPage'
 
 function App() {
   return (
@@ -10,24 +11,8 @@ function App() {
       <Routes>
         <Route path="/" element={<HubPage />} />
         <Route path="/drill/:taskId" element={<DrillPage />} />
-        <Route
-          path="/closure/:taskId"
-          element={
-            <PlaceholderPage
-              title="Закрепление"
-              note="Контрольная задача на тот же навык — скоро."
-            />
-          }
-        />
-        <Route
-          path="/analytics"
-          element={
-            <PlaceholderPage
-              title="Прогресс"
-              note="Карта роста по навыкам появится здесь."
-            />
-          }
-        />
+        <Route path="/closure/:taskId" element={<ClosurePage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
       </Routes>
     </AppShell>
   )

@@ -136,6 +136,49 @@
       transform: translateY(-6px);
     }
   }
+
+  /* SIGNATURE закрытия: механический «штамп ЗАКРЫТО».
+     Прилетает с поворотом+масштабом и доводится той же пружинной физикой,
+     что и push-кнопка (--ease-press). Только transform/opacity. */
+  .stamp {
+    animation: stamp 520ms var(--ease-press) both;
+  }
+  @keyframes stamp {
+    0% {
+      opacity: 0;
+      transform: rotate(-14deg) scale(1.9);
+    }
+    62% {
+      opacity: 1;
+      transform: rotate(-7deg) scale(0.92);
+    }
+    100% {
+      opacity: 1;
+      transform: rotate(-7deg) scale(1);
+    }
+  }
+
+  /* Лёгкое конфетти: чипсы разлетаются вверх-в-стороны и оседают.
+     Дистанция/задержка задаются inline-переменными на каждом чипе.
+     Только transform/opacity — никаких layout-сдвигов. */
+  .confetti-chip {
+    animation: confetti 1100ms var(--ease-out-soft) both;
+    animation-delay: var(--confetti-delay, 0ms);
+  }
+  @keyframes confetti {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.4) rotate(0deg);
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translate(var(--confetti-x, 0), var(--confetti-y, -60px))
+        scale(1) rotate(var(--confetti-r, 180deg));
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -154,5 +197,15 @@
   .shimmer::after,
   .bob {
     animation: none;
+  }
+  /* Штамп появляется без полёта; конфетти не запускается. */
+  .stamp {
+    animation: none;
+    opacity: 1;
+    transform: rotate(-7deg);
+  }
+  .confetti-chip {
+    animation: none;
+    opacity: 0;
   }
 }

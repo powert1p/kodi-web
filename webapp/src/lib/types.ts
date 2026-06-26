@@ -38,6 +38,26 @@ export interface WrongTask {
   mastery: number
 }
 
+/** Один повторяющийся тип ошибки ученика (для экрана «Прогресс»). */
+export interface ErrorType {
+  /** Стабильный ключ микро-навыка. */
+  micro_skill: string
+  /** Человекочитаемый ярлык (ru). */
+  label: string
+  /** Тема/узел, к которому относится навык. */
+  topic_label: string
+  /** Сколько раз ошибка повторялась. */
+  count: number
+  /** Последняя причина — короткая эмпатичная строка (или null). */
+  last_cause: string | null
+}
+
+/** Аналитика тренажёра: топ повторяющихся ошибок ученика. */
+export interface AnalyticsData {
+  /** Топ типов ошибок, отсортированы по убыванию count. */
+  error_types: ErrorType[]
+}
+
 /** Диагноз ошибки (визуальный разбор по фото/тексту решения). */
 export interface Diagnosis {
   transcription: string

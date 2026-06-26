@@ -3,8 +3,9 @@
 // Bearer JWT берётся из localStorage по ключу STORAGE_KEY.
 
 import { useQuery, useMutation } from '@tanstack/react-query'
-import type { WrongTask, Diagnosis } from './types'
+import type { WrongTask, Diagnosis, AnalyticsData } from './types'
 import { MOCK_WRONG_TASKS } from '../features/hub/mock'
+import { MOCK_ANALYTICS } from '../features/analytics/mock'
 
 /** Ключ хранилища JWT-токена. */
 const STORAGE_KEY = 'kodi.jwt'
@@ -113,12 +114,39 @@ export async function fetchWrongTasks(days?: number, limit?: number): Promise<Wr
   }
 }
 
-/** Получить аналитику по тренажёру. */
+/**
+ * Получить аналитику по тренажёру (топ повторяющихся ошибок).
+ * В DEV (не в тестах): пустой ответ или NetworkError → подставляем mock-фикстуру,
+ * чтобы экран «Прогресс» был демонстрируем без живого бэка. Тесты (MODE=test)
+ * всегда получают сырой ответ — fallback их не трогает.
+ */
 export async function fetchAnalytics(): Promise<unknown> {
-  const res = await apiFetch(`${API_BASE}/trainer/analytics`, {
-    headers: authHeaders(),
-  })
-  return res.json() as Promise<unknown>
+  const devFallback = import.meta.env.DEV && import.meta.env.MODE !== 'test'
+  try {
+    const res = await apiFetch(`${API_BASE}/trainer/analytics`, {
+      headers: authHeaders(),
+    })
+    const data = (await res.json()) as Partial<AnalyticsData> | null
+    if (devFallback && (!data || !data.error_types || data.error_types.length === 0)) {
+      return MOCK_ANALYTICS
+    }
+    return data
+  } catch (err) {
+    // В DEV эндпоинт ещё не построен → 404 (ApiError) или offline (NetworkError)
+    // одинаково подставляют мок, чтобы экран был демонстрируем. Тесты не трогаем.
+    if (devFallback && (err instanceof NetworkError || err instanceof ApiError)) {
+      return MOCK_ANALYTICS
+    }
+    throw err
+  }
+}
+
+/** Нормализует unknown-ответ аналитики в типизированный AnalyticsData (или null). */
+export function asAnalyticsData(raw: unknown): AnalyticsData | null {
+  if (!raw || typeof raw !== 'object') return null
+  const types = (raw as { error_types?: unknown }).error_types
+  if (!Array.isArray(types)) return null
+  return { error_types: types as AnalyticsData['error_types'] }
 }
 
 /** Параметры запроса диагноза ошибки. */
