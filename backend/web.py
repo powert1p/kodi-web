@@ -28,6 +28,8 @@ STATS_DIR.mkdir(parents=True, exist_ok=True)
 
 WEB_STATIC_DIR = Path(__file__).resolve().parent / "web_static"
 PROBLEM_IMAGES_DIR = Path(__file__).resolve().parent / "static"
+# Директория скомпилированного PWA (webapp/dist → копируется в образе)
+WEBAPP_DIST_DIR = Path(__file__).resolve().parent / "webapp_dist"
 
 MAX_AGE_SECONDS = 3600
 
@@ -80,6 +82,18 @@ async def health_check():
 
 if PROBLEM_IMAGES_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(PROBLEM_IMAGES_DIR)), name="problem_images")
+
+# ── PWA «Работа над ошибками» — смонтирована на /app/ ───────────────────────
+# StaticFiles(html=True) отдаёт index.html для любого /app/*, не найденного
+# среди файлов — SPA-фоллбэк работает «из коробки».
+# Порядок важен: /api и /health уже зарегистрированы через include_router
+# и @app.get ВЫШЕ — Starlette обходит смонтированный субприложение только
+# если маршрут не совпал с зарегистрированными эндпоинтами.
+if WEBAPP_DIST_DIR.exists():
+    logger.info("Serving PWA from %s at /app", WEBAPP_DIST_DIR)
+    app.mount("/app", StaticFiles(directory=str(WEBAPP_DIST_DIR), html=True), name="pwa")
+else:
+    logger.info("No webapp_dist/ directory — /app not mounted")
 
 
 def _cleanup_old_files() -> None:

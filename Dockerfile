@@ -13,7 +13,19 @@ RUN mkdir -p assets/images && \
       --dart-define=API_BASE_URL= \
       --dart-define=TG_BOT_NAME=nis_math_test_bot
 
-# ── Stage 2: Python backend ─────────────────────────────────
+# ── Stage 2: Build PWA (webapp) ──────────────────────────────
+# node:20-slim — минимальный образ с npm; base=/app/ задаётся в vite.config.ts
+FROM node:20-slim AS pwa-build
+
+WORKDIR /webapp
+COPY webapp/package.json webapp/package-lock.json ./
+RUN npm ci
+
+COPY webapp/ ./
+# Базовый URL задан в vite.config.ts (base: '/app/') — same-origin, no overrides needed
+RUN npm run build
+
+# ── Stage 3: Python backend ──────────────────────────────────
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -27,7 +39,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 
+# Flutter SPA — корень /
 COPY --from=flutter-build /frontend/apps/kodi_web/build/web /app/web_static
+
+# PWA «Работа над ошибками» — монтируется на /app/ в web.py
+COPY --from=pwa-build /webapp/dist /app/webapp_dist
 
 RUN python scripts/generate_images.py --lang ru && \
     python scripts/generate_images.py --lang kz
