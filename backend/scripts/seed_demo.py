@@ -33,15 +33,9 @@ DEMO_PHONE = "+70000000000"
 DEMO_NAME = "Демо"
 DEMO_PIN = "0000"
 
-# ── Задачи для неверных попыток:
-# Отбираем tasks с problems_db_id IS NOT NULL + fingerprint (wrong_answer),
-# чтобы build_wrong_tasks вернул их с декомпозицией.
-# problem_id + wrong_answer взяты из реальных fingerprint-записей БД.
-DEMO_ATTEMPTS = [
-    {"problem_id": 16677, "node_id": "AR01", "wrong_answer": "80"},   # 63+28-45=46, ответ "80" = fingerprint
-    {"problem_id": 16678, "node_id": "AR01", "wrong_answer": "35"},   # 100-47+18=71, ответ "35" = fingerprint
-    {"problem_id": 16677, "node_id": "AR01", "wrong_answer": "47"},   # второй fingerprint той же задачи
-]
+# Число демо-ошибок. Сами задачи подбираются ДИНАМИЧЕСКИ под текущую БД —
+# id задач различаются между БД (dev nismathbot ≠ прод kodi), поэтому НЕ хардкодим problem_id.
+DEMO_COUNT = 3
 
 
 def _hash_pin(pin: str) -> str:
@@ -89,8 +83,8 @@ async def seed() -> None:
 
             student_id: int = row[0]  # type: ignore[index]
 
-            # ── 2. Вставляем неверные диагностические попытки (идемпотентно) ──
-            # Пропускаем, если для этого студента уже есть хоть одна запись.
+            # ── 2. Динамически подбираем задачи под ТЕКУЩУЮ БД (идемпотентно) ──
+            # Пропускаем, если у студента уже есть неверные diagnostic-попытки.
             cnt = await session.execute(
                 text(
                     "SELECT COUNT(*) FROM attempts "
@@ -98,11 +92,29 @@ async def seed() -> None:
                 ),
                 {"sid": student_id},
             )
-            if (cnt.scalar() or 0) >= len(DEMO_ATTEMPTS):
+            if (cnt.scalar() or 0) >= DEMO_COUNT:
                 log.info("Попытки уже есть — пропускаем вставку (%d записей)", cnt.scalar())
                 return
 
-            for attempt in DEMO_ATTEMPTS:
+            # Берём decomposition с реальным problems_db_id + fingerprint (wrong_answer):
+            # так build_wrong_tasks вернёт задачу с шагами, а match_fingerprint даст причину.
+            picks = await session.execute(
+                text(
+                    "SELECT dp.problems_db_id AS pid, p.node_id AS nid, pf.wrong_answer AS ans "
+                    "FROM decomposition_problems dp "
+                    "JOIN problems p ON p.id = dp.problems_db_id "
+                    "JOIN problem_fingerprints pf ON pf.decomp_idx = dp.idx "
+                    "WHERE dp.problems_db_id IS NOT NULL AND dp.all_steps_verified = true "
+                    "ORDER BY dp.idx LIMIT :lim"
+                ),
+                {"lim": DEMO_COUNT},
+            )
+            rows = picks.fetchall()
+            if not rows:
+                log.warning("Нет слинкованных decomposition+fingerprint задач — нечего сеять")
+                return
+
+            for r in rows:
                 await session.execute(
                     text(
                         "INSERT INTO attempts "
@@ -110,19 +122,10 @@ async def seed() -> None:
                         "   is_correct, source, created_at) "
                         "VALUES (:sid, :pid, :nid, :ans, false, 'diagnostic', now())"
                     ),
-                    {
-                        "sid": student_id,
-                        "pid": attempt["problem_id"],
-                        "nid": attempt["node_id"],
-                        "ans": attempt["wrong_answer"],
-                    },
+                    {"sid": student_id, "pid": r.pid, "nid": r.nid, "ans": r.ans},
                 )
 
-            log.info(
-                "Вставлено %d неверных попыток для student_id=%d",
-                len(DEMO_ATTEMPTS),
-                student_id,
-            )
+            log.info("Вставлено %d неверных попыток для student_id=%d", len(rows), student_id)
 
 
 if __name__ == "__main__":
