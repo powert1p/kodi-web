@@ -43,3 +43,8 @@
 - [ ] ДЕПЛОЙ на aiplus: rsync → `docker compose up -d --build`; **GEMINI_API_KEY в ~/kodi-web/.env на сервере**; live-проверка /app/ + /health + drill.
 - [ ] Closure/Analytics на живые данные (нет verification-эндпоинта; сейчас мок-fallback).
 - [ ] Финальное whole-branch ревью; ru+kz parity фронта; валидация vision на реальных рукописных фото НИШ.
+
+### 2026-06-26 деплой — DONE (кроме server-key)
+- [x] Фронт под AiPlus design system (v4). rsync+docker build на aiplus, прод поднят: /health 200, /app/ PWA, 6 таблиц+сид (db_linked 61.8%), login→wrong-tasks live.
+- [ ] **GEMINI_API_KEY в ~/kodi-web/.env на сервере** → `docker compose up -d` → /diagnose оживёт (локально проверено).
+- [ ] Closure/Analytics live, ru+kz parity, финальное ревью, публичный vhost (root).

@@ -132,3 +132,11 @@
 **Открытые вопросы:** (1) ДЕПЛОЙ на aiplus (rsync→compose up --build) + GEMINI_API_KEY в ~/kodi-web/.env на сервере + live-проверка. (2) Closure/Analytics на живые данные (сейчас мок; нет verification-эндпоинта). (3) финальное whole-branch ревью. (4) ru+kz parity фронта (сейчас ru). (5) валидация vision на РЕАЛЬНЫХ рукописных фото НИШ (OCR врёт 12-24%).
 **Файлы:** backend/core/trainer.py, backend/core/llm_openai.py, backend/api/routers/trainer.py, backend/db/seed_decomposition.py, webapp/** , docs/specs/2026-06-25-error-trainer-mobile.md, docs/superpowers/plans/2026-06-25-error-trainer-mobile.md
 **Issue:** —
+
+## 2026-06-26 (продолжение) — AiPlus design + ДЕПЛОЙ
+**Что сделано:**
+- ФРОНТ перескинен под РЕАЛЬНУЮ дизайн-систему **AiPlus** (владелец дал `~/Downloads/aiplus-design-system`): orange `#FF8C00`, DM Sans + Onest (кириллица, self-hosted), плоские карточки с бордером (НЕ клэй/3D), их icon-set, светлая тема. Заменило Duolingo-гесс. `webapp/DESIGN_SYSTEM.md` v4. Все экраны + компоненты (ApButton/ApCard/ApBottomBar/ApTextField/ApInformer).
+- ДЕПЛОЙ на aiplus: rsync → `docker compose up -d --build`. Поймал 2 build-блокера: (1) `COPY docs/specs/...` падал — docs/ в `.dockerignore`; перенёс JSON в `backend/data/` (в build-контексте) + seed-фолбэк `_BACKEND_DATA_JSON`. (2) `seed_demo.py` хардкодил локальные problem_id (16677) — переписал на динамический подбор decomposition+fingerprint под текущую БД.
+- **Прод поднят и проверен:** `/health` 200, `/app/` отдаёт PWA, startup создал 6 таблиц + засеял декомпозицию (2525 задач, **db_linked 61.8%** — на проде банк полнее), login(phone+PIN)→wrong-tasks (2 реальные задачи) работают.
+**Итог:** задеплоено и живо. ⚠️ `/diagnose` на проде → 503: `GEMINI_API_KEY` НЕ в `~/kodi-web/.env` на сервере (graceful fallback). Локально весь chain (фото→Gemini) проверен — на проде заработает после добавления ключа + `docker compose up -d`.
+**Открытые:** GEMINI_API_KEY на сервере; Closure/Analytics на живые данные; ru+kz parity; финальное whole-branch ревью; публичный vhost/SSL (root).
