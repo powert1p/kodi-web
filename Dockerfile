@@ -39,6 +39,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 
+# Банк декомпозиций для сид-движка тренажёра (docs/ в образ не копируется) — кладём в /app/data/
+COPY docs/specs/full_decomposition_v1.json /app/data/full_decomposition_v1.json
+
 # Flutter SPA — корень /
 COPY --from=flutter-build /frontend/apps/kodi_web/build/web /app/web_static
 

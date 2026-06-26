@@ -62,10 +62,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
-# Путь к реальному JSON по умолчанию (относительно корня проекта)
-_DEFAULT_JSON = (
+# Путь к реальному JSON по умолчанию.
+# В Docker-образе backend/ копируется в /app, а файл кладётся в /app/data/ (COPY в Dockerfile),
+# т.к. docs/ в образ НЕ копируется. Локально data/-копии нет → фолбэк на docs/specs/.
+_BACKEND_DATA_JSON = pathlib.Path(__file__).parent.parent / "data" / "full_decomposition_v1.json"
+_REPO_SPECS_JSON = (
     pathlib.Path(__file__).parent.parent.parent / "docs" / "specs" / "full_decomposition_v1.json"
 )
+_DEFAULT_JSON = _BACKEND_DATA_JSON if _BACKEND_DATA_JSON.exists() else _REPO_SPECS_JSON
 
 # Размер batch при flush (не commit!) шагов и fingerprints
 _BATCH_SIZE = 500
