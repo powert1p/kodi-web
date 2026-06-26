@@ -47,7 +47,7 @@ export async function compressForUpload(file: File): Promise<Blob> {
       return file
     }
 
-    ctx.drawImage(bitmap as unknown as ImageBitmapSource, 0, 0, outW, outH)
+    ctx.drawImage(bitmap as unknown as CanvasImageSource, 0, 0, outW, outH)
     bitmap.close()
 
     return await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 })

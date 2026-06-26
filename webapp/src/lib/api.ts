@@ -18,8 +18,11 @@ const API_BASE = '/api'
 
 /** HTTP-ошибка (не-2xx статус). */
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  // erasableSyntaxOnly запрещает parameter properties — объявляем поле явно.
+  status: number
+  constructor(status: number, message: string) {
     super(message)
+    this.status = status
     this.name = 'ApiError'
   }
 }
