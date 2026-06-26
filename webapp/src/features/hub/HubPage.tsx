@@ -54,13 +54,14 @@ export function HubPage() {
           </div>
 
           <div
-            className="reveal flex items-baseline justify-between px-0.5 pt-1"
+            className="reveal flex items-center gap-2 px-0.5 pt-1"
             style={{ '--reveal-delay': '120ms' } as CSSProperties}
           >
             <h2 className="text-h3 text-text-primary">Твои ошибки</h2>
-            <span className="font-num text-caption1-medium tabular-nums text-text-secondary">
+            <span className="font-num inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-bg-secondary px-1.5 text-caption2-medium tabular-nums text-text-dark-gray">
               {total}
             </span>
+            <span className="ml-auto text-caption1 text-text-secondary">сложные сверху</span>
           </div>
 
           <ul className="flex flex-col gap-3">

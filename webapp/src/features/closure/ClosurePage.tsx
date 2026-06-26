@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { LeftIcon } from '../../icons'
@@ -13,7 +13,6 @@ import { MOCK_VERIFICATION } from './mock'
 // Верно → празднование + штамп «ЗАКРЫТО» + XP + «Дальше →» на Hub.
 // Состояния: solving / wrong (мягкий ретрай) / correct (celebrate).
 export function ClosurePage() {
-  const { taskId } = useParams()
   const navigate = useNavigate()
   const problem = MOCK_VERIFICATION
   const closure = useClosure(problem)
@@ -68,12 +67,6 @@ export function ClosurePage() {
             />
           </div>
         </>
-      )}
-
-      {taskId && (
-        <span className="font-num self-center text-caption2 tabular-nums text-text-disabled">
-          {taskId}
-        </span>
       )}
     </div>
   )

@@ -2,10 +2,8 @@ import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { WrongTask } from '../../lib/types'
 import { MathText } from '../../components/MathText'
-import { ApButton } from '../../components/ApButton'
 import { RightIcon } from '../../icons'
 import { StateChip } from './StateChip'
-import { STATE_META } from './stateConfig'
 
 interface TaskCardProps {
   task: WrongTask
@@ -13,48 +11,45 @@ interface TaskCardProps {
   delay: number
 }
 
-// Плитка-ошибка (AiPlus ap-card, плоская, 1px-бордер). Тема + таг состояния сверху,
-// математика (KaTeX) в центре, снизу — поддерживающая микрокопия + ApButton «Разобрать».
+// Плитка-ошибка (AiPlus ApCard) — САМА тапается (hover → stroke-focus), без кнопки-дубля:
+// «one primary action per screen» держит hero. Тема + таг-статус сверху, условие (KaTeX)
+// в центре с клампом в 2 строки, снизу — что вышло в прошлый раз + тихий affordance «Разобрать ›».
 export function TaskCard({ task, delay }: TaskCardProps) {
   const navigate = useNavigate()
-  const meta = STATE_META[task.state]
-
-  const style = {
-    '--dot': meta.dotVar,
-    '--reveal-delay': `${delay}ms`,
-  } as CSSProperties
+  const style = { '--reveal-delay': `${delay}ms` } as CSSProperties
 
   return (
-    <article style={style} className="ap-card reveal flex flex-col gap-3 p-4">
-      {/* Шапка: тема + таг состояния */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex min-w-0 items-center gap-2">
-          <span aria-hidden className="size-2 shrink-0 rounded-full bg-(--dot)" />
-          <span className="truncate text-caption1-medium text-text-primary">
-            {task.topic_label}
-          </span>
+    <button
+      type="button"
+      style={style}
+      onClick={() => navigate(`/drill/${task.id}`)}
+      aria-label={`Разобрать: ${task.topic_label}`}
+      className="ap-card reveal flex w-full flex-col gap-3 p-4 text-left transition-colors hover:border-stroke-focus"
+    >
+      {/* Шапка: тема + таг состояния (тег прижат вправо) */}
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 truncate text-title text-text-primary">
+          {task.topic_label}
         </span>
         <StateChip state={task.state} />
       </div>
 
-      {/* Математика — крупная, со скроллом на обёртке */}
-      <p className="text-body text-text-primary">
+      {/* Условие — KaTeX, не больше двух строк (сканируемость списка) */}
+      <p className="line-clamp-2 text-body text-text-primary">
         <MathText text={task.statement} />
       </p>
 
-      {/* Подвал: поддерживающая микрокопия + ApButton */}
-      <div className="mt-0.5 flex items-center justify-between gap-3">
-        <span className="text-caption2 text-text-secondary">{meta.hint}</span>
-        <ApButton
-          variant="filled"
-          size="s"
-          onClick={() => navigate(`/drill/${task.id}`)}
-          aria-label={`Разобрать: ${task.topic_label}`}
-        >
+      {/* Подвал: что вышло в прошлый раз + тихий affordance перехода */}
+      <div className="mt-0.5 flex items-center gap-3 border-t border-stroke-secondary pt-3">
+        <span className="text-caption1 text-text-secondary">
+          в прошлый раз:{' '}
+          <span className="font-num text-text-primary">{task.wrong_answer}</span>
+        </span>
+        <span className="ml-auto inline-flex items-center gap-1 text-caption1-medium text-text-brand">
           Разобрать
           <RightIcon size={16} />
-        </ApButton>
+        </span>
       </div>
-    </article>
+    </button>
   )
 }

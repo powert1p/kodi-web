@@ -101,13 +101,10 @@ export async function fetchWrongTasks(days?: number, limit?: number): Promise<Wr
     }
     return tasks
   } catch (err) {
-    // В DEV (не в тестах) подставляем мок при сетевой ошибке — бэкенд недоступен.
-    // В тестах (MODE=test) всегда пробрасываем, чтобы тест мог проверить поведение.
-    if (
-      import.meta.env.DEV &&
-      import.meta.env.MODE !== 'test' &&
-      err instanceof NetworkError
-    ) {
+    // В DEV (не в тестах) подставляем мок при ЛЮБОЙ ошибке — бэкенд недоступен,
+    // 404 от vite-сервера или HTML вместо JSON. В тестах (MODE=test) всегда
+    // пробрасываем, чтобы тест мог проверить поведение.
+    if (import.meta.env.DEV && import.meta.env.MODE !== 'test') {
       return MOCK_WRONG_TASKS
     }
     throw err

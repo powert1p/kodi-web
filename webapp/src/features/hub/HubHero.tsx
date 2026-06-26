@@ -8,34 +8,38 @@ interface HubHeroProps {
   done: number
 }
 
-// Приветствие с маскотом «Кёди»: speech-строка growth-mindset, краткая сводка
-// среза + полоса прогресса. Плоская карточка AiPlus (ap-card, 1px-бордер, без тени).
+// Hero среза = AiPlus ApInformer (warning): тёплая подложка bg-light-brand-warning + бордер
+// stroke-brand-light выделяют ЕДИНСТВЕННЫЙ фокус экрана из ряда белых карточек ниже.
+// Маскот «Кёди», eyebrow, крупный счётчик-заголовок (h2), growth-копия, полоса прогресса.
 export function HubHero({ total, done }: HubHeroProps) {
   const remaining = Math.max(total - done, 0)
-  const line =
-    remaining === 0
-      ? 'Ни одной незакрытой ошибки — чисто!'
-      : `Сегодня ${remaining} ${plural(remaining)}. Каждая делает мозг сильнее — разберём вместе!`
+  const allDone = remaining === 0
+
+  const title = allDone ? 'Всё разобрано!' : `${remaining} ${plural(remaining)}`
+  const line = allDone
+    ? 'Ни одной незакрытой ошибки — чисто. Можно закреплять победы.'
+    : 'Каждая разобранная ошибка — место, где мозг стал сильнее. Начнём с первой.'
 
   return (
-    <section className="ap-card flex flex-col gap-4 p-4">
-      <div className="flex items-start gap-3">
-        <Mascot mood="cheer" size={64} className="-mt-1 shrink-0" />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-caption1-medium uppercase tracking-[0.12em] text-text-brand">
+    <section className="flex flex-col gap-4 rounded-2xl border border-stroke-brand-light bg-bg-light-brand-warning p-4">
+      <div className="flex items-center gap-3">
+        <Mascot mood={allDone ? 'celebrate' : 'cheer'} size={56} className="shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-caption1-medium uppercase tracking-[0.08em] text-text-brand">
             Срез на сегодня
-          </span>
-          <h1 className="text-h2 text-text-primary">Привет!</h1>
-          <p className="text-caption1 text-text-primary">{line}</p>
+          </p>
+          <h1 className="text-h2 text-text-primary">{title}</h1>
         </div>
       </div>
+
+      <p className="text-caption1 text-text-dark-gray">{line}</p>
 
       <ProgressBar done={done} total={total} />
     </section>
   )
 }
 
-// Склонение «ошибка» для русского счётчика.
+// Склонение «ошибка» для русского счётчика (с глаголом «ждёт/ждут»).
 function plural(n: number): string {
   const mod10 = n % 10
   const mod100 = n % 100

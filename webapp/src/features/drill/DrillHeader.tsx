@@ -33,17 +33,22 @@ export function DrillHeader({ topic, current, total }: DrillHeaderProps) {
           <span className="truncate text-title text-text-primary">{topic}</span>
         </div>
 
-        <span className="font-num shrink-0 rounded-sm bg-bg-secondary px-2.5 py-1 text-caption2-medium tabular-nums text-text-dark-gray">
-          {current}/{total}
-        </span>
+        {/* Счётчик/прогресс лесенки — только когда есть ступени (иначе «0/0» выглядит сломанным) */}
+        {total > 0 && (
+          <span className="font-num shrink-0 rounded-sm bg-bg-secondary px-2.5 py-1 text-caption2-medium tabular-nums text-text-dark-gray">
+            {current}/{total}
+          </span>
+        )}
       </div>
 
-      <ApLinearProgress
-        value={current}
-        max={total}
-        minShown={0.04}
-        ariaLabel={`Шаг ${current} из ${total}`}
-      />
+      {total > 0 && (
+        <ApLinearProgress
+          value={current}
+          max={total}
+          minShown={0.04}
+          ariaLabel={`Шаг ${current} из ${total}`}
+        />
+      )}
     </header>
   )
 }

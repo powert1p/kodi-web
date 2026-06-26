@@ -46,7 +46,7 @@ export function VerificationCard({
     <article className="flex flex-col gap-3 rounded-xl border border-stroke-brand bg-bg-light-brand-warning p-4">
       <div className="flex items-center gap-2">
         <span className="min-w-0 flex-1 truncate text-caption2-medium uppercase tracking-[0.1em] text-text-brand">
-          Контрольная · {problem.micro_skill}
+          Контрольная
         </span>
         <ApTag status="default">без подсказок</ApTag>
       </div>
