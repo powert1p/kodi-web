@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { useParams } from 'react-router-dom'
 import { DrillHeader } from './DrillHeader'
 import { LevelIntro } from './LevelIntro'
 import { ProblemCard } from './ProblemCard'
@@ -11,15 +12,60 @@ import { FinishedCard } from './FinishedCard'
 import { useDrill } from './useDrill'
 import { useDiagnoseFlow } from './useDiagnoseFlow'
 import { levelFromTask } from './levelConfig'
-import { MOCK_DRILL_TASK, MOCK_EASIER_RUNG } from './mock'
+import { useWrongTask } from '../../lib/api'
 
 // Drill (headline-экран): разбор ОДНОЙ ошибки по шагам + фото→диагноз.
-// MOCK-задача (проценты) + mock-диагноз делают флоу полностью демонстрируемым,
-// пока живой бэк/vision не подключены. Лесенка драйвится createLadder()
-// через useDrill; фото-путь — через useDiagnoseFlow.
+// taskId берётся из /drill/:taskId, задача находится через useWrongTask(id)
+// (переиспользует кэш Hub — не делает дополнительный запрос).
+// Лесенка драйвится createLadder() через useDrill; фото-путь — через useDiagnoseFlow.
 export function DrillPage() {
-  const task = MOCK_DRILL_TASK
+  // Читаем taskId из маршрута /drill/:taskId
+  const { taskId } = useParams<{ taskId: string }>()
+
+  // Выбираем задачу из кэша wrong-tasks по id
+  const { data: task, isLoading, isError } = useWrongTask(taskId ?? '')
+
+  // Состояние: загрузка
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-sm font-bold text-ink-mute">Загружаем задачу…</p>
+      </div>
+    )
+  }
+
+  // Состояние: ошибка запроса
+  if (isError) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-sm font-bold text-ink-mute">Не удалось загрузить задачи. Попробуй обновить страницу.</p>
+      </div>
+    )
+  }
+
+  // Состояние: задача не найдена по id (глубокая ссылка до загрузки кэша)
+  if (!task) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <p className="text-sm font-bold text-ink-mute">Задача не найдена.</p>
+      </div>
+    )
+  }
+
+  // Задача загружена — рендерим Drill с реальными данными
+  return <DrillContent task={task} />
+}
+
+// Вынесено отдельно чтобы хуки drill/flow вызывались только после того,
+// как task гарантированно существует (правило хуков — нельзя условно вызывать).
+import type { WrongTask } from '../../lib/types'
+import { MOCK_EASIER_RUNG } from './mock'
+
+function DrillContent({ task }: { task: WrongTask }) {
   const level = levelFromTask(task)
+
+  // Если шагов нет (задача не декомпозирована) — передаём пустой массив;
+  // лесенка не рендерится, но фото→диагноз всё равно доступен.
   const drill = useDrill(task.steps, MOCK_EASIER_RUNG)
   const flow = useDiagnoseFlow()
 
@@ -36,6 +82,9 @@ export function DrillPage() {
   const fallbackHint = drill.activeRung?.reveal ?? null
 
   const showPhotoPath = !drill.finished
+
+  // Есть ли ступени для лесенки
+  const hasSteps = task.steps.length > 0
 
   return (
     <div className="flex flex-col gap-4">
@@ -57,21 +106,24 @@ export function DrillPage() {
         <ProblemCard statement={task.statement} wrongAnswer={task.wrong_answer} />
       </div>
 
-      {drill.finished ? (
-        <FinishedCard taskId={task.id} answer={task.answer} />
-      ) : (
-        <div
-          className="reveal flex flex-col gap-4"
-          style={{ '--reveal-delay': '180ms' } as CSSProperties}
-        >
-          <Ladder
-            rungs={drill.rungs}
-            hint={drill.hint}
-            showReveal={drill.showReveal}
-            insertedKey={drill.insertedKey}
-            onSubmit={drill.submit}
-          />
-        </div>
+      {/* Лесенка: только если есть шаги */}
+      {hasSteps && (
+        drill.finished ? (
+          <FinishedCard taskId={task.id} answer={task.answer} />
+        ) : (
+          <div
+            className="reveal flex flex-col gap-4"
+            style={{ '--reveal-delay': '180ms' } as CSSProperties}
+          >
+            <Ladder
+              rungs={drill.rungs}
+              hint={drill.hint}
+              showReveal={drill.showReveal}
+              insertedKey={drill.insertedKey}
+              onSubmit={drill.submit}
+            />
+          </div>
+        )
       )}
 
       {/* Фото-путь (headline) — пока лесенка не пройдена */}

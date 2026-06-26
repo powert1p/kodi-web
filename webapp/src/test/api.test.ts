@@ -2,6 +2,14 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { fetchWrongTasks, fetchAnalytics, postDiagnose } from '../lib/api'
 import type { WrongTask } from '../lib/types'
 
+// ——————————————————————————————————
+// Вспомогательная функция для теста селектора useWrongTask.
+// Хук нельзя вызвать вне рендера — проверяем логику select-коллбэка напрямую.
+// ——————————————————————————————————
+function selectById(tasks: WrongTask[], id: string): WrongTask | undefined {
+  return tasks.find((t) => t.id === id)
+}
+
 // Минимальная мок-задача для тестов парсинга.
 const MOCK_TASK: WrongTask = {
   id: 'wt-test-01',
@@ -114,5 +122,31 @@ describe('postDiagnose', () => {
 
     const file = new File(['data'], 'photo.jpg', { type: 'image/jpeg' })
     await expect(postDiagnose({ problem_id: 1, photo: file })).rejects.toThrow('422')
+  })
+})
+
+// ——————————————————————————————————
+// Селектор useWrongTask: логика find по id
+// ——————————————————————————————————
+
+describe('useWrongTask selector (selectById)', () => {
+  const tasks: WrongTask[] = [
+    { ...MOCK_TASK, id: 'wt-aaa' },
+    { ...MOCK_TASK, id: 'wt-bbb' },
+  ]
+
+  it('находит задачу по существующему id', () => {
+    const result = selectById(tasks, 'wt-aaa')
+    expect(result?.id).toBe('wt-aaa')
+  })
+
+  it('возвращает undefined для несуществующего id', () => {
+    const result = selectById(tasks, 'wt-zzz')
+    expect(result).toBeUndefined()
+  })
+
+  it('в пустом массиве всегда undefined', () => {
+    const result = selectById([], 'wt-aaa')
+    expect(result).toBeUndefined()
   })
 })

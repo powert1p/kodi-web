@@ -189,6 +189,20 @@ export function useWrongTasks(days?: number, limit?: number) {
   })
 }
 
+/**
+ * Хук-селектор: одна задача по id из кэша wrong-tasks.
+ * Переиспользует тот же queryKey — не делает отдельный запрос.
+ * @returns задача или undefined (загрузка / не найдена)
+ */
+export function useWrongTask(id: string) {
+  return useQuery({
+    queryKey: ['wrong-tasks', undefined, undefined],
+    queryFn: () => fetchWrongTasks(),
+    staleTime: 60_000,
+    select: (tasks: WrongTask[]) => tasks.find((t) => t.id === id),
+  })
+}
+
 /** Хук: аналитика тренажёра. */
 export function useAnalytics() {
   return useQuery({
