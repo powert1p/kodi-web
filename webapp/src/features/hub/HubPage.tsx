@@ -54,13 +54,11 @@ export function HubPage() {
           </div>
 
           <div
-            className="reveal flex items-baseline justify-between px-1 pt-1"
+            className="reveal flex items-baseline justify-between px-0.5 pt-1"
             style={{ '--reveal-delay': '120ms' } as CSSProperties}
           >
-            <h2 className="font-display text-lg font-extrabold text-ink">
-              Твои ошибки
-            </h2>
-            <span className="font-num text-sm font-extrabold tabular-nums text-ink-mute">
+            <h2 className="text-h3 text-text-primary">Твои ошибки</h2>
+            <span className="font-num text-caption1-medium tabular-nums text-text-secondary">
               {total}
             </span>
           </div>

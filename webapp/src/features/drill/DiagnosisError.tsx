@@ -1,5 +1,5 @@
 import { Mascot } from '../../components/Mascot'
-import { Button3D } from '../../components/Button3D'
+import { ApButton } from '../../components/ApButton'
 import { MathText } from '../../components/MathText'
 
 interface DiagnosisErrorProps {
@@ -13,32 +13,30 @@ interface DiagnosisErrorProps {
 // Кёди всё равно поддерживает: даёт наводящий разбор шага + «попробовать ещё».
 export function DiagnosisError({ fallbackHint, onRetry, onDismiss }: DiagnosisErrorProps) {
   return (
-    <article className="card-flat reveal flex flex-col gap-3 rounded-(--radius-card) p-4">
+    <article className="ap-card reveal flex flex-col gap-3 p-4">
       <div className="flex items-start gap-2.5">
         <Mascot mood="oops" size={44} className="shrink-0" />
         <div className="flex flex-col gap-0.5 pt-0.5">
-          <span className="font-display text-base font-extrabold text-ink">
-            Фото пока не разобрать
-          </span>
-          <p className="text-xs font-bold text-ink-mute">
+          <span className="text-title text-text-primary">Фото пока не разобрать</span>
+          <p className="text-caption2 text-text-secondary">
             Связь с разбором подвисла. Но мы и без фото справимся — вот опора:
           </p>
         </div>
       </div>
 
       {fallbackHint && (
-        <div className="rounded-(--radius-field) bg-surface-soft p-3 text-sm font-bold leading-snug text-ink">
+        <div className="rounded-lg bg-bg-tertiary p-3 text-caption1 text-text-primary">
           <MathText text={fallbackHint} />
         </div>
       )}
 
       <div className="flex gap-2.5">
-        <Button3D variant="secondary" size="lg" onClick={onDismiss} className="flex-1">
+        <ApButton variant="outlined" size="m" onClick={onDismiss} className="flex-1">
           Продолжу сам
-        </Button3D>
-        <Button3D variant="primary" size="lg" onClick={onRetry} className="flex-1">
+        </ApButton>
+        <ApButton variant="filled" size="m" onClick={onRetry} className="flex-1">
           Ещё раз фото
-        </Button3D>
+        </ApButton>
       </div>
     </article>
   )

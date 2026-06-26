@@ -1,17 +1,21 @@
 import type { TaskState } from '../../lib/types'
+import type { TagStatus } from '../../components/ApTag'
 
 // Поддерживающий светофор (growth-mindset): ошибка — «где растёт мозг», без карающего тона.
-// НИКОГДА не красный: синий «разберём» / янтарь «почти» / зелёный «готово».
-// label — короткий статус, hint — ободряющая микрокопия, emoji — мини-маскот настроения.
+// НИКОГДА не красный. В палитре AiPlus: «разберём» = info (синий), «почти» = primary
+// (бренд-оранжевый), «готово» = success (зелёный). Цвет — НЕ единственный сигнал
+// (есть эмодзи и слово), плюс мягкие AA-подложки тагов.
 interface StateMeta {
+  /** Короткий статус-ярлык. */
   label: string
+  /** Ободряющая микрокопия. */
   hint: string
-  /** Мини-эмодзи настроения (цвет — не единственный сигнал). */
+  /** Мини-эмодзи настроения. */
   emoji: string
-  /** CSS-переменная акцентного цвета (точка/обводка чипа). */
-  accentVar: string
-  /** Переменная затемнённого цвета для AA-текста на светлом чипе. */
-  inkVar: string
+  /** Статус ApTag (фон/текст). */
+  tag: TagStatus
+  /** CSS-переменная акцентного цвета (точка состояния). */
+  dotVar: string
 }
 
 export const STATE_META: Record<TaskState, StateMeta> = {
@@ -19,22 +23,22 @@ export const STATE_META: Record<TaskState, StateMeta> = {
     label: 'Разберём',
     hint: 'Здесь растёт мозг',
     emoji: '🔍',
-    accentVar: 'var(--color-revisit)',
-    inkVar: 'var(--color-revisit-ink)',
+    tag: 'info',
+    dotVar: 'var(--text-info)',
   },
   almost: {
     label: 'Почти',
     hint: 'Один шаг до цели',
     emoji: '✨',
-    accentVar: 'var(--color-almost)',
-    inkVar: 'var(--color-almost-ink)',
+    tag: 'primary',
+    dotVar: 'var(--bg-brand)',
   },
   got: {
     label: 'Готово',
     hint: 'Закрепим победу',
     emoji: '✅',
-    accentVar: 'var(--color-got)',
-    inkVar: 'var(--color-got-ink)',
+    tag: 'success',
+    dotVar: 'var(--bg-success)',
   },
 }
 

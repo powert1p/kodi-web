@@ -5,27 +5,25 @@ interface ProblemCardProps {
   wrongAnswer: string
 }
 
-// Карточка-условие: формулировка через KaTeX (скролл на обёртке внутри MathText),
-// плюс эмпатичная плашка «в прошлый раз» с прежним ответом. Плоская и тихая.
+// Карточка-условие (AiPlus ap-card): формулировка через KaTeX + эмпатичная плашка
+// «в прошлый раз» с прежним ответом (мягкий тон, без карающего красного).
 export function ProblemCard({ statement, wrongAnswer }: ProblemCardProps) {
   return (
-    <article className="card-flat flex flex-col gap-3 rounded-(--radius-card) p-4">
-      <span className="text-[0.6rem] font-extrabold uppercase tracking-[0.16em] text-ink-mute">
+    <article className="ap-card flex flex-col gap-3 p-4">
+      <span className="text-caption2-medium uppercase tracking-[0.12em] text-text-secondary">
         Задача
       </span>
-      <p className="text-[1.05rem] font-bold leading-snug text-ink">
+      <p className="text-body text-text-primary">
         <MathText text={statement} />
       </p>
 
-      <div className="flex items-center gap-2 rounded-(--radius-field) bg-surface-soft px-3 py-2">
+      <div className="flex items-center gap-2 rounded-lg bg-bg-tertiary px-3 py-2">
         <span aria-hidden className="text-sm leading-none">
           ✏️
         </span>
-        <span className="text-xs font-bold text-ink-mute">
+        <span className="text-caption2 text-text-secondary">
           В прошлый раз получилось{' '}
-          <span className="font-num font-extrabold tabular-nums text-almost-ink">
-            {wrongAnswer}
-          </span>{' '}
+          <span className="font-num tabular-nums text-text-brand">{wrongAnswer}</span>{' '}
           — разберёмся, где сбилось.
         </span>
       </div>

@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
-import { BottomNav } from './BottomNav'
+import { ApBottomBar } from './ApBottomBar'
 
 interface AppShellProps {
   children: ReactNode
 }
 
-// Оболочка: тёплый кремовый фон, мобильная колонка ~26rem, safe-area,
-// нижняя навигация. Чисто и плоско — глубина живёт в 3D-кнопках, не в фоне.
-// Нижний отступ main учитывает фиксированную навигацию (последняя плитка не прячется).
+// Оболочка AiPlus: белый фон (--bg-primary), мобильная колонка ~26rem, safe-area,
+// нижняя навигация ApBottomBar. Плоско — глубина живёт в 1px-бордерах, не в фоне.
+// Нижний отступ main учитывает фиксированный бар (последняя плитка не прячется).
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="relative min-h-dvh overflow-x-hidden bg-bg">
+    <div className="relative min-h-dvh overflow-x-hidden bg-bg-primary">
       <div className="mx-auto flex min-h-dvh w-full max-w-[26rem] flex-col">
         <main
           className="flex-1 px-4 pb-28"
@@ -18,7 +18,7 @@ export function AppShell({ children }: AppShellProps) {
         >
           {children}
         </main>
-        <BottomNav />
+        <ApBottomBar />
       </div>
     </div>
   )

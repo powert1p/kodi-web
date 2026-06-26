@@ -1,60 +1,155 @@
-/* Дизайн-токены приложения «Работа над ошибками» (v3).
-   Направление: DUOLINGO-STYLE, ТЁПЛЫЙ ОРАНЖЕВЫЙ (не неон).
-   Поверхности чистые и почти плоские (тонкий тёплый бордер + крошечная тень).
-   Глубина живёт в ЧАНКОВЫХ 3D-кнопках (сплошной тёмный нижний край, без блюра),
-   НЕ в тяжёлых глиняных тенях. Ошибка — поддерживающий светофор
-   (синий «разберём» / янтарь «почти» / зелёный «готово»), НИКОГДА не карающий красный. */
+/* Дизайн-токены приложения «Работа над ошибками» — AiPlus Design System.
+   Источник истины: /Users/esetseitkamal/Downloads/aiplus-design-system/aiplus-design-system.md
+   (§9.1 — CSS custom properties; §9.2 — Tailwind-фрагмент).
 
+   Направление AiPlus: бренд-оранжевый #FF8C00, светлая тема — канон (белый фон).
+   Поверхности ПЛОСКИЕ — разделяются 1px-бордером, НЕ тенями (тени редки: §6).
+   Радиусы: кнопки/поля 12, карточки 14, чипы/таги 8, pill — полное скругление.
+   ⚠️ --text-tertiary = БЕЛЫЙ → только текст/иконки на ЦВЕТНОМ фоне (не на белом).
+
+   Tailwind v4: @theme мапит токены в утилиты (bg-brand, text-primary, stroke-* и т.д.).
+   Палитра задаётся базовыми токенами bg / text / stroke (раздел 9.1), а в @theme
+   объявляются производные color-токены, чтобы Tailwind сгенерировал классы. */
+
+:root {
+  /* ---- font ---- */
+  /* DM Sans (латиница/цифры, self-hosted) + Onest (кириллица ru/kz, self-hosted).
+     unicode-range в @font-face маршрутизирует глифы: латиница→DM Sans, кириллица→Onest.
+     Подробности и причина (DM Sans v17 на Google Fonts НЕ содержит cyrillic-сабсета)
+     — в fonts.css. */
+  --font-sans: 'DM Sans', 'Onest', system-ui, sans-serif;
+
+  /* ---- background ---- */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f2f2f2;
+  --bg-tertiary: #fafafa;
+  --bg-info: #f3f9fd;
+  --bg-light-brand-warning: #fffaf5;
+  --bg-success-light: #f1faf1;
+  --bg-error-secondary: #fdf6f6;
+  --bg-error-tertiary: #fee2e2;
+  --bg-error-yellow-secondary: #fefce8;
+  --bg-brand: #ff8c00;
+  --bg-brand-disabled: #ffedd6;
+  --bg-brand-hovered: #e67e00;
+  --bg-success: #54b054;
+  --bg-success-secondary: #e8f6e8;
+  --bg-error: #d13438;
+  --bg-disabled: #e6e6e6;
+  --bg-scrim: rgba(0, 0, 0, 0.3);
+  --bg-black: #2b2b2b;
+
+  /* ---- text / icon ---- */
+  --text-primary: #090909;
+  --text-secondary: #888888;
+  --text-tertiary: #ffffff; /* ⚠️ на цветном фоне */
+  --text-dark-gray: #393939;
+  --text-disabled: #c4c4c4;
+  --text-brand: #ff8c00;
+  --text-success: #54b054;
+  --text-error: #d13438;
+  --text-info: #3595de;
+  --text-yellow: #eab308;
+
+  /* ---- stroke (бордеры) ---- */
+  --stroke-primary-disabled: #e6e6e6;
+  --stroke-secondary: #f2f2f2;
+  --stroke-tertiary: #fafafa;
+  --stroke-focus: #c4c4c4;
+  --stroke-brand: #ff8c00;
+  --stroke-brand-light: #ffddb3;
+  --stroke-success-light: #9fd89f;
+  --stroke-success: #359b35;
+  --stroke-error-light: #f1bbbc;
+  --stroke-error: #d13438;
+  --stroke-info: #a9d3f2;
+  --stroke-stories: rgba(255, 255, 255, 0.3);
+
+  /* ---- radius ---- */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
+  --radius-full: 9999px;
+
+  /* ---- shadow (редко; §6) ---- */
+  --shadow-tooltip: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-bottom-bar: 0 -1px 10px rgba(0, 0, 0, 0.06);
+  --shadow-overlay: 0 4px 12px rgba(24, 39, 75, 0.12), 0 2px 4px rgba(24, 39, 75, 0.02);
+  --shadow-menu: 0 12px 28px -4px rgba(0, 0, 0, 0.15);
+
+  /* ---- тайминги (§10: 150–300ms, easeOut/easeInOut) ---- */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bar: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tailwind v4: объявляем токены color/font/radius в @theme, чтобы получить
+   утилиты (bg-brand, text-primary, stroke-brand, rounded-lg, font-sans ...).
+   Значения тянем из токенов раздела 9.1 выше (single source of truth). */
 @theme {
-  /* ---- Поверхности ---- */
-  --color-bg: #fff8f1;            /* тёплый крем (никогда не чисто-белый) */
-  --color-surface: #ffffff;       /* карточки/плитки */
-  --color-surface-soft: #fff3e8;  /* мягкая тёплая подложка, скелетоны */
-  --color-border: #ece3d9;        /* тонкий тёплый бордер карточек */
+  --font-sans: 'DM Sans', 'Onest', system-ui, sans-serif;
 
-  /* ---- Текст (проверено ≥4.5:1 на --surface / --bg) ---- */
-  --color-ink: #2b2724;       /* основной — тёплый near-black */
-  --color-ink-mute: #756b63;  /* подписи (AA ≥4.9:1 на белом и креме) */
+  /* background → bg-* */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-info: var(--bg-info);
+  --color-bg-light-brand-warning: var(--bg-light-brand-warning);
+  --color-bg-success-light: var(--bg-success-light);
+  --color-bg-error-secondary: var(--bg-error-secondary);
+  --color-bg-error-tertiary: var(--bg-error-tertiary);
+  --color-bg-error-yellow-secondary: var(--bg-error-yellow-secondary);
+  --color-bg-brand: var(--bg-brand);
+  --color-bg-brand-disabled: var(--bg-brand-disabled);
+  --color-bg-brand-hovered: var(--bg-brand-hovered);
+  --color-bg-success: var(--bg-success);
+  --color-bg-success-secondary: var(--bg-success-secondary);
+  --color-bg-error: var(--bg-error);
+  --color-bg-disabled: var(--bg-disabled);
+  --color-bg-black: var(--bg-black);
 
-  /* ---- Бренд: тёплый оранжевый (доминанта) ---- */
-  --color-primary: #ea580c;       /* orange-600 — главный CTA/бренд (не неон) */
-  --color-primary-edge: #b8460b;  /* тёмный нижний край 3D-кнопки */
-  --color-primary-ink: #c2410c;   /* оранжевый текст НА белом (AA: 4.7:1) */
-  --color-on-primary: #ffffff;    /* текст на оранжевой заливке */
+  /* text / icon → text-* */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-dark-gray: var(--text-dark-gray);
+  --color-text-disabled: var(--text-disabled);
+  --color-text-brand: var(--text-brand);
+  --color-text-success: var(--text-success);
+  --color-text-error: var(--text-error);
+  --color-text-info: var(--text-info);
+  --color-text-yellow: var(--text-yellow);
 
-  /* ---- Акценты ---- */
-  --color-secondary: #f59e0b;     /* янтарь — streak/награды */
-  --color-info: #2a91c4;          /* дружелюбный синий — info/вторичное */
+  /* stroke → stroke-* / border-* */
+  --color-stroke-primary-disabled: var(--stroke-primary-disabled);
+  --color-stroke-secondary: var(--stroke-secondary);
+  --color-stroke-tertiary: var(--stroke-tertiary);
+  --color-stroke-focus: var(--stroke-focus);
+  --color-stroke-brand: var(--stroke-brand);
+  --color-stroke-brand-light: var(--stroke-brand-light);
+  --color-stroke-success-light: var(--stroke-success-light);
+  --color-stroke-success: var(--stroke-success);
+  --color-stroke-error-light: var(--stroke-error-light);
+  --color-stroke-error: var(--stroke-error);
+  --color-stroke-info: var(--stroke-info);
 
-  /* ---- Успех (зелёный) ---- */
-  --color-success: #4f9d00;       /* «верно/готово» (AA на белом) */
-  --color-success-edge: #3d7a00;
-  --color-on-success: #ffffff;
+  /* radius → rounded-* */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
+  --radius-3xl: 20px;
+  --radius-4xl: 24px;
 
-  /* ---- Светофор состояний (поддерживающий, growth-mindset) ---- */
-  --color-revisit: #2a91c4;   /* синий — «разберём» */
-  --color-almost: #f59e0b;    /* янтарь — «почти» */
-  --color-got: #4f9d00;       /* зелёный — «готово» */
-  /* затемнённые версии текста для AA на светлых подложках чипов */
-  --color-revisit-ink: #1f6f97;
-  --color-almost-ink: #8f5706;
-  --color-got-ink: #3d7a00;
-
-  --color-danger: #dc2626;    /* редко; ошибки НЕ оформляются злым красным */
-
-  /* ---- Радиусы ---- */
-  --radius-card: 1.125rem;  /* 18px — карточки */
-  --radius-tile: 1.125rem;  /* 18px — плитки */
-  --radius-button: 1rem;    /* 16px — 3D-кнопки */
-  --radius-field: 0.75rem;  /* 12px — поля/тинт-боксы */
-  --radius-pill: 999px;     /* пилюли */
-
-  /* ---- Шрифты (rounded, полная кириллица, self-hosted) ---- */
-  --font-display: 'M PLUS Rounded 1c', system-ui, sans-serif;
-  --font-body: 'Nunito', system-ui, sans-serif;
-  --font-num: 'M PLUS Rounded 1c', system-ui, sans-serif;
-
-  /* ---- Тайминги ---- */
-  --ease-press: cubic-bezier(0.2, 0.8, 0.3, 1);    /* механическое нажатие */
-  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1); /* мягкий reveal */
+  /* shadow → shadow-* */
+  --shadow-tooltip: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-bottom-bar: 0 -1px 10px rgba(0, 0, 0, 0.06);
+  --shadow-overlay: 0 4px 12px rgba(24, 39, 75, 0.12), 0 2px 4px rgba(24, 39, 75, 0.02);
+  --shadow-menu: 0 12px 28px -4px rgba(0, 0, 0, 0.15);
 }

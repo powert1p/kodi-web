@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { MathText } from '../../components/MathText'
-import { Button3D } from '../../components/Button3D'
+import { ApButton } from '../../components/ApButton'
 import { HintBanner } from './HintBanner'
 import type { Rung } from '../../lib/ladder'
 import { STEP3_OPTIONS } from './mock'
@@ -20,9 +20,9 @@ interface RungActiveProps {
   onSubmit: (value: string) => void
 }
 
-// Активная ступень — единственная тактильная карточка лесенки.
-// compute → числовое поле, choose → 3D-кнопки-варианты. Подсказка и reveal
-// растут под формой. Лейбл микро-навыка крупный (контраст с тихими ступенями).
+// Активная ступень — единственная выделенная карточка лесенки (AiPlus selected-card:
+// фон bg-light-brand-warning + бордер stroke-brand, радиус 14). compute → поле ввода,
+// choose → outlined-кнопки-варианты. Подсказка/reveal растут под формой.
 export function RungActive({
   rung,
   index,
@@ -47,19 +47,19 @@ export function RungActive({
   }
 
   return (
-    <div className="card-flat flex flex-col gap-3 rounded-(--radius-card) p-4 ring-2 ring-primary/15">
-      {/* Эйнбров: микро-навык + метка ступени */}
+    <div className="flex flex-col gap-3 rounded-xl border border-stroke-brand bg-bg-light-brand-warning p-4">
+      {/* Эйбров: микро-навык + метка ступени */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[0.6rem] font-extrabold uppercase tracking-[0.14em] text-primary-ink">
+        <span className="text-caption2-medium uppercase tracking-[0.1em] text-text-brand">
           {rung.microSkill}
         </span>
-        <span className="font-num text-[0.65rem] font-extrabold tabular-nums text-ink-mute">
+        <span className="font-num text-caption2 tabular-nums text-text-secondary">
           {rung.kind === 'easier' ? 'разминка' : `шаг ${index}`}
         </span>
       </div>
 
       {/* Инструкция шага */}
-      <p className="font-display text-[1.2rem] font-black leading-[1.15] tracking-tight text-ink">
+      <p className="text-h3 text-text-primary">
         <MathText text={rung.instruction} />
       </p>
 
@@ -67,15 +67,15 @@ export function RungActive({
       {isChoose ? (
         <div className="grid grid-cols-2 gap-2.5">
           {STEP3_OPTIONS.map((opt) => (
-            <Button3D
+            <ApButton
               key={opt}
-              variant="secondary"
-              size="lg"
+              variant="outlined"
+              size="m"
               onClick={() => handleChoose(opt)}
               className="capitalize"
             >
               {opt} цена
-            </Button3D>
+            </ApButton>
           ))}
         </div>
       ) : (
@@ -87,11 +87,12 @@ export function RungActive({
             placeholder="Твой ответ"
             aria-label="Введите ответ"
             autoComplete="off"
-            className="font-num min-w-0 flex-1 rounded-(--radius-field) border-[1.5px] border-border bg-surface-soft px-4 text-base font-extrabold tabular-nums text-ink placeholder:font-bold placeholder:text-ink-mute focus:border-primary focus:bg-surface"
+            className="font-num min-w-0 flex-1 rounded-lg border border-stroke-primary-disabled bg-bg-primary px-4 text-body tabular-nums text-text-primary placeholder:text-text-secondary outline-none focus:border-[1.5px] focus:border-stroke-brand"
+            style={{ fontSize: '16px' }}
           />
-          <Button3D type="submit" variant="primary" size="lg" disabled={!value.trim()}>
+          <ApButton type="submit" variant="filled" size="m" disabled={!value.trim()}>
             Проверить
-          </Button3D>
+          </ApButton>
         </form>
       )}
 
@@ -105,11 +106,11 @@ export function RungActive({
 
       {/* Reveal — разобранный шаг как последняя опора (НЕ финальный ответ задачи) */}
       {showReveal && rung.reveal && (
-        <details className="rounded-(--radius-field) bg-surface-soft p-3" open>
-          <summary className="cursor-pointer text-xs font-extrabold text-revisit-ink">
+        <details className="rounded-lg bg-bg-primary p-3" open>
+          <summary className="cursor-pointer text-caption1-medium text-text-info">
             Покажу, как делается этот шаг
           </summary>
-          <p className="mt-2 text-sm font-bold leading-snug text-ink">
+          <p className="mt-2 text-caption1 text-text-primary">
             <MathText text={rung.reveal} />
           </p>
         </details>

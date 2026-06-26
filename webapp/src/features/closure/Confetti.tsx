@@ -4,16 +4,16 @@ import type { CSSProperties } from 'react'
 // Детерминированный набор (без random при рендере) — стабильно в тестах/снапшотах.
 // За пределами потока (absolute), decorative → aria-hidden. Reduced-motion гасит.
 const CHIPS = [
-  { x: -82, y: -52, r: 220, color: 'var(--color-primary)', delay: 0 },
-  { x: -38, y: -78, r: -180, color: 'var(--color-secondary)', delay: 40 },
-  { x: 8, y: -88, r: 200, color: 'var(--color-success)', delay: 20 },
-  { x: 52, y: -74, r: -150, color: 'var(--color-info)', delay: 60 },
-  { x: 88, y: -48, r: 240, color: 'var(--color-primary)', delay: 30 },
-  { x: -100, y: -10, r: 160, color: 'var(--color-secondary)', delay: 80 },
-  { x: 100, y: -6, r: -200, color: 'var(--color-success)', delay: 70 },
-  { x: -62, y: 30, r: 180, color: 'var(--color-primary)', delay: 100 },
-  { x: 64, y: 34, r: -160, color: 'var(--color-secondary)', delay: 90 },
-  { x: 0, y: 46, r: 220, color: 'var(--color-info)', delay: 120 },
+  { x: -82, y: -52, r: 220, color: 'var(--bg-brand)', delay: 0 },
+  { x: -38, y: -78, r: -180, color: 'var(--text-yellow)', delay: 40 },
+  { x: 8, y: -88, r: 200, color: 'var(--bg-success)', delay: 20 },
+  { x: 52, y: -74, r: -150, color: 'var(--text-info)', delay: 60 },
+  { x: 88, y: -48, r: 240, color: 'var(--bg-brand)', delay: 30 },
+  { x: -100, y: -10, r: 160, color: 'var(--text-yellow)', delay: 80 },
+  { x: 100, y: -6, r: -200, color: 'var(--bg-success)', delay: 70 },
+  { x: -62, y: 30, r: 180, color: 'var(--bg-brand)', delay: 100 },
+  { x: 64, y: 34, r: -160, color: 'var(--text-yellow)', delay: 90 },
+  { x: 0, y: 46, r: 220, color: 'var(--text-info)', delay: 120 },
 ] as const
 
 export function Confetti() {

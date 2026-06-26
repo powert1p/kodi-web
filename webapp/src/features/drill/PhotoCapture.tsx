@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import type { ChangeEvent } from 'react'
-import { Button3D } from '../../components/Button3D'
+import { ApButton } from '../../components/ApButton'
+import { CameraUploadIcon } from '../../icons'
 
 interface PhotoCaptureProps {
   /** Выбран файл фото решения. */
@@ -8,9 +9,9 @@ interface PhotoCaptureProps {
   disabled?: boolean
 }
 
-// Headline-действие: чанковая 3D-кнопка «Сфотографировать решение».
-// Скрытый <input capture=environment> открывает камеру; выбранный файл уходит
-// в compressForUpload → диагноз. Подпись объясняет, зачем фото.
+// Headline-действие: ApButton «Сфотографировать решение» (бренд-заливка, full-width).
+// Скрытый <input capture=environment> открывает камеру; файл уходит в compressForUpload
+// → диагноз. Иконка cloud_upload из набора AiPlus.
 export function PhotoCapture({ onPhoto, disabled = false }: PhotoCaptureProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -33,29 +34,17 @@ export function PhotoCapture({ onPhoto, disabled = false }: PhotoCaptureProps) {
         aria-hidden
         tabIndex={-1}
       />
-      <Button3D
-        variant="primary"
-        size="lg"
+      <ApButton
+        variant="filled"
+        size="m"
         block
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
       >
-        <svg
-          viewBox="0 0 24 24"
-          className="size-5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden
-        >
-          <path d="M3 8h3l1.5-2h9L18 8h3v11H3z" />
-          <circle cx="12" cy="13" r="3.5" />
-        </svg>
+        <CameraUploadIcon size={20} />
         Сфотографировать решение
-      </Button3D>
-      <p className="px-1 text-center text-xs font-bold text-ink-mute">
+      </ApButton>
+      <p className="px-1 text-center text-caption2 text-text-secondary">
         Застрял? Покажи Кёди свою запись — найдём, где сбилось.
       </p>
     </div>

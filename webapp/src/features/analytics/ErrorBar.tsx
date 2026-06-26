@@ -11,49 +11,48 @@ interface ErrorBarProps {
   delay: number
 }
 
-// Чанковая горизонтальная полоса повторяемости ошибки (идиома ProgressBar,
-// повёрнутая горизонтально): утопленный тёплый трек + оранжевая заливка
-// с внутренним бликом. #1 — выше и помечен пилюлей «в фокусе» (ранг = информация).
-// Один визуал на строку (полоса) — без дельт/спарклайнов. Right-aligned число.
+// Чанковая горизонтальная полоса повторяемости ошибки (ranking = информация):
+// трек stroke-secondary + заливка stroke-brand (AiPlus прогресс-идиома, горизонтально).
+// #1 — выше и помечен пилюлей «в фокусе». Один визуал на строку. Right-aligned число.
 export function ErrorBar({ item, ratio, rank, delay }: ErrorBarProps) {
   const isFocus = rank === 1
   const shown = Math.max(ratio, 0.08) * 100
 
   return (
     <article
-      className="card-flat reveal flex flex-col gap-2 rounded-(--radius-card) p-3.5"
+      className="ap-card reveal flex flex-col gap-2 p-3.5"
       style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}
     >
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="font-num shrink-0 text-[0.7rem] font-extrabold tabular-nums text-ink-mute">
+          <span className="font-num shrink-0 text-caption2-medium tabular-nums text-text-secondary">
             {rank}
           </span>
           <span
             className={[
-              'min-w-0 truncate font-extrabold text-ink',
-              isFocus ? 'text-[0.98rem]' : 'text-[0.9rem]',
+              'min-w-0 truncate text-text-primary',
+              isFocus ? 'text-title' : 'text-caption1-medium',
             ].join(' ')}
           >
             {item.label}
           </span>
           {isFocus && (
-            <span className="shrink-0 rounded-(--radius-pill) bg-primary px-2 py-0.5 text-[0.58rem] font-extrabold uppercase tracking-[0.1em] text-on-primary">
+            <span className="shrink-0 rounded-sm bg-bg-brand px-2 py-0.5 text-[0.58rem] font-medium uppercase tracking-[0.08em] text-text-tertiary">
               в фокусе
             </span>
           )}
         </div>
-        <span className="font-num shrink-0 text-right text-[0.95rem] font-extrabold tabular-nums text-primary-ink">
+        <span className="font-num shrink-0 text-right text-title tabular-nums text-text-brand">
           {item.count}
-          <span className="ml-0.5 text-[0.62rem] font-bold text-ink-mute">×</span>
+          <span className="ml-0.5 text-caption2 text-text-secondary">×</span>
         </span>
       </div>
 
       {/* Полоса повторяемости */}
       <div
         className={[
-          'relative w-full overflow-hidden rounded-(--radius-pill) border border-border bg-surface-soft',
-          isFocus ? 'h-4' : 'h-3',
+          'relative w-full overflow-hidden rounded-xs bg-stroke-secondary',
+          isFocus ? 'h-2.5' : 'h-2',
         ].join(' ')}
         role="meter"
         aria-valuenow={item.count}
@@ -61,19 +60,14 @@ export function ErrorBar({ item, ratio, rank, delay }: ErrorBarProps) {
         aria-label={`${item.label}: ${item.count} раз`}
       >
         <div
-          className="relative h-full rounded-(--radius-pill) bg-primary transition-[width] duration-700 ease-out motion-reduce:transition-none"
+          className="h-full rounded-xs bg-stroke-brand transition-[width] duration-700 ease-out motion-reduce:transition-none"
           style={{ width: `${shown}%` }}
-        >
-          <span
-            aria-hidden
-            className="absolute inset-x-1.5 top-0.5 h-1 rounded-(--radius-pill) bg-white/30"
-          />
-        </div>
+        />
       </div>
 
       {/* Последняя причина — только у #1, тихо; остальные строки чисты */}
       {isFocus && item.last_cause && (
-        <p className="pl-5 text-xs font-bold leading-snug text-ink-mute">
+        <p className="pl-5 text-caption2 text-text-secondary">
           Последний раз: {item.last_cause}
         </p>
       )}

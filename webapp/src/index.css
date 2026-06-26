@@ -3,7 +3,7 @@
 @import './theme/tokens.css';
 @import 'katex/dist/katex.min.css';
 
-/* ---- База ---- */
+/* ---- База (AiPlus: светлая тема, белый фон, DM Sans + Onest) ---- */
 @layer base {
   :root {
     color-scheme: light;
@@ -16,10 +16,10 @@
 
   body {
     margin: 0;
-    background-color: var(--color-bg);
-    color: var(--color-ink);
-    font-family: var(--font-body);
-    font-weight: 600;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-weight: 400;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -31,14 +31,51 @@
     font-size: 16px;
   }
 
-  /* Видимый фокус для клавиатуры (не мыши) — оранжевое кольцо */
+  /* Видимый фокус для клавиатуры (не мыши) — бренд-кольцо AiPlus */
   :focus-visible {
-    outline: 3px solid var(--color-primary);
-    outline-offset: 3px;
-    border-radius: 8px;
+    outline: 2px solid var(--stroke-brand);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
   }
   :focus:not(:focus-visible) {
     outline: none;
+  }
+}
+
+/* ---- AiPlus типографика (§3). Все стили — DM Sans/Onest. ---- */
+@layer components {
+  .text-h1 {
+    font: 700 32px/38px var(--font-sans);
+    letter-spacing: -0.2px;
+  }
+  .text-h2 {
+    font: 700 24px/30px var(--font-sans);
+    letter-spacing: -0.15px;
+  }
+  .text-h3 {
+    font: 500 20px/24px var(--font-sans);
+  }
+  .text-title {
+    font: 500 16px/22px var(--font-sans);
+    letter-spacing: -0.18px;
+  }
+  .text-body {
+    font: 400 16px/24px var(--font-sans);
+  }
+  .text-caption1 {
+    font: 400 14px/20px var(--font-sans);
+  }
+  .text-caption1-medium {
+    font: 500 14px/20px var(--font-sans);
+  }
+  .text-caption2 {
+    font: 400 12px/16px var(--font-sans);
+  }
+  .text-caption2-medium {
+    font: 500 12px/16px var(--font-sans);
+  }
+  .text-label-small {
+    font: 500 11px/16px var(--font-sans);
   }
 }
 
@@ -58,43 +95,27 @@
   white-space: nowrap;
 }
 
-/* ---- Чистая плоская карточка: тонкий тёплый бордер + крошечная тень.
-   Глубина намеренно НЕ здесь — она в 3D-кнопках. ---- */
-@utility card-flat {
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  box-shadow: 0 2px 0 rgba(43, 39, 36, 0.05);
+/* ---- AiPlus карточка (§8.3): плоская, разделяется 1px-бордером, БЕЗ тени.
+   bg-tertiary (#FAFAFA) + 1px stroke-secondary, радиус 14. ---- */
+@utility ap-card {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--stroke-secondary);
+  border-radius: var(--radius-xl);
 }
 
 /* ---- Утилиты ---- */
 @layer utilities {
   .font-num {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
-  }
-
-  /* SIGNATURE: чанковая 3D-кнопка. Сплошной нижний край через box-shadow
-     (без блюра). При нажатии — translateY(4px) + схлопывание края до 0
-     = механический «клик». Цвет края задаётся через --edge. */
-  .btn-3d {
-    position: relative;
-    box-shadow: 0 4px 0 0 var(--edge, var(--color-primary-edge));
-    transition:
-      transform 140ms var(--ease-press),
-      box-shadow 140ms var(--ease-press);
-    will-change: transform;
-  }
-  .btn-3d:active {
-    transform: translateY(4px);
-    box-shadow: 0 0 0 0 var(--edge, var(--color-primary-edge));
+    letter-spacing: 0;
   }
 
   /* Оркестрованный stagger-reveal при загрузке (только transform/opacity).
      Контент виден без JS — класс лишь анимирует появление. */
   .reveal {
     opacity: 0;
-    transform: translateY(14px);
-    animation: reveal 480ms var(--ease-out-soft) forwards;
+    transform: translateY(10px);
+    animation: reveal 420ms var(--ease-out-soft) forwards;
     animation-delay: var(--reveal-delay, 0ms);
   }
   @keyframes reveal {
@@ -104,6 +125,7 @@
     }
   }
 
+  /* Shimmer для скелетонов загрузки. */
   .shimmer {
     position: relative;
     overflow: hidden;
@@ -137,24 +159,36 @@
     }
   }
 
-  /* SIGNATURE закрытия: механический «штамп ЗАКРЫТО».
-     Прилетает с поворотом+масштабом и доводится той же пружинной физикой,
-     что и push-кнопка (--ease-press). Только transform/opacity. */
+  /* SIGNATURE: переход активной вкладки нижнего бара (AiPlus §8.5).
+     Иконка лерпится к бренду + лёгкий scale ~1.15; outline→filled свап делает
+     компонент. Единственная оркестрованная брендовая микро-анимация — вся
+     «смелость» экрана здесь, остальное держим тихим и плоским. */
+  .ap-nav-icon {
+    transition:
+      transform 220ms var(--ease-out-soft),
+      color 220ms var(--ease-out-soft);
+  }
+  .ap-nav-active .ap-nav-icon {
+    transform: scale(1.15);
+  }
+
+  /* Закрытие: мягкий «штамп ЗАКРЫТО» (AiPlus — без механического 3D-snap).
+     Прилетает чуть из масштаба и оседает на easeOut. Только transform/opacity. */
   .stamp {
-    animation: stamp 520ms var(--ease-press) both;
+    animation: stamp 480ms var(--ease-out-soft) both;
   }
   @keyframes stamp {
     0% {
       opacity: 0;
-      transform: rotate(-14deg) scale(1.9);
+      transform: rotate(-8deg) scale(1.5);
     }
-    62% {
+    70% {
       opacity: 1;
-      transform: rotate(-7deg) scale(0.92);
+      transform: rotate(-4deg) scale(0.96);
     }
     100% {
       opacity: 1;
-      transform: rotate(-7deg) scale(1);
+      transform: rotate(-4deg) scale(1);
     }
   }
 
@@ -187,12 +221,11 @@
     opacity: 1;
     transform: none;
   }
-  .btn-3d {
+  .ap-nav-icon {
     transition: none;
   }
-  .btn-3d:active {
+  .ap-nav-active .ap-nav-icon {
     transform: none;
-    box-shadow: 0 4px 0 0 var(--edge, var(--color-primary-edge));
   }
   .shimmer::after,
   .bob {
@@ -202,7 +235,7 @@
   .stamp {
     animation: none;
     opacity: 1;
-    transform: rotate(-7deg);
+    transform: rotate(-4deg);
   }
   .confetti-chip {
     animation: none;

@@ -1,52 +1,91 @@
-# Kodi Error Trainer — Design System (v3, Duolingo-style / warm orange)
+# Kodi Error Trainer — Design System (v4, AiPlus)
 
-> Owner direction: **Duolingo-style, warm orange (NOT bright/neon)**. Friendly, gamified, encouraging, mascot-led. Clean light/cream surfaces; depth lives in chunky 3D push-buttons, not heavy clay shadows. Growth-mindset tone. (Supersedes v2 claymorphism.)
+> **Source of truth:** the framework-agnostic AiPlus spec at
+> `/Users/esetseitkamal/Downloads/aiplus-design-system/aiplus-design-system.md`
+> (§9.1 CSS variables, §3 type, §4 spacing, §5 radii, §6 shadows, §8 components).
+> This doc summarizes the adoption; the spec wins on any conflict.
+>
+> Supersedes v3 ("Duolingo-style warm orange" with chunky-3D push-buttons) and the
+> earlier v1 dark / v2 claymorphism. v4 adopts the owner's REAL product language: **AiPlus.**
 
-## Style — "Duolingo-ish" gamified education
-- Clean, light, generous whitespace. ONE dominant brand color = **warm orange**. Cards are fairly FLAT (thin subtle border + tiny shadow), NOT soft-blurry clay.
-- **Signature = chunky 3D push-button** (the most important element): rounded, solid fill, a SOLID darker bottom edge via `box-shadow: 0 4px 0 var(--edge)` (no blur). On press: `translateY(4px)` + shrink the edge to `0 0 0` — the satisfying "mechanical press". Use for every primary CTA, answer options, big actions. ~56px tall, bold uppercase-ish label.
-- Rounded everything (cards ~16–20px, buttons ~16px, pills 999px). Bold, chunky, confident — but smart, not babyish (NIS students).
-- **Mascot**: a small ORIGINAL friendly character (do NOT copy Duo the owl / any trademark) — e.g. a rounded encouraging creature/sprout. It reacts/encourages across the flow (speech bubbles, celebration). Simple inline SVG.
-- **Gamification**: streak (flame), big rounded lesson progress bar, points/XP-like reward, celebratory feedback on closure.
+## Direction — AiPlus flat-bordered clarity
 
-## Color tokens — warm orange (not neon)
-```
---bg:           #FFF8F1   /* warm cream, never pure white */
---surface:      #FFFFFF   /* cards */
---surface-soft: #FFF3E8
---text:         #2B2724   /* warm near-black */
---text-muted:   #8A817A
---border:       #ECE3D9   /* warm subtle border on cards */
---primary:      #EA580C   /* warm orange — main brand/CTA (orange-600, not neon) */
---primary-edge: #B8460B   /* darker bottom edge for 3D button press */
---on-primary:   #FFFFFF
---secondary:    #F59E0B   /* amber — streak/rewards */
---info:         #2A91C4   /* friendly blue — secondary/info actions */
---success:      #4F9D00   /* deep friendly green — "верно/готово" (AA on white) */
---success-edge: #3D7A00
---danger:       #DC2626   /* rare; mistakes are NOT framed as angry red */
-```
-Supportive mistake states (NEVER red): `--state-revisit:#2A91C4 (blue, «разберём»)`, `--state-almost:#F59E0B (amber, «почти»)`, `--state-got:#4F9D00 (green, «готово»)`.
-Radii: `--r-card:18px`, `--r-button:16px`, `--r-pill:999px`. Card depth: `border:1.5px solid --border; box-shadow:0 2px 0 rgba(43,39,36,.05)`.
+- **Light theme is canon.** Background is **white `#FFFFFF`** (`--bg-primary`), never cream.
+- **Surfaces are FLAT** — separated by **1px borders**, not shadows, not clay, not 3D edges.
+  Shadows are rare (only the bottom bar, tooltip, menu, overlay per §6).
+- **One brand color: orange `#FF8C00`** (`--bg-brand` / `--text-brand` / `--stroke-brand`).
+  NOT the v3 `#EA580C`.
+- Radii: **buttons/inputs 12** (`--radius-lg`), **cards 14** (`--radius-xl`), **chips/tags 8**
+  (`--radius-sm`), **bottom-bar/dialog top 16**, **pill = full**.
+- Spacing on a **4-grid** (4/8/12/16/20/24) with thin 2/6 steps.
 
-## Typography — rounded + FULL CYRILLIC (ru/kz), self-hosted woff2 incl. cyrillic subset
-- Display / headings / numerals / button labels: **M PLUS Rounded 1c** 700/800/900 (chunky rounded, Duolingo-adjacent, cyrillic ✓).
-- Body / supporting: **Nunito** 400/600/700/800 (cyrillic ✓, highly readable).
-- NEVER Inter/Roboto/Arial. Inputs ≥16px. Tabular numerals for streak/points/counters.
-- Math: KaTeX, `throwOnError:false`, `overflow-x:auto` on a WRAPPER div.
+## Typography — DM Sans + Onest (Cyrillic)
 
-## Motion
-- Animate only `transform`/`opacity`. Button mechanical press (above), ~120–180ms. Staggered list reveal 30–50ms/item. Celebration = spring/confetti on closure + mascot. `@media (prefers-reduced-motion: reduce)` disables non-essential motion.
+- Canonical face is **DM Sans** (400/500/700), `--font-sans: 'DM Sans','Onest',system-ui,sans-serif`.
+- ⚠️ **Cyrillic gotcha:** the Google Fonts build of DM Sans (v17) ships **only latin / latin-ext —
+  no Cyrillic subset**. This app is ru/kz, so Cyrillic would fall back to system-ui and break.
+  **Fix:** self-host DM Sans (latin, carries the brand character + numerals) **+ Onest** (cyrillic /
+  cyrillic-ext — a modern geometric grotesque whose character sits very close to DM Sans).
+  `@font-face` `unicode-range` routes glyphs automatically: latin → DM Sans, Cyrillic → Onest.
+  All four woff2 are self-hosted in `src/theme/fonts/` (offline-ready PWA). See `src/theme/fonts.css`.
+- Type scale (`.text-h1/h2/h3/title/body/caption1/caption2/label-small` in `index.css`, §3):
+  h1 32/38·700, h2 24/30·700, h3 20/24·500, title 16/22·500, body 16/24·400,
+  caption1 14/20·400, caption2 12/16·400, label-small 11/16·500.
 
-## Information architecture
-- Bottom nav ≤3 (label+icon, active highlighted in orange): **Учёба/Срез** · **Прогресс** · (later Профиль).
-- **Hub:** top status row (streak flame + points). Mascot greeting with a growth-mindset line + today's срез summary + big rounded progress bar. Then error TILES (clean, flat, rounded, thin border): topic, the math (KaTeX), a SUPPORTIVE state pill (blue/amber/green, never red), big chunky 3D **«Разобрать»** button → `/drill/:id`. States: loading (skeleton), empty (celebratory + mascot), error (retry).
-- **Drill (headline):** mascot + level intro (1 «разберём тему» / 2 «вспомним» / 3 «почти — проверим, где»); big problem card; vertical step **ladder** with «шаг 2 из 4» progress bar; hints reveal (never the answer); big chunky **«Сфотографировать решение»** button → diagnosis card: located step highlighted + collapsible transcription ("что я увидел" receipts) + supportive cause from the mascot. Worked step only as last resort.
-- **Closure:** big celebration (confetti + mascot + points), verification solved hint-free → "ошибка закрыта".
-- **Analytics:** friendly "твои частые ошибки" with chunky bars.
+## Tokens
 
-## Accessibility / mobile (must)
-- Text contrast ≥4.5:1 (verify orange-on-white for text: use --primary for fills, darker for text-on-white). Touch targets ≥44px, 8px gaps. `viewport-fit=cover`, safe-area, `min-h-dvh`. Visible focus ring (orange). Color never the only signal. Reduced-motion + Dynamic Type safe.
+- Full AiPlus CSS custom properties (§9.1) live in `src/theme/tokens.css`:
+  `--bg-*`, `--text-*`, `--stroke-*`, `--radius-*`, `--shadow-*` (all exact values).
+- ⚠️ **`--text-tertiary` = WHITE** — only for text/icons on a COLORED fill (button, chip, badge,
+  active pagination). NEVER on white (invisible).
+- Tailwind v4 `@theme` (in the same file) maps tokens → utilities: `bg-bg-brand`, `text-text-primary`,
+  `border-stroke-secondary`, `rounded-lg`, `font-sans`, etc.
+  Gotcha: keep `*/`-bearing token names out of CSS comments (e.g. write "color/font/radius tokens",
+  not `--color-*/--font-*`) — `*/` prematurely closes the comment and breaks dev PostCSS.
 
-## Tone
-Mistake = «где растёт мозг». Mascot praises effort, never shames. No angry red. Encouraging, warm, gamified, a bit fun — smart, not babyish.
+## Components (AiPlus §8) — shared in `src/components/`
+
+- **ApButton** — flat. filled = `bg-brand` + white `text-tertiary`, hover → `bg-brand-hovered`;
+  outlined = brand border/text, hover → `bg-light-brand-warning`; radius 12; sizes m=48/s=40/xs=32;
+  `isError` / `isLoading` / `block`. NO 3D press, NO shadow. (Replaces the v3 `Button3D`.)
+- **ApTextField** — radius 12, filled `bg-tertiary`, border `stroke-primary-disabled` (1px) →
+  focus `stroke-brand` (1.5px); error `stroke-error`; label `text-secondary`.
+- **ApLinearProgress** — h8/r4, track `stroke-secondary`, fill `stroke-brand`.
+- **ApTag** — padding 8×4, radius 8, caption1; statuses default/error/primary/success/info.
+- **ApInformer** — banner: padding 12, radius 12, 1px border; info/warning/success/error. Used for
+  the diagnosis "found-the-step", hints, retry banner, and level intro.
+- **ApBottomBar** — top radius 16, `--shadow-bottom-bar`, icon 22, label 11px.
+  **SIGNATURE:** active tab swaps outline→filled icon, color lerps to `bg-brand`, scale ~1.15
+  (`.ap-nav-icon` / `.ap-nav-active`). The one orchestrated branded motion; everything else is quiet.
+- `.ap-card` utility (in `index.css`) — flat card: `bg-tertiary` + 1px `stroke-secondary`, radius 14.
+
+## Icons — `src/icons/index.tsx`
+
+AiPlus SVGs (from the spec's `icons/`) reproduced as React components with `currentColor` (so they
+tint via `color`/tokens): Home/HomeActive, Task/TaskActive (nav), Left/Right/Down/LongArrowRight,
+Close/Restart/CameraUpload(cloud_upload)/Eye/Search, Check/Star/StarFilled/Checklist/History.
+Outline 1.5px (24) / 1.2px (16), filled variants for active states.
+
+## Product personality (kept, lightly)
+
+- Mascot **«Кёди»** (orange sprout, `src/components/Mascot.tsx`) retained as an illustrative accent,
+  re-tinted to AiPlus tokens (`--bg-brand` / `--bg-success`). Greeting / diagnosis / closure / login.
+- Supportive growth-mindset tone kept: a mistake is «где растёт мозг», NEVER a punishing red.
+  State traffic-light maps to AiPlus tags: «разберём» = info (blue), «почти» = primary (brand),
+  «готово» = success (green).
+- Gamification rendered with AiPlus tags/pills/progress (streak, XP), not chunky game widgets.
+
+## States & motion
+
+- Every component ships loading (skeleton+shimmer) / empty (one line + CTA, celebratory) /
+  error (component-level retry, no red, no apology) / hover / focus-visible (2px `stroke-brand` ring).
+- One orchestrated page-load stagger (`.reveal`); content visible without JS. `prefers-reduced-motion`
+  honored (reveal/stamp/confetti/bob/nav-scale all neutralized).
+
+## Known AA notes (AiPlus-canonical values)
+
+These ratios are defined by the AiPlus spec itself (kept faithfully, not deviated):
+- white-on-`#FF8C00` button label = 2.33:1 — passes only as AA-large with large/bold labels;
+- `text-brand` orange as TEXT on white (eyebrows/tag text) ≈ 2.33:1; `text-secondary #888` on white
+  3.54:1 (AA-large). Body/heading `text-primary #090909` on white = 19.9:1 (AA).
+  See the task report for the full audit.

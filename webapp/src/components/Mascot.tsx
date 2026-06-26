@@ -1,6 +1,7 @@
-// Маскот «Кёди» — ОРИГИНАЛЬНЫЙ дружелюбный росток-семечко в бренд-оранжевом.
+// Маскот «Кёди» — ОРИГИНАЛЬНЫЙ дружелюбный росток-семечко в бренд-оранжевом AiPlus.
 // Не сова и не чужой персонаж: круглое тельце-капля + два листочка-«ушка»,
 // ободряющая мимика. Растёт вместе с настроением (mood). Чистый inline SVG.
+// Тонируется токенами AiPlus (--bg-brand / --bg-success), чтобы жить в плоской системе.
 
 type Mood = 'cheer' | 'think' | 'celebrate' | 'oops'
 
@@ -13,7 +14,7 @@ interface MascotProps {
 
 // Глаза по настроению: радостные дуги, сосредоточенные точки, зажмур на празднике.
 function Eyes({ mood }: { mood: Mood }) {
-  const eyeColor = 'var(--color-ink)'
+  const eyeColor = 'var(--text-primary)'
   if (mood === 'celebrate') {
     // зажмуренные «^ ^» от счастья
     return (
@@ -67,7 +68,7 @@ function Eyes({ mood }: { mood: Mood }) {
 
 // Рот по настроению.
 function Mouth({ mood }: { mood: Mood }) {
-  const stroke = 'var(--color-primary-edge)'
+  const stroke = 'var(--bg-brand-hovered)'
   if (mood === 'celebrate') {
     return <path d="M50 66 q10 12 20 0" fill="#fff" stroke={stroke} strokeWidth="3" />
   }
@@ -118,14 +119,14 @@ export function Mascot({ mood = 'cheer', size = 64, className = '' }: MascotProp
       {/* два листочка-«ушка» сверху (росток) */}
       <path
         d="M60 30 C 50 8, 28 8, 30 30 C 44 32, 56 30, 60 30 Z"
-        fill="var(--color-success)"
+        fill="var(--bg-success)"
       />
       <path
         d="M60 30 C 70 8, 92 8, 90 30 C 76 32, 64 30, 60 30 Z"
-        fill="var(--color-success-edge)"
+        fill="var(--stroke-success)"
       />
       {/* стебелёк */}
-      <rect x="57" y="26" width="6" height="14" rx="3" fill="var(--color-success-edge)" />
+      <rect x="57" y="26" width="6" height="14" rx="3" fill="var(--stroke-success)" />
 
       {/* тельце-капля в бренд-оранжевом */}
       <path
@@ -134,14 +135,14 @@ export function Mascot({ mood = 'cheer', size = 64, className = '' }: MascotProp
            C 102 100, 84 112, 60 112
            C 36 112, 18 100, 18 78
            C 18 60, 30 36, 60 36 Z"
-        fill="var(--color-primary)"
+        fill="var(--bg-brand)"
       />
       {/* мягкий верхний блик (объём без тяжёлых теней) */}
       <ellipse cx="46" cy="50" rx="22" ry="14" fill="#fff" opacity="0.16" />
 
       {/* щёчки */}
-      <circle cx="34" cy="68" r="6" fill="var(--color-primary-edge)" opacity="0.45" />
-      <circle cx="86" cy="68" r="6" fill="var(--color-primary-edge)" opacity="0.45" />
+      <circle cx="34" cy="68" r="6" fill="var(--bg-brand-hovered)" opacity="0.45" />
+      <circle cx="86" cy="68" r="6" fill="var(--bg-brand-hovered)" opacity="0.45" />
 
       <Eyes mood={mood} />
       <Mouth mood={mood} />

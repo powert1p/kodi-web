@@ -33,13 +33,13 @@ export function Ladder({
     <ol className="flex flex-col">
       {numbered.map(({ rung, num }, i) => {
         const isLast = i === numbered.length - 1
-        // Цвет хребта НИЖЕ этого узла = статус следующего перехода.
+        // Цвет хребта НИЖЕ этого узла = статус следующего перехода (токены AiPlus).
         const spineVar =
           rung.status === 'solved'
-            ? 'var(--color-got)'
+            ? 'var(--bg-success)'
             : rung.status === 'active'
-              ? 'var(--color-primary)'
-              : 'var(--color-border)'
+              ? 'var(--bg-brand)'
+              : 'var(--stroke-primary-disabled)'
 
         return (
           <li key={rung.key} className="relative flex gap-3 pb-3 last:pb-0">
@@ -49,16 +49,16 @@ export function Ladder({
                 aria-hidden
                 className={`mt-3 size-3 rounded-full ${
                   rung.status === 'solved'
-                    ? 'bg-got'
+                    ? 'bg-bg-success'
                     : rung.status === 'active'
-                      ? 'bg-primary ring-4 ring-primary/20'
-                      : 'bg-border'
+                      ? 'bg-bg-brand ring-4 ring-bg-brand/15'
+                      : 'bg-stroke-primary-disabled'
                 }`}
               />
               {!isLast && (
                 <span
                   aria-hidden
-                  className="mt-1 w-1 flex-1 rounded-(--radius-pill)"
+                  className="mt-1 w-1 flex-1 rounded-full"
                   style={{ backgroundColor: spineVar }}
                 />
               )}
