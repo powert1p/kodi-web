@@ -1,0 +1,115 @@
+@import 'tailwindcss';
+@import './theme/fonts.css';
+@import './theme/tokens.css';
+@import 'katex/dist/katex.min.css';
+
+/* ---- База ---- */
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-base);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* iOS: инпуты ≥16px чтобы не зумило при фокусе */
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  /* Видимый фокус для клавиатуры (а не мыши) */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* ---- Обёртка для формул KaTeX ----
+   overflow-x на ОБЁРТКЕ, не на .katex (иначе ложный вертикальный скролл). */
+@utility math-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.math-scroll::-webkit-scrollbar {
+  display: none;
+}
+.math-scroll .katex {
+  white-space: nowrap;
+}
+
+/* ---- Утилиты ---- */
+@layer utilities {
+  .font-num {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Оркестрованный reveal при загрузке (только transform/opacity).
+     Контент виден без JS — класс лишь анимирует появление. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: reveal 560ms var(--ease-out-energy) forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
+  @keyframes reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--color-raised) 70%, white 8%),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .shimmer::after {
+    animation: none;
+  }
+}
