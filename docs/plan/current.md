@@ -35,3 +35,11 @@
 - CORE-3 выровнять/задокументировать порог 0.7 vs 0.85.
 - DESIGN заменить Roboto на выразительный шрифт (DESIGN_SYSTEM рекомендации).
 - Мелочи: см. AUDIT backlog P2.
+
+## Тренажёр ошибок (2026-06-26) — статус
+- [x] Backend: схема+сид декомпозиции, trainer-core, vision (Gemini), API (/wrong-tasks /diagnose /analytics) — 59 тестов.
+- [x] Frontend: новый mobile-PWA `webapp/` (Duolingo-style), все экраны + phone+PIN auth.
+- [x] E2E live (локально): login→hub→drill→фото→РЕАЛЬНЫЙ Gemini-диагноз. Спека `docs/specs/2026-06-25-error-trainer-mobile.md`, план `docs/superpowers/plans/2026-06-25-error-trainer-mobile.md`.
+- [ ] ДЕПЛОЙ на aiplus: rsync → `docker compose up -d --build`; **GEMINI_API_KEY в ~/kodi-web/.env на сервере**; live-проверка /app/ + /health + drill.
+- [ ] Closure/Analytics на живые данные (нет verification-эндпоинта; сейчас мок-fallback).
+- [ ] Финальное whole-branch ревью; ru+kz parity фронта; валидация vision на реальных рукописных фото НИШ.

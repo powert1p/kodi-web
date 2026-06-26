@@ -118,3 +118,17 @@
 **Открытые вопросы:** доступ всё ещё за SSH-туннелем (порт 8300) — публичный интернет нужен nginx vhost + SSL (root/Умид, внешняя зависимость).
 **Файлы:** backend/api/routes.py (graph_public), frontend/packages/kodi_core/lib/api/nis_api.dart, frontend/apps/kodi_web/lib/features/dashboard/pages/graph_page.dart (PublicGraphPage), frontend/apps/kodi_web/lib/app/router.dart, frontend/apps/kodi_web/lib/features/auth/pages/login_page.dart, l10n
 **Issue:** —
+
+## 2026-06-26 (multi-hour, brainstorming→build)
+**Тип:** plan (новая L-фича: тренажёр «работа над ошибками»)
+**Зачем:** ребёнок ошибается в ежедневном срезе → нужен тренажёр: фото рукописного решения → ИИ показывает ГДЕ ошибся (не выдавая ответ) → подсказки/лесенка по уровню → закрепление → память типов ошибок (таргетинг + аналитика владельцу).
+**Что сделано:**
+- BACKEND (Tasks 1-10, 59 тестов против реального Postgres, каждая через ревью-гейт): 6 новых таблиц (decomposition bank: micro_skills/decomposition_problems/problem_steps/problem_fingerprints + error_captures/recurring_errors); сид full_decomposition_v1.json (2525 задач, 7036 шагов, 3684 fingerprints, 372 микро-навыка); core/trainer.py (match_fingerprint, build_wrong_tasks, route_level/state, pickers); core/llm_openai.py — vision-диагноз; api/routers/trainer.py — /wrong-tasks, /diagnose (multipart фото), /analytics.
+- VISION: переключён на **Google Gemini** (через OpenAI-compat endpoint, минимум churn; OpenAI-фолбэк сохранён). **Live-смоук gemini-2.5-flash прошёл**, strict json_schema работает.
+- FRONTEND: НОВЫЙ mobile-PWA `webapp/` (React19+Vite+Tailwind v4+RR7+TanStack Query+PWA), полностью переписан (старый Flutter заморожен). Дизайн: 3 итерации (тёмный brain-gym ОТКЛОНЁН → claymorphism-light ОТКЛОНЁН → **Duolingo-style тёплый оранжевый ОДОБРЕН**): Button3D с механическим нажатием, маскот «Кёди», шрифты M PLUS Rounded 1c + Nunito (полная кириллица). Экраны: Hub/Drill(лесенка+фото→диагноз)/Closure/Analytics + phone+PIN auth.
+- E2E LIVE проверено (Playwright, локально :8400, same-origin /app/): login→Hub(реальный срез)→Drill(реальная задача+шаги)→фото→РЕАЛЬНЫЙ Gemini /diagnose→карточка «нашёл, где сбилось: шаг 1, знак перепутал», без утечки ответа.
+**Решение:** decomposition — автономный банк (idx PK, ~42% линка к боевым задачам по (node_id,answer)); педагогика берётся по node+micro_skill из банка, а не из exact-задачи. Vision = Gemini (бесплатный tier, владелец дал ключ). Дизайн = Duolingo (по ui-ux-pro-max best-practice для детской образовалки, после отклонения 2 вариантов).
+**Итог:** головная петля РАБОТАЕТ end-to-end live (локально). Не задеплоено. E2E поймал 3 интеграционных бага (мок-тесты пропустили): отсутствовали error_captures/recurring_errors на dev-БД; дубль-хук с путём /api/srez/ (404); analytics 500.
+**Открытые вопросы:** (1) ДЕПЛОЙ на aiplus (rsync→compose up --build) + GEMINI_API_KEY в ~/kodi-web/.env на сервере + live-проверка. (2) Closure/Analytics на живые данные (сейчас мок; нет verification-эндпоинта). (3) финальное whole-branch ревью. (4) ru+kz parity фронта (сейчас ru). (5) валидация vision на РЕАЛЬНЫХ рукописных фото НИШ (OCR врёт 12-24%).
+**Файлы:** backend/core/trainer.py, backend/core/llm_openai.py, backend/api/routers/trainer.py, backend/db/seed_decomposition.py, webapp/** , docs/specs/2026-06-25-error-trainer-mobile.md, docs/superpowers/plans/2026-06-25-error-trainer-mobile.md
+**Issue:** —

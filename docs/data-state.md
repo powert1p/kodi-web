@@ -35,3 +35,13 @@
 - 0 NULL в required-полях задач; image-пути влезают в колонку.
 - KZ-картинки = RU-картинки по количеству (после `generate_images.py --lang kz`).
 - Деструктив данных (DROP/DELETE/TRUNCATE) — только с явного согласия владельца.
+
+## Тренажёр ошибок — новые таблицы (Обновлено: 2026-06-26)
+6 новых таблиц (DDL: `backend/db/models.py` + идемпотентный `CREATE TABLE IF NOT EXISTS` в `run.py:on_startup`):
+- **micro_skills** (code PK) — каталог 372 микро-умений.
+- **decomposition_problems** (idx PK) — автономный банк декомпозиций из `docs/specs/full_decomposition_v1.json` (2525 задач). `problems_db_id` — best-effort FK к боевым problems по уникальному (node_id, answer); линкуется только **~42%** (idx ≠ боевой id, в декомпозиции нет текста). Педагогику берём по node+micro_skill из банка, не из exact-задачи.
+- **problem_steps** (FK decomp_idx) — 7036 шагов (99% sympy-verified).
+- **problem_fingerprints** (FK decomp_idx) — 3684 отпечатка типичных ошибок {wrong_answer, mistake_ru, micro_skill} (93% задач). Матч answer_given→mistake_ru = бесплатная гипотеза причины без фото.
+- **error_captures** — факт ошибки по фото + диагноз (transcription/failed_step/cause_text/level/model/confidence/image_ref).
+- **recurring_errors** (PK student_id+micro_skill) — накопление повторов для таргетинга + аналитики владельцу.
+⚠️ Сид: `seed_decomposition()` в одной транзакции, guarded (только если пусто или FORCE_RESEED=1). ⚠️ Старая dev-БД `nismathbot` могла недосоздать error_captures/recurring_errors (ancient state) — лечится `Base.metadata.create_all`. На свежей серверной БД `run.py` создаёт все 6.
