@@ -6,18 +6,24 @@ interface StateChipProps {
   state: TaskState
 }
 
-// Чип состояния. Цвет берётся из токена через CSS-переменную --c
-// (динамический токен — допустимый кейс для style, литералов hex/px тут нет).
+// Поддерживающий мини-чип: маскот-эмодзи + ярлык + затемнённый AA-текст на светлой подложке.
+// Цвет — НЕ единственный сигнал (есть эмодзи и слово). Динамический токен через --c/--ci.
 export function StateChip({ state }: StateChipProps) {
   const meta = STATE_META[state]
-  const style = { '--c': meta.accentVar } as CSSProperties
+  const style = {
+    '--c': meta.accentVar,
+    '--ci': meta.inkVar,
+    backgroundColor: 'color-mix(in oklab, var(--c) 14%, white)',
+  } as CSSProperties
 
   return (
     <span
       style={style}
-      className="inline-flex items-center gap-1.5 rounded-(--radius-chip) border border-[color-mix(in_oklab,var(--c)_45%,transparent)] bg-[color-mix(in_oklab,var(--c)_14%,transparent)] px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-wider text-(--c)"
+      className="clay-chip inline-flex shrink-0 items-center gap-1.5 rounded-(--radius-pill) px-2.5 py-1 text-[0.72rem] font-extrabold text-(--ci)"
     >
-      <span className="size-1.5 rounded-full bg-(--c)" />
+      <span aria-hidden className="text-[0.85rem] leading-none">
+        {meta.emoji}
+      </span>
       {meta.label}
     </span>
   )

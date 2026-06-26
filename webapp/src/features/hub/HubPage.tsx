@@ -1,66 +1,60 @@
 import type { CSSProperties } from 'react'
 import { useWrongTasks } from './useWrongTasks'
+import { HubHero } from './HubHero'
 import { TaskCard } from './TaskCard'
 import { HubSkeleton } from './HubSkeleton'
 import { HubEmpty } from './HubEmpty'
 import { HubError } from './HubError'
+import { STATE_PRIORITY } from './stateConfig'
+import type { TaskState } from '../../lib/types'
 
-// Hub — «срез» ошибок. Главный экран: триаж задач как тренировочные репы.
+// Hub — «срез» ошибок. Главный экран: тёплое приветствие + hero-кольцо прогресса,
+// затем глиняные плитки-ошибки, отсортированные по приоритету разбора.
 export function HubPage() {
   const { data, isPending, isError, refetch } = useWrongTasks()
 
-  const count = data?.length ?? 0
-  const revisit = data?.filter((t) => t.state === 'revisit').length ?? 0
+  // Триаж: сначала «разберём», потом «почти», потом «готово».
+  const tasks = data
+    ? [...data].sort(
+        (a, b) =>
+          STATE_PRIORITY.indexOf(a.state) - STATE_PRIORITY.indexOf(b.state),
+      )
+    : []
+
+  const total = tasks.length
+  const done = tasks.filter((t) => t.state === 'got').length
+  const leadState: TaskState = tasks[0]?.state ?? 'revisit'
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Hero-заголовок: эвербрау + крупный display + счётчик */}
-      <header className="reveal flex flex-col gap-3 pt-1">
-        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
-          Режим тренировки
-        </span>
-        <h1 className="font-display text-[2.65rem] font-extrabold leading-[0.95] tracking-tight text-ink">
-          Над
-          <br />
-          ошибками
-        </h1>
-
-        {!isPending && !isError && count > 0 && (
-          <div className="flex items-center gap-2 pt-1">
-            <span
-              className="font-num text-base font-bold text-ink"
-              style={{ '--c': 'var(--color-revisit)' } as CSSProperties}
-            >
-              {count}
-            </span>
-            <span className="text-sm text-ink-mute">
-              {count === 1 ? 'задача в срезе' : 'задач в срезе'}
-              {revisit > 0 && (
-                <>
-                  {' · '}
-                  <span className="font-semibold text-revisit">
-                    {revisit} ждут разбора
-                  </span>
-                </>
-              )}
-            </span>
-          </div>
-        )}
-      </header>
-
-      {/* Состояния */}
+    <div className="flex flex-col gap-5">
       {isPending && <HubSkeleton />}
       {isError && <HubError onRetry={() => void refetch()} />}
-      {!isPending && !isError && count === 0 && <HubEmpty />}
+      {!isPending && !isError && total === 0 && <HubEmpty />}
 
-      {!isPending && !isError && count > 0 && (
-        <ul className="flex flex-col gap-3">
-          {data!.map((task, i) => (
-            <li key={task.id}>
-              <TaskCard task={task} index={i + 1} delay={120 + i * 70} />
-            </li>
-          ))}
-        </ul>
+      {!isPending && !isError && total > 0 && (
+        <>
+          <HubHero total={total} done={done} leadState={leadState} />
+
+          <div
+            className="reveal flex items-baseline justify-between px-1"
+            style={{ '--reveal-delay': '90ms' } as CSSProperties}
+          >
+            <h2 className="font-display text-lg font-extrabold text-ink">
+              Твои ошибки
+            </h2>
+            <span className="font-num text-sm font-extrabold text-ink-soft tabular-nums">
+              {total}
+            </span>
+          </div>
+
+          <ul className="flex flex-col gap-3.5">
+            {tasks.map((task, i) => (
+              <li key={task.id}>
+                <TaskCard task={task} delay={150 + i * 60} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   )

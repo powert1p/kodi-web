@@ -5,25 +5,28 @@ interface AppShellProps {
   children: ReactNode
 }
 
-// Оболочка: тёмный слоёный фон (глубина светлотой, не плоская заливка),
-// мобильная колонка 390px, safe-area, нижняя навигация.
+// Оболочка: светлый «глиняный» фон с мягким голубым градиентом и медленно
+// дрейфующими декоративными блобами (reduced-motion безопасно). Мобильная
+// колонка 26rem, safe-area, нижняя навигация.
 export function AppShell({ children }: AppShellProps) {
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      {/* Слоёный фон-градиент — не плоский цвет */}
+      {/* Базовый мягкий градиент (не плоская заливка) */}
       <div
         aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-base"
+        className="pointer-events-none fixed inset-0 -z-20 bg-[linear-gradient(180deg,var(--color-bg),var(--color-bg-2))]"
       />
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(120%_60%_at_50%_-10%,color-mix(in_oklab,var(--color-brand)_22%,transparent),transparent_60%),radial-gradient(90%_50%_at_90%_100%,color-mix(in_oklab,var(--color-revisit)_12%,transparent),transparent_55%)]"
-      />
+      {/* Дрейфующие кэнди-блобы — атмосфера, не декор поверх контента */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="blob absolute -left-24 -top-20 size-72 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--color-brand)_22%,transparent),transparent_70%)] blur-2xl" />
+        <div className="blob-2 absolute -right-24 top-1/3 size-80 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--color-pink)_16%,transparent),transparent_70%)] blur-2xl" />
+        <div className="blob absolute -bottom-24 left-1/4 size-72 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--color-amber)_16%,transparent),transparent_70%)] blur-2xl" />
+      </div>
 
       <div className="mx-auto flex min-h-dvh w-full max-w-[26rem] flex-col">
         <main
           className="flex-1 px-4 pb-28"
-          style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+          style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}
         >
           {children}
         </main>

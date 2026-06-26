@@ -1,32 +1,41 @@
 import type { TaskState } from '../../lib/types'
 
-// Поддерживающий светофор: ошибка — «где растёт мозг», без карающего тона.
-// label — короткий статус, hint — ободряющая микрокопия.
+// Поддерживающий светофор (growth-mindset): ошибка — «где растёт мозг», без карающего тона.
+// label — короткий статус, hint — ободряющая микрокопия, emoji — мини-маскот настроения.
 interface StateMeta {
   label: string
   hint: string
-  /** CSS-переменная цвета акцента (лейн-полоса, чип). */
+  /** Маскот-эмодзи (цвет — не единственный сигнал). */
+  emoji: string
+  /** CSS-переменная акцентного цвета (точка/обводка чипа). */
   accentVar: string
-  dimVar: string
+  /** Переменная затемнённого цвета для AA-текста на светлом чипе. */
+  inkVar: string
 }
 
 export const STATE_META: Record<TaskState, StateMeta> = {
   revisit: {
-    label: 'Вернуться',
+    label: 'Разберём',
     hint: 'Здесь растёт мозг',
+    emoji: '🌱',
     accentVar: 'var(--color-revisit)',
-    dimVar: 'var(--color-revisit-dim)',
+    inkVar: 'var(--color-revisit-ink)',
   },
   almost: {
     label: 'Почти',
     hint: 'Один шаг до цели',
+    emoji: '✨',
     accentVar: 'var(--color-almost)',
-    dimVar: 'var(--color-almost-dim)',
+    inkVar: 'var(--color-almost-ink)',
   },
   got: {
-    label: 'Разобрал',
-    hint: 'Закрепи победу',
+    label: 'Готово',
+    hint: 'Закрепим победу',
+    emoji: '💪',
     accentVar: 'var(--color-got)',
-    dimVar: 'var(--color-got-dim)',
+    inkVar: 'var(--color-got-ink)',
   },
 }
+
+/** Порядок приоритета для триажа и для цвета дуги hero-кольца. */
+export const STATE_PRIORITY: TaskState[] = ['revisit', 'almost', 'got']

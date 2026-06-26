@@ -1,17 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#3a2a63"/>
-      <stop offset="0.55" stop-color="#7b3fe4"/>
-      <stop offset="1" stop-color="#ff7a4d"/>
+    <linearGradient id="brand" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="0.6" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#EC4899"/>
     </linearGradient>
+    <radialGradient id="hi" cx="0.32" cy="0.24" r="0.9">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#23203a"/>
-  <rect width="512" height="512" rx="112" fill="url(#g)"/>
-  <!-- наклонная «энергетическая» полоса (signature) -->
-  <g transform="rotate(-6 256 256)">
-    <rect x="150" y="86" width="60" height="340" rx="14" fill="#ffffff" opacity="0.96"/>
-    <!-- восходящий шеврон-«рост» -->
-    <path d="M236 330 L300 250 L356 300 L412 150" fill="none" stroke="#ffffff" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" opacity="0.96"/>
-  </g>
+  <!-- глиняная скруглённая плитка -->
+  <rect width="512" height="512" rx="128" fill="url(#brand)"/>
+  <!-- мягкий верхний хайлайт (clay inflate) -->
+  <rect width="512" height="512" rx="128" fill="url(#hi)"/>
+  <!-- восходящий «рост» — бренд-глиф белым, скруглённые шапки -->
+  <path d="M150 348 L236 256 L300 312 L398 176"
+        fill="none" stroke="#ffffff" stroke-width="54"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- финальная искра роста -->
+  <circle cx="398" cy="176" r="34" fill="#F59E0B"/>
 </svg>

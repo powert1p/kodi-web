@@ -6,7 +6,7 @@
 /* ---- База ---- */
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   html {
@@ -16,9 +16,10 @@
 
   body {
     margin: 0;
-    background-color: var(--color-base);
+    background-color: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-body);
+    font-weight: 600;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -30,11 +31,11 @@
     font-size: 16px;
   }
 
-  /* Видимый фокус для клавиатуры (а не мыши) */
+  /* Видимый фокус для клавиатуры (не мыши) */
   :focus-visible {
-    outline: 2px solid var(--color-brand);
-    outline-offset: 2px;
-    border-radius: 4px;
+    outline: 3px solid var(--color-brand);
+    outline-offset: 3px;
+    border-radius: 6px;
   }
   :focus:not(:focus-visible) {
     outline: none;
@@ -57,19 +58,51 @@
   white-space: nowrap;
 }
 
+/* ---- Глиняные поверхности (двойная тень: внешний drop + внутренний хайлайт) ---- */
+@utility clay {
+  background: var(--color-surface);
+  box-shadow:
+    10px 12px 26px rgba(37, 99, 235, 0.13),
+    -7px -7px 18px rgba(255, 255, 255, 0.95),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -3px 8px rgba(37, 99, 235, 0.05);
+}
+/* Утопленная («впрессованная») поверхность — для трека прогресс-кольца. */
+@utility clay-inset {
+  background: var(--color-surface-muted);
+  box-shadow:
+    inset 5px 6px 12px rgba(37, 99, 235, 0.14),
+    inset -5px -5px 12px rgba(255, 255, 255, 0.92);
+}
+/* Приподнятая пилюля-чип. */
+@utility clay-chip {
+  box-shadow:
+    4px 5px 12px rgba(37, 99, 235, 0.1),
+    -3px -3px 9px rgba(255, 255, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
 /* ---- Утилиты ---- */
 @layer utilities {
   .font-num {
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 
-  /* Оркестрованный reveal при загрузке (только transform/opacity).
+  /* Пружинный «squish» при нажатии (только transform). */
+  .press {
+    transition: transform 200ms var(--ease-spring);
+  }
+  .press:active {
+    transform: scale(0.94);
+  }
+
+  /* Оркестрованный stagger-reveal при загрузке (только transform/opacity).
      Контент виден без JS — класс лишь анимирует появление. */
   .reveal {
     opacity: 0;
-    transform: translateY(14px);
-    animation: reveal 560ms var(--ease-out-energy) forwards;
+    transform: translateY(16px);
+    animation: reveal 520ms var(--ease-out-soft) forwards;
     animation-delay: var(--reveal-delay, 0ms);
   }
   @keyframes reveal {
@@ -91,14 +124,34 @@
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in oklab, var(--color-raised) 70%, white 8%),
+      rgba(255, 255, 255, 0.75),
       transparent
     );
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 1.6s infinite;
   }
   @keyframes shimmer {
     100% {
       transform: translateX(100%);
+    }
+  }
+
+  /* Медленно дрейфующие декоративные блобы фона. */
+  .blob {
+    animation: drift 22s var(--ease-out-soft) infinite alternate;
+    will-change: transform;
+  }
+  .blob-2 {
+    animation: drift2 28s var(--ease-out-soft) infinite alternate;
+    will-change: transform;
+  }
+  @keyframes drift {
+    to {
+      transform: translate3d(28px, -34px, 0) scale(1.08);
+    }
+  }
+  @keyframes drift2 {
+    to {
+      transform: translate3d(-32px, 26px, 0) scale(1.1);
     }
   }
 }
@@ -109,7 +162,15 @@
     opacity: 1;
     transform: none;
   }
-  .shimmer::after {
+  .press {
+    transition: none;
+  }
+  .press:active {
+    transform: none;
+  }
+  .shimmer::after,
+  .blob,
+  .blob-2 {
     animation: none;
   }
 }

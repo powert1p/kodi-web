@@ -11,9 +11,7 @@ const ITEMS: NavItem[] = [
   {
     to: '/',
     label: 'Срез',
-    icon: (
-      <path d="M4 13h4v6H4zM10 6h4v13h-4zM16 9h4v10h-4z" />
-    ),
+    icon: <path d="M4 13h4v6H4zM10 6h4v13h-4zM16 9h4v10h-4z" />,
   },
   {
     to: '/analytics',
@@ -22,14 +20,14 @@ const ITEMS: NavItem[] = [
   },
 ]
 
-// Нижняя навигация. Тапабельные зоны ≥44px, safe-area снизу.
+// Нижняя навигация — плавающая глиняная плашка. Тапабельные зоны ≥44px, safe-area снизу.
 export function BottomNav() {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-line/60 bg-[color-mix(in_oklab,var(--color-base-2)_92%,transparent)] backdrop-blur-lg"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed inset-x-0 bottom-0 z-20"
+      style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
-      <ul className="mx-auto flex w-full max-w-[26rem] items-stretch justify-around px-4">
+      <ul className="clay mx-auto flex w-[calc(100%-2rem)] max-w-[24rem] items-stretch justify-around gap-2 rounded-(--radius-card) p-1.5">
         {ITEMS.map((item) => (
           <li key={item.to} className="flex-1">
             <NavLink
@@ -37,8 +35,10 @@ export function BottomNav() {
               end={item.to === '/'}
               className={({ isActive }) =>
                 [
-                  'flex min-h-[3.25rem] flex-col items-center justify-center gap-1 text-[0.7rem] font-semibold transition-colors duration-200',
-                  isActive ? 'text-brand' : 'text-ink-faint hover:text-ink-mute',
+                  'press flex min-h-[3rem] flex-col items-center justify-center gap-1 rounded-(--radius-button) text-[0.72rem] font-extrabold',
+                  isActive
+                    ? 'bg-brand text-on-brand'
+                    : 'text-ink-mute hover:bg-surface-muted hover:text-ink',
                 ].join(' ')
               }
             >
@@ -47,7 +47,7 @@ export function BottomNav() {
                 className="size-5"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 aria-hidden
