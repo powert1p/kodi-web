@@ -27,6 +27,7 @@ from core.trainer import (
     build_problem_topics,
     build_wrong_tasks,
     match_fingerprint,
+    pick_easier_decomp,
     pick_verification_problem,
     resolve_decomp,
 )
@@ -609,3 +610,47 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
         await session.close()
 
     return VerificationAnswerOut(correct=correct)
+
+
+# ── Climb-down: decomp полегче для того же навыка ─────────────────────────────
+
+class EasierDecompOut(BaseModel):
+    decomp_idx: int
+    node_id: str
+    answer: str
+    primary_micro_skill: str | None
+    step_count: int
+    steps: list[StepOut]
+
+
+@router.get("/easier", response_model=EasierDecompOut)
+async def get_easier(
+    request: Request,
+    micro_skill: str = Query(..., description="Код микро-умения"),
+    exclude_idx: int | None = Query(None, description="Исключить текущий decomp_idx"),
+) -> EasierDecompOut:
+    """Возвращает decomp с наименьшим числом шагов для навыка (climb-down)."""
+    session, _student = await _get_current_student(request)
+    try:
+        row = await pick_easier_decomp(session, micro_skill=micro_skill, exclude_idx=exclude_idx)
+        if row is None:
+            raise HTTPException(status_code=404, detail="Нет более простой декомпозиции для навыка")
+        steps_raw = await session.execute(
+            text(
+                "SELECT n, instruction_ru, micro_skill, expected_value FROM problem_steps "
+                "WHERE decomp_idx = :didx ORDER BY n"
+            ),
+            {"didx": row.idx},
+        )
+        steps = [
+            StepOut(n=s.n, instruction_ru=s.instruction_ru, micro_skill=s.micro_skill,
+                    expected_value=s.expected_value, kind="compute", reveal=None)
+            for s in steps_raw
+        ]
+    finally:
+        await session.close()
+
+    return EasierDecompOut(
+        decomp_idx=row.idx, node_id=row.node_id, answer=row.answer,
+        primary_micro_skill=row.primary_micro_skill, step_count=row.step_count, steps=steps,
+    )
