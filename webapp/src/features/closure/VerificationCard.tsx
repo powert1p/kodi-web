@@ -5,15 +5,15 @@ import { ApButton } from '../../components/ApButton'
 import { ApInformer } from '../../components/ApInformer'
 import { ApTag } from '../../components/ApTag'
 import { Mascot } from '../../components/Mascot'
-import type { VerificationProblem } from './mock'
 
 interface VerificationCardProps {
-  problem: VerificationProblem
+  /** Условие контрольной задачи (LaTeX инлайн в $...$). */
+  statement: string
   /** Промах: показать мягкий ретрай-баннер (НИКОГДА красный). */
   wrong: boolean
   /** Сколько раз промахнулся — мягко меняет тон строки. */
   attempts: number
-  /** Проверить ответ. */
+  /** Проверить ответ — правильность решает сервер (verification/answer). */
   onCheck: (value: string) => void
   /** Ввод изменился после промаха — вернуть в solving. */
   onResume: () => void
@@ -23,7 +23,7 @@ interface VerificationCardProps {
 // + bg-light-brand-warning): эйбров + условие через KaTeX + поле + «Проверить».
 // Промах — warning-Informer (поддержка, не наказание), ввод сохраняется.
 export function VerificationCard({
-  problem,
+  statement,
   wrong,
   attempts,
   onCheck,
@@ -52,7 +52,7 @@ export function VerificationCard({
       </div>
 
       <p className="text-h3 text-text-primary">
-        <MathText text={problem.statement} />
+        <MathText text={statement} />
       </p>
 
       <form onSubmit={handleSubmit} className="flex items-stretch gap-2.5">

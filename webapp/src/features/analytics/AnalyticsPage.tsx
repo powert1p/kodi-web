@@ -9,7 +9,7 @@ import { AnalyticsError } from './AnalyticsError'
 // Analytics (/analytics) — «Прогресс» (вкладка нижней навигации, активна здесь).
 // Топ повторяющихся типов ошибок ученика как чанковые горизонтальные полосы
 // (длина = повторяемость), отсортированы по убыванию; #1 промотирован «в фокусе».
-// Источник — useAnalytics() (mock-fallback в DEV). Состояния: loading/empty/error/success.
+// Источник — useAnalytics() → my_top (BE AnalyticsResponse). Состояния: loading/empty/error/success.
 export function AnalyticsPage() {
   const { data, isPending, isError, refetch } = useAnalytics()
 
@@ -18,12 +18,12 @@ export function AnalyticsPage() {
 
   const analytics = asAnalyticsData(data)
   const items = analytics
-    ? [...analytics.error_types].sort((a, b) => b.count - a.count)
+    ? [...analytics.my_top].sort((a, b) => b.error_count - a.error_count)
     : []
 
   if (items.length === 0) return <AnalyticsEmpty />
 
-  const max = items[0]?.count ?? 1
+  const max = items[0]?.error_count ?? 1
 
   return (
     <div className="flex flex-col gap-4">
@@ -35,8 +35,14 @@ export function AnalyticsPage() {
         {items.map((item, i) => (
           <li key={item.micro_skill}>
             <ErrorBar
-              item={item}
-              ratio={item.count / max}
+              item={{
+                micro_skill: item.micro_skill,
+                label: item.label_ru ?? item.micro_skill,
+                topic_label: item.node_id ?? '',
+                count: item.error_count,
+                last_cause: item.last_cause_text,
+              }}
+              ratio={item.error_count / max}
               rank={i + 1}
               delay={70 + i * 60}
             />

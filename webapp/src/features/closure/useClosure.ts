@@ -1,47 +1,67 @@
-import { useCallback, useState } from 'react'
-import { answersMatch } from '../../lib/ladder'
-import type { VerificationProblem } from './mock'
+import { useCallback, useEffect, useState } from 'react'
+import { startVerification, answerVerification } from '../../lib/api'
+import type { VerificationProblemDTO } from '../../lib/types'
 
-/** Статус закрепления: решает / ошибся (мягкий ретрай) / закрыл. */
-export type ClosureStatus = 'solving' | 'wrong' | 'correct'
+/** Статус закрепления: загрузка / решает / ошибся / закрыл / ошибка сети. */
+export type ClosureStatus = 'loading' | 'solving' | 'wrong' | 'correct' | 'error'
 
 interface ClosureState {
   status: ClosureStatus
-  /** Сколько раз промахнулся (для эмпатичного, не карающего тона). */
+  problem: VerificationProblemDTO | null
   attempts: number
-  /** Проверить ответ — переводит статус в correct/wrong. */
   check: (value: string) => void
-  /** Сбросить промах обратно в solving (после правки ввода). */
   resume: () => void
 }
 
-// Локальная машина закрепления: контрольная решается БЕЗ подсказок.
-// Верный ответ → 'correct' (празднование + закрытие). Неверный → 'wrong'
-// (мягкий ретрай, без стыда). Решение фиксируется в локальной session-памяти
-// вызывающим кодом (onClosed) — здесь только статус.
+// Живое закрепление: контрольная приходит с verification/start (тот же узел,
+// другая задача), проверка — verification/answer (server-side). Верно → 'correct'
+// + сервер помечает recurring_errors.resolved. Неверно → 'wrong' (мягкий ретрай).
 export function useClosure(
-  problem: VerificationProblem,
+  drillProblemId: number,
+  microSkill: string | null,
   onClosed?: () => void,
 ): ClosureState {
-  const [status, setStatus] = useState<ClosureStatus>('solving')
+  const [status, setStatus] = useState<ClosureStatus>('loading')
+  const [problem, setProblem] = useState<VerificationProblemDTO | null>(null)
   const [attempts, setAttempts] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+    startVerification(drillProblemId, microSkill)
+      .then((p) => {
+        if (!alive) return
+        setProblem(p)
+        setStatus('solving')
+      })
+      .catch(() => {
+        if (alive) setStatus('error')
+      })
+    return () => {
+      alive = false
+    }
+  }, [drillProblemId, microSkill])
 
   const check = useCallback(
     (value: string) => {
-      if (answersMatch(value, problem.expected)) {
-        setStatus('correct')
-        onClosed?.()
-        return
-      }
-      setAttempts((n) => n + 1)
-      setStatus('wrong')
+      if (!problem) return
+      answerVerification(problem.problem_id, value, microSkill)
+        .then((res) => {
+          if (res.correct) {
+            setStatus('correct')
+            onClosed?.()
+            return
+          }
+          setAttempts((n) => n + 1)
+          setStatus('wrong')
+        })
+        .catch(() => setStatus('error'))
     },
-    [problem.expected, onClosed],
+    [problem, microSkill, onClosed],
   )
 
   const resume = useCallback(() => {
     setStatus((s) => (s === 'wrong' ? 'solving' : s))
   }, [])
 
-  return { status, attempts, check, resume }
+  return { status, problem, attempts, check, resume }
 }

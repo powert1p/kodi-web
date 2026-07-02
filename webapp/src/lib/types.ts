@@ -61,6 +61,15 @@ export interface AnalyticsData {
   global_top?: GlobalErrorOut[]
 }
 
+/** View-модель строки аналитики (не BE-контракт; строится из RecurringErrorOut). */
+export interface ErrorType {
+  micro_skill: string
+  label: string
+  topic_label: string
+  count: number
+  last_cause: string | null
+}
+
 /** Проблемная тема ученика (зеркало BE ProblemTopicOut). */
 export interface ProblemTopic {
   topic_id: string
