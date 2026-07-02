@@ -131,3 +131,11 @@
 - `api/routers/trainer.py` (НЕ растит routes.py) — GET /api/trainer/wrong-tasks, POST /api/trainer/diagnose (multipart фото, ≤8МБ, content-type allowlist, фото пишется ПОСЛЕ commit), GET /api/trainer/analytics (my_top + global_top для владельца).
 - `db/seed_decomposition.py` — сид банка. `run.py:on_startup` создаёт все 6 таблиц + сидит.
 **Frontend (новое, заменяет Flutter):** `webapp/` — mobile-PWA (React19+Vite+Tailwind v4+RR7+TanStack Query+vite-plugin-pwa+KaTeX), base `/app/`, served same-origin из backend (StaticFiles, Dockerfile node-stage). Дизайн-система `webapp/DESIGN_SYSTEM.md` (v3 Duolingo-style оранжевый). lib/{ladder,image,api,auth,types}.ts; features/{auth,hub,drill,closure,analytics}; components/{Button3D,Mascot,...}. Auth: phone+PIN (бэкенд /api/auth/phone/*), токен localStorage `kodi.jwt`. Старый Flutter `frontend/` + мок `cabinet/` — заморожены.
+
+## Тренажёр: context-pack + чат-тьютор + закрытие ошибки (Обновлено: 2026-07-02)
+**Backend:**
+- `core/agent_context.py` — `build_agent_context(session, *, student_id, problem_id, decomp_idx=None)` → AgentContext (задача+канон. шаги+fingerprints+прошлые диагнозы+recurring_errors+mastery+тема). ЕДИНАЯ точка grounding: её потребляют и `/diagnose`, и чат.
+- `core/tutor.py` — `build_system_prompt` (сократический, correct_answer только «для тебя, НЕ называй ученику») + `generate_tutor_reply` (history-трим 20); `llm_openai.chat_reply(messages)` — текстовый chat-completions без vision.
+- `core/trainer.py` (+) — `build_problem_topics` (агрегат тем через nodes.topic_id, fallback через problems.node_id); WrongTask.id = **attempts.id** (стабильный, НЕ UUID — deep-link closure зависит от этого).
+- `api/routers/trainer.py` (+5 endpoints) — GET `/problem-topics`; POST `/verification/start|answer` (check_answer решает правильность, resolved по node_id); GET `/easier` (climb-down, pick_easier_decomp); POST `/tutor/chat` (rate-limit 15/min, session auto-create ON CONFLICT, 503 при LlmUnavailable).
+**Frontend (webapp/):** hub/`ProblemTopicsCard` (темы+closure_progress); drill/`TutorPanel` (multi-turn чат после диагноза, greeting локально без LLM); closure на живом API (`useClosure` → verification/*, инвалидация wrong-tasks+problem-topics после correct); analytics рендерит `my_top` (контракт BE, mock-fallback удалён).

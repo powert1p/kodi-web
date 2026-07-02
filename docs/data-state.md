@@ -45,3 +45,8 @@
 - **error_captures** — факт ошибки по фото + диагноз (transcription/failed_step/cause_text/level/model/confidence/image_ref).
 - **recurring_errors** (PK student_id+micro_skill) — накопление повторов для таргетинга + аналитики владельцу.
 ⚠️ Сид: `seed_decomposition()` в одной транзакции, guarded (только если пусто или FORCE_RESEED=1). ⚠️ Старая dev-БД `nismathbot` могла недосоздать error_captures/recurring_errors (ancient state) — лечится `Base.metadata.create_all`. На свежей серверной БД `run.py` создаёт все 6.
+
+## Чат-тьютор + каноническая таксономия (Обновлено: 2026-07-02)
+- **tutor_sessions** (id PK, UNIQUE(student_id, problem_id) — против гонки auto-create) и **tutor_messages** (FK session CASCADE, role/content) — история диалога с ИИ-тьютором. DDL идемпотентно в `run.py`. Итого таблиц: **18**.
+- `recurring_errors.resolved` выставляется closure-флоу **по node_id** верификационной задачи (не по micro_skill — ключи диагноза и декомпозиции расходятся, см. commit 89ba073).
+- **Каноническая таксономия = CC-слой** (strand→topic→node→micro_skill). Агрегат «проблемных тем» (`build_problem_topics`): error_captures→problems.node_id→nodes.topic_id→topics. **Deprecated (legacy, не удалять молча):** `node.tag` (15 плоских доменов) и `micro_skills.domain` — рантайм на них больше не группирует. `docs/specs/cc_topic_skill_tree.json` (remap 372→337) — архив, кодом не читается, remap решено НЕ делать.

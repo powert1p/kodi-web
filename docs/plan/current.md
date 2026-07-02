@@ -1,6 +1,6 @@
 # Текущий план — kodi-web
 
-**Обновлено:** 2026-06-22
+**Обновлено:** 2026-07-02
 
 Контекст: воскрешение проекта из learning-эпохи. Полный разбор — [AUDIT-REPORT.md](../../AUDIT-REPORT.md), спека — [docs/specs/2026-06-22-kodi-web-audit-scaffold-revive.md](../specs/2026-06-22-kodi-web-audit-scaffold-revive.md).
 
@@ -46,5 +46,19 @@
 
 ### 2026-06-26 деплой — DONE (кроме server-key)
 - [x] Фронт под AiPlus design system (v4). rsync+docker build на aiplus, прод поднят: /health 200, /app/ PWA, 6 таблиц+сид (db_linked 61.8%), login→wrong-tasks live.
-- [ ] **GEMINI_API_KEY в ~/kodi-web/.env на сервере** → `docker compose up -d` → /diagnose оживёт (локально проверено).
-- [ ] Closure/Analytics live, ru+kz parity, финальное ревью, публичный vhost (root).
+- [x] GEMINI_API_KEY на сервере, /diagnose live (2026-06-26).
+- [x] Closure/Analytics live + финальное ревью — закрыто волной 2026-07-02 (ниже).
+
+### 2026-07-02 бэк-ядро + ИИ-тьютор — DONE (спека `docs/specs/2026-07-02-error-trainer-backend-core.md`)
+- [x] Каноническая таксономия = CC-слой; `node.tag`/`micro_skills.domain` deprecated; remap 372→337 отклонён (архив).
+- [x] Context-pack (`core/agent_context.py`) — единый grounding для diagnose и чата.
+- [x] Чат-тьютор: tutor_sessions/tutor_messages + POST /tutor/chat + TutorPanel в drill. Прод live: сократика, session reuse, history растёт.
+- [x] Verification API (closure с мока → сервер, resolved по node_id), GET /problem-topics (+hub-блок), GET /easier.
+- [x] Analytics контракт my_top BE↔FE. 77 pytest (реальный PG) + 43 vitest. E2E ALL PASS. Деплой aiplus + live-чат. Merge ff → main (15dea9f), push origin.
+
+### Бэклог тренажёра (после 2026-07-02)
+- [ ] Продуктовое решение: скрывать ли закрытые ошибки из wrong-tasks (сейчас «Закрыто 0 из 2» при закрытой теме — счётчик от recurring_errors, список от attempts).
+- [ ] Подключить climb-down UI (GET /easier есть, фронт-консьюмера нет — fetchEasier без хука).
+- [ ] Мелочи: FinishedCard «46 ₽» (валютный формат на арифметике); seed_demo.py `.scalar()` дважды; dead code (resolve_decomp import F401 в роутере, analytics/mock.ts, stale docstring); in-flight guard useClosure.check.
+- [ ] Обогатить diagnose-промпт полями context-pack (recurring_errors/past_diagnoses сейчас отбрасываются проекцией — структурно готово).
+- [ ] ru+kz parity фронта; валидация vision на реальных рукописных фото НИШ; публичный vhost (root/Умид).
