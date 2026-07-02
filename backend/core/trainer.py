@@ -8,6 +8,7 @@
   - route_level                — числовой уровень 1/2/3 по порогу владения (Task 6).
   - pick_easier_decomp         — decomp-запись с наименьшим числом шагов для умения (Task 6).
   - pick_verification_problem  — проверочная задача того же узла, другая (Task 6).
+  - build_problem_topics       — агрегат «мои проблемные темы» (CC-слой, Task 3).
 """
 
 from __future__ import annotations
@@ -602,3 +603,100 @@ async def pick_verification_problem(
         answer=row.answer,
         sub_difficulty=row.sub_difficulty,
     )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Проблемные темы: агрегат student × topic (CC-таксономия)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass
+class ProblemTopicRow:
+    """Агрегат по теме для hub тренажёра."""
+
+    topic_id: str
+    strand: str | None
+    name_ru: str | None
+    error_count: int
+    top_micro_skills: list[str]
+    nodes_mastery_avg: float
+    closure_progress: float  # 0..1: доля resolved recurring_errors в теме
+
+
+async def build_problem_topics(session: AsyncSession, student_id: int) -> list[ProblemTopicRow]:
+    """Агрегирует ошибки ученика по темам (CC-слой).
+
+    error_count — через error_captures → problems.node_id → nodes.topic_id → topics.
+    Fallback гарантирован: агрегация НЕ зависит от decomposition-линка (practice ok).
+    top_micro_skills / closure_progress — из recurring_errors по узлам темы.
+    nodes_mastery_avg — средний p_mastery по узлам темы (default 0.0).
+    """
+    # ── error_count по темам ──
+    err_rows = await session.execute(
+        text(
+            "SELECT n.topic_id, t.strand, t.name_ru, COUNT(ec.id) AS error_count "
+            "FROM error_captures ec "
+            "JOIN problems p ON p.id = ec.problem_id "
+            "JOIN nodes n ON n.id = p.node_id "
+            "LEFT JOIN topics t ON t.id = n.topic_id "
+            "WHERE ec.student_id = :sid AND n.topic_id IS NOT NULL "
+            "GROUP BY n.topic_id, t.strand, t.name_ru "
+            "ORDER BY error_count DESC"
+        ),
+        {"sid": student_id},
+    )
+    topics: dict[str, ProblemTopicRow] = {}
+    for r in err_rows:
+        topics[r.topic_id] = ProblemTopicRow(
+            topic_id=r.topic_id, strand=r.strand, name_ru=r.name_ru,
+            error_count=r.error_count, top_micro_skills=[],
+            nodes_mastery_avg=0.0, closure_progress=0.0,
+        )
+    if not topics:
+        return []
+
+    tids = list(topics.keys())
+
+    # ── recurring_errors по темам: top skills + closure progress ──
+    re_rows = await session.execute(
+        text(
+            "SELECT n.topic_id, re.micro_skill, re.error_count, re.resolved "
+            "FROM recurring_errors re "
+            "JOIN nodes n ON n.id = re.node_id "
+            "WHERE re.student_id = :sid AND n.topic_id = ANY(:tids) "
+            "ORDER BY re.error_count DESC"
+        ),
+        {"sid": student_id, "tids": tids},
+    )
+    resolved_cnt: dict[str, int] = {t: 0 for t in tids}
+    total_cnt: dict[str, int] = {t: 0 for t in tids}
+    for r in re_rows:
+        tid = r.topic_id
+        if tid not in topics:
+            continue
+        total_cnt[tid] += 1
+        if r.resolved:
+            resolved_cnt[tid] += 1
+        if len(topics[tid].top_micro_skills) < 3:
+            topics[tid].top_micro_skills.append(r.micro_skill)
+
+    # ── средний mastery по узлам темы ──
+    m_rows = await session.execute(
+        text(
+            "SELECT n.topic_id, AVG(m.p_mastery) AS avg_m "
+            "FROM mastery m JOIN nodes n ON n.id = m.node_id "
+            "WHERE m.student_id = :sid AND n.topic_id = ANY(:tids) "
+            "GROUP BY n.topic_id"
+        ),
+        {"sid": student_id, "tids": tids},
+    )
+    for r in m_rows:
+        if r.topic_id in topics:
+            topics[r.topic_id].nodes_mastery_avg = float(r.avg_m) if r.avg_m is not None else 0.0
+
+    # ── closure_progress ──
+    for tid, row in topics.items():
+        total = total_cnt.get(tid, 0)
+        row.closure_progress = (resolved_cnt.get(tid, 0) / total) if total else 0.0
+
+    return sorted(topics.values(), key=lambda x: x.error_count, reverse=True)

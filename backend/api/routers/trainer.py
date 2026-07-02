@@ -20,7 +20,14 @@ from sqlalchemy import text
 from api.routes import _get_current_student
 from core.config import settings
 from core.llm_openai import LlmUnavailable, diagnose_photo
-from core.trainer import StepDTO, WrongTask, build_wrong_tasks, match_fingerprint, resolve_decomp
+from core.trainer import (
+    StepDTO,
+    WrongTask,
+    build_problem_topics,
+    build_wrong_tasks,
+    match_fingerprint,
+    resolve_decomp,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +95,24 @@ class AnalyticsResponse(BaseModel):
 
     my_top: list[RecurringErrorOut]
     global_top: list[GlobalErrorOut] | None = None
+
+
+class ProblemTopicOut(BaseModel):
+    """Одна проблемная тема для hub."""
+
+    topic_id: str
+    strand: str | None
+    name_ru: str | None
+    error_count: int
+    top_micro_skills: list[str]
+    nodes_mastery_avg: float
+    closure_progress: float
+
+
+class ProblemTopicsResponse(BaseModel):
+    """Ответ /problem-topics."""
+
+    topics: list[ProblemTopicOut]
 
 
 # ── Маппинг dataclass → Pydantic ─────────────────────────────────────────────
@@ -219,6 +244,24 @@ async def get_analytics(request: Request) -> AnalyticsResponse:
         await session.close()
 
     return AnalyticsResponse(my_top=my_top, global_top=global_top)
+
+
+@router.get("/problem-topics", response_model=ProblemTopicsResponse)
+async def get_problem_topics(request: Request) -> ProblemTopicsResponse:
+    """Проблемные темы ученика (CC-агрегат): ошибки, топ-умения, прогресс закрытия."""
+    session, student = await _get_current_student(request)
+    try:
+        rows = await build_problem_topics(session, student_id=student.id)
+    finally:
+        await session.close()
+    return ProblemTopicsResponse(topics=[
+        ProblemTopicOut(
+            topic_id=r.topic_id, strand=r.strand, name_ru=r.name_ru,
+            error_count=r.error_count, top_micro_skills=r.top_micro_skills,
+            nodes_mastery_avg=r.nodes_mastery_avg, closure_progress=r.closure_progress,
+        )
+        for r in rows
+    ])
 
 
 # ── Pydantic-схема ответа /diagnose ──────────────────────────────────────────
