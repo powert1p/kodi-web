@@ -584,7 +584,7 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
     session, student = await _get_current_student(request)
     try:
         prob = (await session.execute(
-            text("SELECT answer, answer_type FROM problems WHERE id = :pid"),
+            text("SELECT node_id, answer, answer_type FROM problems WHERE id = :pid"),
             {"pid": payload.problem_id},
         )).fetchone()
         if prob is None:
@@ -592,13 +592,16 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
 
         correct = check_answer(payload.answer, prob.answer, prob.answer_type)
 
-        if correct and payload.micro_skill:
+        if correct:
+            # recurring_errors ключуется ДИАГНОСТИРОВАННЫМ failed_micro_skill, а не
+            # payload.micro_skill (это primary_micro_skill decomp'а FE) — ключи расходятся.
+            # Резолвим по node_id проверочной задачи, а не по micro_skill.
             await session.execute(
                 text(
                     "UPDATE recurring_errors SET resolved = true "
-                    "WHERE student_id = :sid AND micro_skill = :ms"
+                    "WHERE student_id = :sid AND node_id = :nid AND resolved = false"
                 ),
-                {"sid": student.id, "ms": payload.micro_skill},
+                {"sid": student.id, "nid": prob.node_id},
             )
             await session.commit()
     finally:

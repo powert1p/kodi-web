@@ -34,9 +34,12 @@ async def vclient(db_session):
         "INSERT INTO problems (node_id, text_ru, answer, sub_difficulty) "
         "VALUES ('VF01', 'контрольная', '20', 2) RETURNING id"
     ))).scalar_one()
+    # recurring_errors ключуется ДИАГНОСТИРОВАННЫМ failed_micro_skill ('vf_failed_ms'),
+    # который отличается от primary_micro_skill decomp'а, приходящего с FE ('vf_skill') —
+    # резолв должен идти по node_id, а не по совпадению micro_skill.
     await db_session.execute(text(
         "INSERT INTO recurring_errors (student_id, micro_skill, node_id, error_count, resolved, created_at) "
-        "VALUES (:sid, 'vf_skill', 'VF01', 2, false, NOW()) ON CONFLICT DO NOTHING"
+        "VALUES (:sid, 'vf_failed_ms', 'VF01', 2, false, NOW()) ON CONFLICT DO NOTHING"
     ), {"sid": SID})
     await db_session.commit()
 
@@ -86,7 +89,7 @@ async def test_verification_answer_correct_resolves(vclient):
     fac = async_sessionmaker(eng, expire_on_commit=False)
     async with fac() as s:
         res = (await s.execute(text(
-            "SELECT resolved FROM recurring_errors WHERE student_id = :sid AND micro_skill = 'vf_skill'"
+            "SELECT resolved FROM recurring_errors WHERE student_id = :sid AND micro_skill = 'vf_failed_ms'"
         ), {"sid": sid})).scalar_one()
     await eng.dispose()
     assert res is True
