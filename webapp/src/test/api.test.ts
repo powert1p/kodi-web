@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { fetchWrongTasks, fetchAnalytics, postDiagnose } from '../lib/api'
+import {
+  fetchWrongTasks,
+  fetchAnalytics,
+  postDiagnose,
+  asAnalyticsData,
+  fetchProblemTopics,
+  startVerification,
+  answerVerification,
+  sendTutorMessage,
+} from '../lib/api'
 import type { WrongTask } from '../lib/types'
 
 // ——————————————————————————————————
@@ -148,5 +157,63 @@ describe('useWrongTask selector (selectById)', () => {
   it('в пустом массиве всегда undefined', () => {
     const result = selectById([], 'wt-aaa')
     expect(result).toBeUndefined()
+  })
+})
+
+// ——————————————————————————————————
+// asAnalyticsData (my_top контракт)
+// ——————————————————————————————————
+
+describe('asAnalyticsData (my_top контракт)', () => {
+  it('нормализует {my_top} в AnalyticsData', () => {
+    const raw = { my_top: [{ micro_skill: 'pc', label_ru: 'Проценты', error_count: 3, last_cause_text: null, node_id: 'PC02' }] }
+    const result = asAnalyticsData(raw)
+    expect(result?.my_top).toHaveLength(1)
+    expect(result?.my_top[0]?.micro_skill).toBe('pc')
+  })
+  it('возвращает null если my_top отсутствует', () => {
+    expect(asAnalyticsData({ foo: 1 })).toBeNull()
+  })
+})
+
+describe('fetchProblemTopics', () => {
+  it('парсит {topics}', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ topics: [{ topic_id: '6.PC', strand: 'PC', name_ru: 'Проценты', error_count: 3, top_micro_skills: ['pc'], nodes_mastery_avg: 0.4, closure_progress: 0.5 }] }),
+    }))
+    const result = await fetchProblemTopics()
+    expect(result).toHaveLength(1)
+    expect(result[0]?.topic_id).toBe('6.PC')
+  })
+})
+
+describe('verification', () => {
+  it('startVerification постит problem_id', async () => {
+    let body: string | null = null
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((_u: string, init: RequestInit) => {
+      body = init.body as string
+      return Promise.resolve({ ok: true, json: async () => ({ problem_id: 2, node_id: 'VF01', topic_label: 'x', statement: 'q', micro_skill: 'vf', xp: 30 }) })
+    }))
+    const res = await startVerification(1, 'vf')
+    expect(res.problem_id).toBe(2)
+    expect(JSON.parse(body as unknown as string).problem_id).toBe(1)
+  })
+  it('answerVerification возвращает correct', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ correct: true }) }))
+    const res = await answerVerification(2, '20', 'vf')
+    expect(res.correct).toBe(true)
+  })
+})
+
+describe('sendTutorMessage', () => {
+  it('возвращает reply + history', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ session_id: 1, reply: 'подумай', history: [{ role: 'user', content: 'hi' }, { role: 'assistant', content: 'подумай' }] }),
+    }))
+    const res = await sendTutorMessage(1, 'hi')
+    expect(res.reply).toBe('подумай')
+    expect(res.history).toHaveLength(2)
   })
 })

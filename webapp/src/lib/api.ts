@@ -3,9 +3,8 @@
 // Bearer JWT берётся из localStorage по ключу STORAGE_KEY.
 
 import { useQuery, useMutation } from '@tanstack/react-query'
-import type { WrongTask, Diagnosis, AnalyticsData } from './types'
+import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO } from './types'
 import { MOCK_WRONG_TASKS } from '../features/hub/mock'
-import { MOCK_ANALYTICS } from '../features/analytics/mock'
 
 /** Ключ хранилища JWT-токена. */
 const STORAGE_KEY = 'kodi.jwt'
@@ -113,37 +112,23 @@ export async function fetchWrongTasks(days?: number, limit?: number): Promise<Wr
 
 /**
  * Получить аналитику по тренажёру (топ повторяющихся ошибок).
- * В DEV (не в тестах): пустой ответ или NetworkError → подставляем mock-фикстуру,
- * чтобы экран «Прогресс» был демонстрируем без живого бэка. Тесты (MODE=test)
- * всегда получают сырой ответ — fallback их не трогает.
+ * Возвращает сырой JSON — нормализация в типизированный AnalyticsData через asAnalyticsData.
  */
 export async function fetchAnalytics(): Promise<unknown> {
-  const devFallback = import.meta.env.DEV && import.meta.env.MODE !== 'test'
-  try {
-    const res = await apiFetch(`${API_BASE}/trainer/analytics`, {
-      headers: authHeaders(),
-    })
-    const data = (await res.json()) as Partial<AnalyticsData> | null
-    if (devFallback && (!data || !data.error_types || data.error_types.length === 0)) {
-      return MOCK_ANALYTICS
-    }
-    return data
-  } catch (err) {
-    // В DEV эндпоинт ещё не построен → 404 (ApiError) или offline (NetworkError)
-    // одинаково подставляют мок, чтобы экран был демонстрируем. Тесты не трогаем.
-    if (devFallback && (err instanceof NetworkError || err instanceof ApiError)) {
-      return MOCK_ANALYTICS
-    }
-    throw err
-  }
+  const res = await apiFetch(`${API_BASE}/trainer/analytics`, { headers: authHeaders() })
+  return res.json()
 }
 
-/** Нормализует unknown-ответ аналитики в типизированный AnalyticsData (или null). */
+/** Нормализует unknown-ответ аналитики в AnalyticsData (или null). */
 export function asAnalyticsData(raw: unknown): AnalyticsData | null {
   if (!raw || typeof raw !== 'object') return null
-  const types = (raw as { error_types?: unknown }).error_types
-  if (!Array.isArray(types)) return null
-  return { error_types: types as AnalyticsData['error_types'] }
+  const myTop = (raw as { my_top?: unknown }).my_top
+  if (!Array.isArray(myTop)) return null
+  const globalTop = (raw as { global_top?: unknown }).global_top
+  return {
+    my_top: myTop as AnalyticsData['my_top'],
+    global_top: Array.isArray(globalTop) ? (globalTop as AnalyticsData['global_top']) : undefined,
+  }
 }
 
 /** Параметры запроса диагноза ошибки. */
@@ -214,4 +199,56 @@ export function useDiagnose() {
   return useMutation({
     mutationFn: (params: DiagnoseParams) => postDiagnose(params),
   })
+}
+
+// ── Проблемные темы ──
+export async function fetchProblemTopics(): Promise<ProblemTopic[]> {
+  const res = await apiFetch(`${API_BASE}/trainer/problem-topics`, { headers: authHeaders() })
+  const data = (await res.json()) as { topics?: ProblemTopic[] }
+  return data.topics ?? []
+}
+
+export function useProblemTopics() {
+  return useQuery({
+    queryKey: ['problem-topics'],
+    queryFn: fetchProblemTopics,
+    staleTime: 60_000,
+  })
+}
+
+// ── Verification (closure) ──
+export async function startVerification(problemId: number, microSkill?: string | null): Promise<VerificationProblemDTO> {
+  const res = await apiFetch(`${API_BASE}/trainer/verification/start`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problem_id: problemId, micro_skill: microSkill ?? null }),
+  })
+  return res.json() as Promise<VerificationProblemDTO>
+}
+
+export async function answerVerification(problemId: number, answer: string, microSkill?: string | null): Promise<{ correct: boolean }> {
+  const res = await apiFetch(`${API_BASE}/trainer/verification/answer`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problem_id: problemId, answer, micro_skill: microSkill ?? null }),
+  })
+  return res.json() as Promise<{ correct: boolean }>
+}
+
+// ── Чат тьютора ──
+export async function sendTutorMessage(problemId: number, message: string, decompIdx?: number | null): Promise<TutorChatResponse> {
+  const res = await apiFetch(`${API_BASE}/trainer/tutor/chat`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problem_id: problemId, message, decomp_idx: decompIdx ?? null }),
+  })
+  return res.json() as Promise<TutorChatResponse>
+}
+
+// ── Climb-down ──
+export async function fetchEasier(microSkill: string, excludeIdx?: number | null): Promise<unknown> {
+  const params = new URLSearchParams({ micro_skill: microSkill })
+  if (excludeIdx != null) params.set('exclude_idx', String(excludeIdx))
+  const res = await apiFetch(`${API_BASE}/trainer/easier?${params.toString()}`, { headers: authHeaders() })
+  return res.json()
 }

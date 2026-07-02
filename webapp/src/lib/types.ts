@@ -38,24 +38,61 @@ export interface WrongTask {
   mastery: number
 }
 
-/** Один повторяющийся тип ошибки ученика (для экрана «Прогресс»). */
-export interface ErrorType {
-  /** Стабильный ключ микро-навыка. */
+/** Запись повторяющейся ошибки ученика (зеркало BE RecurringErrorOut). */
+export interface RecurringErrorOut {
   micro_skill: string
-  /** Человекочитаемый ярлык (ru). */
-  label: string
-  /** Тема/узел, к которому относится навык. */
-  topic_label: string
-  /** Сколько раз ошибка повторялась. */
-  count: number
-  /** Последняя причина — короткая эмпатичная строка (или null). */
-  last_cause: string | null
+  label_ru: string | null
+  error_count: number
+  last_cause_text: string | null
+  node_id: string | null
 }
 
-/** Аналитика тренажёра: топ повторяющихся ошибок ученика. */
+/** Глобальный топ ошибок (только для владельца). */
+export interface GlobalErrorOut {
+  micro_skill: string
+  label_ru: string | null
+  total_errors: number
+  students_affected: number
+}
+
+/** Аналитика тренажёра (зеркало BE AnalyticsResponse). */
 export interface AnalyticsData {
-  /** Топ типов ошибок, отсортированы по убыванию count. */
-  error_types: ErrorType[]
+  my_top: RecurringErrorOut[]
+  global_top?: GlobalErrorOut[]
+}
+
+/** Проблемная тема ученика (зеркало BE ProblemTopicOut). */
+export interface ProblemTopic {
+  topic_id: string
+  strand: string | null
+  name_ru: string | null
+  error_count: number
+  top_micro_skills: string[]
+  nodes_mastery_avg: number
+  closure_progress: number
+}
+
+/** Одна реплика чата тьютора. */
+export interface TutorMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/** Ответ POST /tutor/chat. */
+export interface TutorChatResponse {
+  session_id: number
+  reply: string
+  history: TutorMessage[]
+}
+
+/** Контрольная задача из BE verification/start. */
+export interface VerificationProblemDTO {
+  problem_id: number
+  node_id: string
+  topic_label: string
+  statement: string
+  micro_skill: string | null
+  xp: number
 }
 
 /** Диагноз ошибки (визуальный разбор по фото/тексту решения). */
