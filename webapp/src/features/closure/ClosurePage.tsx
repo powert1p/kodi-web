@@ -15,11 +15,15 @@ import { useWrongTask } from '../../lib/api'
 export function ClosurePage() {
   const navigate = useNavigate()
   const { taskId } = useParams<{ taskId: string }>()
-  const { data: task } = useWrongTask(taskId ?? '')
+  const { data: task, isLoading: isTaskLoading } = useWrongTask(taskId ?? '')
   const closure = useClosure(task?.problem_id ?? 0, task?.primary_micro_skill ?? null)
 
   const isDone = closure.status === 'correct'
   const problem = closure.problem
+
+  // Задача не найдена в кэше wrong-tasks (id устарел/не существует) — не висим
+  // вечно на "Готовлю контрольную…", а показываем информер с выходом на срез.
+  const isTaskNotFound = !isTaskLoading && !task
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,7 +40,16 @@ export function ClosurePage() {
         </ApButton>
       </div>
 
-      {isDone ? (
+      {isTaskNotFound ? (
+        <div className="ap-card reveal flex flex-col items-start gap-3 p-4" style={{ '--reveal-delay': '60ms' } as CSSProperties}>
+          <p className="text-caption1 text-text-secondary">
+            Не нашли эту задачу — возможно, срез уже обновился.
+          </p>
+          <ApButton variant="outlined" size="s" onClick={() => navigate('/')}>
+            К срезу
+          </ApButton>
+        </div>
+      ) : isDone ? (
         <div className="reveal" style={{ '--reveal-delay': '60ms' } as CSSProperties}>
           <ClosureCelebration
             xp={problem?.xp ?? 30}

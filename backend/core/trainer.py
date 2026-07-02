@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import logging
-import uuid
 from dataclasses import dataclass
 from typing import NamedTuple
 
@@ -224,7 +223,7 @@ class StepDTO:
 class WrongTask:
     """Задача из неверных попыток ученика с декомпозицией и маршрутом."""
 
-    id: str                          # UUID-строка для идентификации на клиенте
+    id: str                          # id попытки (attempts.id), стабилен между вызовами
     problem_id: int
     node_id: str
     topic_label: str
@@ -350,10 +349,10 @@ async def build_wrong_tasks(
     # = ANY(:sources) — asyncpg-native синтаксис для text[] (нет f-строк).
     raw = await session.execute(
         text(
-            "SELECT problem_id, node_id, answer_given, created_at, statement, answer, topic_label "
+            "SELECT attempt_id, problem_id, node_id, answer_given, created_at, statement, answer, topic_label "
             "FROM ("
             "  SELECT DISTINCT ON (a.problem_id) "
-            "    a.problem_id, a.node_id, a.answer_given, a.created_at, "
+            "    a.id AS attempt_id, a.problem_id, a.node_id, a.answer_given, a.created_at, "
             "    p.text_ru AS statement, p.answer, "
             "    n.name_ru AS topic_label "
             "  FROM attempts a "
@@ -435,7 +434,7 @@ async def build_wrong_tasks(
 
         result.append(
             WrongTask(
-                id=str(uuid.uuid4()),
+                id=str(row.attempt_id),
                 problem_id=row.problem_id,
                 node_id=row.node_id,
                 topic_label=row.topic_label,
