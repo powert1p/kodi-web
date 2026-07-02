@@ -26,6 +26,9 @@ export function useClosure(
   const [attempts, setAttempts] = useState(0)
 
   useEffect(() => {
+    // Холодный кэш wrong-tasks: problem_id ещё 0 (useWrongTask не отдал данные) —
+    // ждём реальный id, статус остаётся 'loading', запрос не шлём.
+    if (!drillProblemId) return
     let alive = true
     startVerification(drillProblemId, microSkill)
       .then((p) => {

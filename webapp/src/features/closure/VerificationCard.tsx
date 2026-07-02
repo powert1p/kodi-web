@@ -80,7 +80,7 @@ export function VerificationCard({
 function RetryBanner({ attempts }: { attempts: number }) {
   const text =
     attempts >= 2
-      ? 'Почти! Пересчитай ещё раз — помни про смену базы после первого шага.'
+      ? 'Почти! Перечитай условие и проверь каждый шаг заново.'
       : 'Чуть мимо — это нормально. Глянь числа и попробуй снова, ты близко.'
 
   return (
