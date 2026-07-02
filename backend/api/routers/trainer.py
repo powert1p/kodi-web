@@ -17,7 +17,7 @@ from fastapi import File as FastApiFile
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from api.routes import _get_current_student
+from api.routes import _get_current_student, limiter
 from core.config import settings
 from core.grading import check_answer
 from core.llm_openai import LlmUnavailable, diagnose_photo
@@ -31,6 +31,7 @@ from core.trainer import (
     pick_verification_problem,
     resolve_decomp,
 )
+from core.tutor import generate_tutor_reply
 
 logger = logging.getLogger(__name__)
 
@@ -654,3 +655,98 @@ async def get_easier(
         decomp_idx=row.idx, node_id=row.node_id, answer=row.answer,
         primary_micro_skill=row.primary_micro_skill, step_count=row.step_count, steps=steps,
     )
+
+
+# ── Чат-тьютор: multi-turn диалог после диагноза ──────────────────────────────
+
+class TutorChatIn(BaseModel):
+    problem_id: int
+    decomp_idx: int | None = None
+    message: str
+
+
+class TutorMessageOut(BaseModel):
+    role: str
+    content: str
+
+
+class TutorChatOut(BaseModel):
+    session_id: int
+    reply: str
+    history: list[TutorMessageOut]
+
+
+@router.post("/tutor/chat", response_model=TutorChatOut)
+@limiter.limit("15/minute")
+async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOut:
+    """Один ход диалога с тьютором. Сессия auto-create по (студент, задача)."""
+    session, student = await _get_current_student(request)
+    try:
+        # Проверяем задачу (404)
+        prob = (await session.execute(
+            text("SELECT node_id FROM problems WHERE id = :pid"),
+            {"pid": payload.problem_id},
+        )).fetchone()
+        if prob is None:
+            raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
+
+        # Reuse или create сессии
+        sess_row = (await session.execute(
+            text(
+                "SELECT id FROM tutor_sessions "
+                "WHERE student_id = :sid AND problem_id = :pid "
+                "ORDER BY id DESC LIMIT 1"
+            ),
+            {"sid": student.id, "pid": payload.problem_id},
+        )).fetchone()
+        if sess_row is None:
+            session_id = (await session.execute(
+                text(
+                    "INSERT INTO tutor_sessions (student_id, problem_id, node_id, created_at) "
+                    "VALUES (:sid, :pid, :nid, NOW()) RETURNING id"
+                ),
+                {"sid": student.id, "pid": payload.problem_id, "nid": prob.node_id},
+            )).scalar_one()
+        else:
+            session_id = sess_row.id
+
+        # История из БД
+        hist_rows = await session.execute(
+            text(
+                "SELECT role, content FROM tutor_messages "
+                "WHERE session_id = :sess ORDER BY id"
+            ),
+            {"sess": session_id},
+        )
+        history = [{"role": h.role, "content": h.content} for h in hist_rows]
+
+        # Генерация ответа (LLM)
+        reply = await generate_tutor_reply(
+            session,
+            student_id=student.id,
+            problem_id=payload.problem_id,
+            decomp_idx=payload.decomp_idx,
+            user_message=payload.message,
+            history=history,
+        )
+
+        # Persist обе реплики
+        await session.execute(
+            text(
+                "INSERT INTO tutor_messages (session_id, role, content, created_at) VALUES "
+                "(:sess, 'user', :u, NOW()), (:sess, 'assistant', :a, NOW())"
+            ),
+            {"sess": session_id, "u": payload.message, "a": reply},
+        )
+        await session.commit()
+
+        # Итоговая история
+        full = await session.execute(
+            text("SELECT role, content FROM tutor_messages WHERE session_id = :sess ORDER BY id"),
+            {"sess": session_id},
+        )
+        out_history = [TutorMessageOut(role=r.role, content=r.content) for r in full]
+    finally:
+        await session.close()
+
+    return TutorChatOut(session_id=session_id, reply=reply, history=out_history)

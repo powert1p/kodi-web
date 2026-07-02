@@ -372,3 +372,42 @@ async def diagnose_photo(
         f"Все модели в {provider}_model_chain недоступны "
         f"(последняя ошибка: {type(last_exc).__name__})"
     )
+
+
+# ─── текстовый чат (тьютор, без vision) ───────────────────────────────────────
+
+async def chat_reply(messages: list[dict]) -> str:
+    """Возвращает текст ответа модели на список messages (system+history+user).
+
+    Использует активного провайдера (Gemini flash по умолчанию) без изображений.
+    Raises LlmUnavailable если клиент недоступен или все модели chain упали.
+    """
+    client, model_chain = _get_active_client()
+    if client is None:
+        raise LlmUnavailable("Chat клиент недоступен: пустой ключ или пакет openai не установлен.")
+
+    from core.config import settings  # noqa: PLC0415
+    provider = settings.vision_provider
+
+    last_exc: Exception | None = None
+    for model in model_chain:
+        try:
+            response = await asyncio.wait_for(
+                client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=800,
+                ),
+                timeout=_OPENAI_TIMEOUT,
+            )
+            return response.choices[0].message.content or ""
+        except asyncio.TimeoutError as exc:
+            logger.warning("%s chat timeout (model=%s)", provider, model)
+            last_exc = exc
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("%s chat error (model=%s): %s", provider, model, type(exc).__name__)
+            last_exc = exc
+
+    raise LlmUnavailable(
+        f"Все модели в {provider}_model_chain недоступны (chat, {type(last_exc).__name__})"
+    )
