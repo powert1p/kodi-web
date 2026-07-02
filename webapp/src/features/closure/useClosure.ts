@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { startVerification, answerVerification } from '../../lib/api'
 import type { VerificationProblemDTO } from '../../lib/types'
 
@@ -24,6 +25,7 @@ export function useClosure(
   const [status, setStatus] = useState<ClosureStatus>('loading')
   const [problem, setProblem] = useState<VerificationProblemDTO | null>(null)
   const [attempts, setAttempts] = useState(0)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     // Холодный кэш wrong-tasks: problem_id ещё 0 (useWrongTask не отдал данные) —
@@ -51,6 +53,10 @@ export function useClosure(
         .then((res) => {
           if (res.correct) {
             setStatus('correct')
+            // Ошибка закрыта на сервере (recurring_errors.resolved) — обновляем
+            // кэши hub'а, чтобы список ошибок/проблемных тем сразу отразил закрытие.
+            queryClient.invalidateQueries({ queryKey: ['wrong-tasks'] })
+            queryClient.invalidateQueries({ queryKey: ['problem-topics'] })
             onClosed?.()
             return
           }
@@ -59,7 +65,7 @@ export function useClosure(
         })
         .catch(() => setStatus('error'))
     },
-    [problem, microSkill, onClosed],
+    [problem, microSkill, onClosed, queryClient],
   )
 
   const resume = useCallback(() => {
