@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { useWrongTasks } from './useWrongTasks'
 import { StatusRow } from './StatusRow'
 import { HubHero } from './HubHero'
+import { ProblemTopicsCard } from './ProblemTopicsCard'
 import { TaskCard } from './TaskCard'
 import { HubSkeleton } from './HubSkeleton'
 import { HubEmpty } from './HubEmpty'
@@ -52,6 +53,8 @@ export function HubPage() {
           >
             <HubHero total={total} done={done} />
           </div>
+
+          <ProblemTopicsCard delay={100} />
 
           <div
             className="reveal flex items-center gap-2 px-0.5 pt-1"
