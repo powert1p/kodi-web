@@ -8,6 +8,7 @@ import { PhotoCapture } from './PhotoCapture'
 import { DiagnosingState } from './DiagnosingState'
 import { DiagnosisCard } from './DiagnosisCard'
 import { DiagnosisError } from './DiagnosisError'
+import { TutorPanel } from './TutorPanel'
 import { FinishedCard } from './FinishedCard'
 import { useDrill } from './useDrill'
 import { useDiagnoseFlow } from './useDiagnoseFlow'
@@ -140,11 +141,14 @@ function DrillContent({ task }: { task: WrongTask }) {
           )}
 
           {flow.status === 'result' && flow.diagnosis && (
-            <DiagnosisCard
-              diagnosis={flow.diagnosis}
-              stepLabel={stepLabel}
-              onCorrect={flow.reset}
-            />
+            <>
+              <DiagnosisCard
+                diagnosis={flow.diagnosis}
+                stepLabel={stepLabel}
+                onCorrect={flow.reset}
+              />
+              <TutorPanel problemId={task.problem_id} decompIdx={task.decomp_idx} />
+            </>
           )}
 
           {flow.status === 'error' && (
