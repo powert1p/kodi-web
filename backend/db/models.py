@@ -13,6 +13,7 @@ from sqlalchemy import (
     SmallInteger,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy import JSON
@@ -346,7 +347,9 @@ class TutorSession(Base):
 
     __tablename__ = "tutor_sessions"
     __table_args__ = (
-        Index("idx_tutor_sessions_student_problem", "student_id", "problem_id"),
+        # UNIQUE (не просто индекс) — защита от гонки SELECT-then-INSERT в эндпоинте:
+        # ON CONFLICT DO NOTHING опирается именно на этот констрейнт.
+        UniqueConstraint("student_id", "problem_id", name="uq_tutor_sessions_student_problem"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

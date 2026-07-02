@@ -700,13 +700,30 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
             {"sid": student.id, "pid": payload.problem_id},
         )).fetchone()
         if sess_row is None:
-            session_id = (await session.execute(
+            # ON CONFLICT DO NOTHING — защита от гонки при параллельных запросах
+            # (два запроса могут одновременно не найти сессию в SELECT выше).
+            # Опирается на UNIQUE (student_id, problem_id) в модели TutorSession.
+            insert_row = (await session.execute(
                 text(
                     "INSERT INTO tutor_sessions (student_id, problem_id, node_id, created_at) "
-                    "VALUES (:sid, :pid, :nid, NOW()) RETURNING id"
+                    "VALUES (:sid, :pid, :nid, NOW()) "
+                    "ON CONFLICT (student_id, problem_id) DO NOTHING "
+                    "RETURNING id"
                 ),
                 {"sid": student.id, "pid": payload.problem_id, "nid": prob.node_id},
-            )).scalar_one()
+            )).fetchone()
+            if insert_row is None:
+                # Конфликт — параллельный запрос уже создал сессию; забираем её id
+                session_id = (await session.execute(
+                    text(
+                        "SELECT id FROM tutor_sessions "
+                        "WHERE student_id = :sid AND problem_id = :pid "
+                        "ORDER BY id DESC LIMIT 1"
+                    ),
+                    {"sid": student.id, "pid": payload.problem_id},
+                )).scalar_one()
+            else:
+                session_id = insert_row.id
         else:
             session_id = sess_row.id
 
@@ -720,15 +737,22 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
         )
         history = [{"role": h.role, "content": h.content} for h in hist_rows]
 
-        # Генерация ответа (LLM)
-        reply = await generate_tutor_reply(
-            session,
-            student_id=student.id,
-            problem_id=payload.problem_id,
-            decomp_idx=payload.decomp_idx,
-            user_message=payload.message,
-            history=history,
-        )
+        # Генерация ответа (LLM); LlmUnavailable → 503 (паттерн diagnose_photo)
+        try:
+            reply = await generate_tutor_reply(
+                session,
+                student_id=student.id,
+                problem_id=payload.problem_id,
+                decomp_idx=payload.decomp_idx,
+                user_message=payload.message,
+                history=history,
+            )
+        except LlmUnavailable as exc:
+            logger.warning("LLM недоступен для tutor/chat: %s", exc)
+            raise HTTPException(
+                status_code=503,
+                detail="Тьютор временно недоступен. Попробуйте позже.",
+            ) from exc
 
         # Persist обе реплики
         await session.execute(

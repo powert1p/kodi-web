@@ -10,6 +10,10 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 
+from core.agent_context import AgentContext
+from core.llm_openai import LlmUnavailable
+from core.tutor import build_system_prompt
+
 _TEST_URL = os.getenv("TEST_DATABASE_URL")
 
 
@@ -83,3 +87,37 @@ async def test_tutor_chat_no_token_401(tclient):
     ac, token, pid, sid = tclient
     resp = await ac.post("/api/trainer/tutor/chat", json={"problem_id": pid, "message": "hi"})
     assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_tutor_chat_llm_unavailable_503(tclient, monkeypatch):
+    """Если все модели LLM недоступны — эндпоинт отдаёт 503, а не 500."""
+    ac, token, pid, sid = tclient
+
+    async def _raise_unavailable(*args, **kwargs):
+        raise LlmUnavailable("все модели упали")
+    monkeypatch.setattr("api.routers.trainer.generate_tutor_reply", _raise_unavailable)
+
+    resp = await ac.post("/api/trainer/tutor/chat",
+                         headers={"Authorization": f"Bearer {token}"},
+                         json={"problem_id": pid, "message": "не понял этот шаг"})
+    assert resp.status_code == 503, resp.text
+
+
+def test_build_system_prompt_hides_final_answer():
+    """system-промпт содержит правильный ответ (для модели), но с маркером НЕ раскрывать ученику."""
+    ctx = AgentContext(
+        problem_id=1,
+        node_id="TU01",
+        statement="Реши уравнение 2x = 4",
+        correct_answer="42",
+        canonical_steps=[{"n": 1, "instruction_ru": "раздели обе части на 2", "expected_value": "x=2"}],
+        fingerprints=[],
+        past_diagnoses=[],
+        recurring_errors=[],
+        node_mastery=0.5,
+        topic=None,
+    )
+    prompt = build_system_prompt(ctx)
+    assert "42" in prompt
+    assert "НЕ называй ученику" in prompt

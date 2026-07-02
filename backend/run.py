@@ -141,7 +141,9 @@ async def on_startup():
                 created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
             )
             """,
-            "CREATE INDEX IF NOT EXISTS idx_tutor_sessions_student_problem ON tutor_sessions (student_id, problem_id)",
+            # UNIQUE (не просто индекс) — гарантирует одну сессию тьютора на (студент, задача),
+            # ON CONFLICT в эндпоинте /tutor/chat опирается на этот констрейнт.
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_tutor_sessions_student_problem ON tutor_sessions (student_id, problem_id)",
             """
             CREATE TABLE IF NOT EXISTS tutor_messages (
                 id          SERIAL      PRIMARY KEY,
