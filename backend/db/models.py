@@ -339,3 +339,43 @@ class RecurringError(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
     )
+
+
+class TutorSession(Base):
+    """Сессия чата с ИИ-тьютором: одна на (студент, задача)."""
+
+    __tablename__ = "tutor_sessions"
+    __table_args__ = (
+        Index("idx_tutor_sessions_student_problem", "student_id", "problem_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    problem_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False
+    )
+    node_id: Mapped[str] = mapped_column(String(10), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
+class TutorMessage(Base):
+    """Одна реплика чата тьютора (user/assistant)."""
+
+    __tablename__ = "tutor_messages"
+    __table_args__ = (
+        Index("idx_tutor_messages_session", "session_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    session_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("tutor_sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    role: Mapped[str] = mapped_column(String(16), nullable=False)  # 'user' | 'assistant'
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )

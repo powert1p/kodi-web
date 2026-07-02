@@ -131,6 +131,27 @@ async def on_startup():
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_recurring_errors_micro_skill ON recurring_errors (micro_skill)",
+            # ── чат-тьютор: сессии + сообщения ──
+            """
+            CREATE TABLE IF NOT EXISTS tutor_sessions (
+                id          SERIAL      PRIMARY KEY,
+                student_id  BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                problem_id  INTEGER     NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+                node_id     VARCHAR(10) NOT NULL,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_tutor_sessions_student_problem ON tutor_sessions (student_id, problem_id)",
+            """
+            CREATE TABLE IF NOT EXISTS tutor_messages (
+                id          SERIAL      PRIMARY KEY,
+                session_id  INTEGER     NOT NULL REFERENCES tutor_sessions(id) ON DELETE CASCADE,
+                role        VARCHAR(16) NOT NULL,
+                content     TEXT        NOT NULL,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_tutor_messages_session ON tutor_messages (session_id)",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")
