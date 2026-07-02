@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from sqlalchemy import text
 
 from api.routes import _get_current_student, limiter
+from core.agent_context import build_agent_context
 from core.config import settings
 from core.grading import check_answer
 from core.llm_openai import LlmUnavailable, diagnose_photo
@@ -396,21 +397,14 @@ async def post_diagnose(
                 fingerprint_hint = fp.mistake_ru
                 fallback_micro_skill = fp.micro_skill
 
-        # ── 5. resolve_decomp → canonical_steps ──────────────────────────────
-        decomp = await resolve_decomp(session, problem_id=problem_id, node_id=node_id, answer=correct_answer)
-        canonical_steps: list[dict] = []
-        if decomp is not None:
-            steps_rows = await session.execute(
-                text(
-                    "SELECT n, instruction_ru, expected_value FROM problem_steps "
-                    "WHERE decomp_idx = :didx ORDER BY n"
-                ),
-                {"didx": decomp.idx},
-            )
-            canonical_steps = [
-                {"n": s.n, "instruction_ru": s.instruction_ru, "expected_value": s.expected_value}
-                for s in steps_rows
-            ]
+        # ── 5. Grounding через единый context-pack ───────────────────────────
+        agent_ctx = await build_agent_context(
+            session, student_id=student.id, problem_id=problem_id
+        )
+        canonical_steps: list[dict] = [
+            {"n": s["n"], "instruction_ru": s["instruction_ru"], "expected_value": s["expected_value"]}
+            for s in agent_ctx.canonical_steps
+        ]
 
         # ── 6. Вызываем vision-диагностику (LlmUnavailable → 503) ────────────
         try:
