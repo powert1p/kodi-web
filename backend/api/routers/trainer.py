@@ -19,6 +19,7 @@ from sqlalchemy import text
 
 from api.routes import _get_current_student
 from core.config import settings
+from core.grading import check_answer
 from core.llm_openai import LlmUnavailable, diagnose_photo
 from core.trainer import (
     StepDTO,
@@ -26,6 +27,7 @@ from core.trainer import (
     build_problem_topics,
     build_wrong_tasks,
     match_fingerprint,
+    pick_verification_problem,
     resolve_decomp,
 )
 
@@ -518,3 +520,92 @@ async def post_diagnose(
         confidence=result.confidence,
         image_ref=image_ref,
     )
+
+
+# ── Verification (closure): проверочная задача того же навыка ─────────────────
+
+class VerificationStartIn(BaseModel):
+    problem_id: int
+    micro_skill: str | None = None
+
+
+class VerificationStartOut(BaseModel):
+    problem_id: int
+    node_id: str
+    topic_label: str
+    statement: str
+    micro_skill: str | None
+    xp: int
+
+
+class VerificationAnswerIn(BaseModel):
+    problem_id: int
+    answer: str
+    micro_skill: str | None = None
+
+
+class VerificationAnswerOut(BaseModel):
+    correct: bool
+
+
+_VERIFICATION_XP = 30
+
+
+@router.post("/verification/start", response_model=VerificationStartOut)
+async def post_verification_start(request: Request, payload: VerificationStartIn) -> VerificationStartOut:
+    """Даёт контрольную задачу того же узла (другую), чтобы закрыть ошибку."""
+    session, _student = await _get_current_student(request)
+    try:
+        prob = (await session.execute(
+            text("SELECT node_id FROM problems WHERE id = :pid"),
+            {"pid": payload.problem_id},
+        )).fetchone()
+        if prob is None:
+            raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
+        node_id: str = prob.node_id
+
+        vp = await pick_verification_problem(
+            session, node_id=node_id, exclude_problem_id=payload.problem_id
+        )
+        if vp is None:
+            raise HTTPException(status_code=404, detail="Нет проверочной задачи для этого узла")
+
+        topic_label = (await session.execute(
+            text("SELECT name_ru FROM nodes WHERE id = :nid"), {"nid": node_id}
+        )).scalar() or node_id
+    finally:
+        await session.close()
+
+    return VerificationStartOut(
+        problem_id=vp.id, node_id=vp.node_id, topic_label=topic_label,
+        statement=vp.text_ru, micro_skill=payload.micro_skill, xp=_VERIFICATION_XP,
+    )
+
+
+@router.post("/verification/answer", response_model=VerificationAnswerOut)
+async def post_verification_answer(request: Request, payload: VerificationAnswerIn) -> VerificationAnswerOut:
+    """Проверяет ответ на контрольную. Верно + micro_skill → recurring_errors.resolved=true."""
+    session, student = await _get_current_student(request)
+    try:
+        prob = (await session.execute(
+            text("SELECT answer, answer_type FROM problems WHERE id = :pid"),
+            {"pid": payload.problem_id},
+        )).fetchone()
+        if prob is None:
+            raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
+
+        correct = check_answer(payload.answer, prob.answer, prob.answer_type)
+
+        if correct and payload.micro_skill:
+            await session.execute(
+                text(
+                    "UPDATE recurring_errors SET resolved = true "
+                    "WHERE student_id = :sid AND micro_skill = :ms"
+                ),
+                {"sid": student.id, "ms": payload.micro_skill},
+            )
+            await session.commit()
+    finally:
+        await session.close()
+
+    return VerificationAnswerOut(correct=correct)
