@@ -64,12 +64,8 @@ logger = logging.getLogger(__name__)
 
 # Путь к реальному JSON по умолчанию.
 # В Docker-образе backend/ копируется в /app, а файл кладётся в /app/data/ (COPY в Dockerfile),
-# т.к. docs/ в образ НЕ копируется. Локально data/-копии нет → фолбэк на docs/specs/.
-_BACKEND_DATA_JSON = pathlib.Path(__file__).parent.parent / "data" / "full_decomposition_v1.json"
-_REPO_SPECS_JSON = (
-    pathlib.Path(__file__).parent.parent.parent / "docs" / "specs" / "full_decomposition_v1.json"
-)
-_DEFAULT_JSON = _BACKEND_DATA_JSON if _BACKEND_DATA_JSON.exists() else _REPO_SPECS_JSON
+# т.к. docs/ в образ НЕ копируется. Единственный источник — backend/data/ (docs/specs-копия удалена).
+_DEFAULT_JSON = pathlib.Path(__file__).parent.parent / "data" / "full_decomposition_v1.json"
 
 # Размер batch при flush (не commit!) шагов и fingerprints
 _BATCH_SIZE = 500
@@ -94,6 +90,11 @@ async def seed_decomposition(
        "steps": int, "fingerprints": int}
     """
     path = pathlib.Path(json_path) if json_path else _DEFAULT_JSON
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Файл декомпозиций не найден: {path}. "
+            "Ожидается backend/data/full_decomposition_v1.json (COPY в Dockerfile)."
+        )
 
     # ── 1. Загрузка JSON ──────────────────────────────────────────────────────
     logger.info("Загрузка декомпозиций из %s …", path)
