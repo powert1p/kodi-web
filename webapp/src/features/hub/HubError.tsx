@@ -1,4 +1,5 @@
 import { Mascot } from '../../components/Mascot'
+import { ApCard } from '../../components/ApCard'
 import { ApButton } from '../../components/ApButton'
 import { RestartIcon } from '../../icons'
 
@@ -9,18 +10,18 @@ interface HubErrorProps {
 // Error (на уровне компонента): что случилось + как починить, без извинений и без карающего тона.
 export function HubError({ onRetry }: HubErrorProps) {
   return (
-    <div className="ap-card reveal flex flex-col items-center gap-5 px-6 py-12 text-center">
-      <Mascot mood="oops" size={88} />
-      <div className="flex flex-col gap-1.5">
-        <h2 className="text-h3 text-text-primary">Срез не загрузился</h2>
-        <p className="max-w-[16rem] text-caption1 text-text-secondary">
+    <ApCard padding="l" className="reveal flex flex-col items-center gap-5 py-12 text-center">
+      <Mascot mood="oops" size="l" />
+      <div className="flex flex-col gap-2">
+        <h2 className="text-h3 text-ink">Срез не загрузился</h2>
+        <p className="max-w-[16rem] text-caption1 text-muted">
           Похоже, пропала связь. Проверь интернет и попробуй ещё раз.
         </p>
       </div>
-      <ApButton variant="filled" size="m" onClick={onRetry}>
+      <ApButton variant="primary" size="m" onClick={onRetry}>
         <RestartIcon size={18} />
         Повторить
       </ApButton>
-    </div>
+    </ApCard>
   )
 }

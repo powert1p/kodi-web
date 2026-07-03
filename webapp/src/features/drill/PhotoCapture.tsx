@@ -35,16 +35,16 @@ export function PhotoCapture({ onPhoto, disabled = false }: PhotoCaptureProps) {
         tabIndex={-1}
       />
       <ApButton
-        variant="filled"
+        variant="primary"
         size="m"
-        block
+        full
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
       >
         <CameraUploadIcon size={20} />
         Сфотографировать решение
       </ApButton>
-      <p className="px-1 text-center text-caption2 text-text-secondary">
+      <p className="px-1 text-center text-caption2 text-muted">
         Застрял? Покажи Кёди свою запись — найдём, где сбилось.
       </p>
     </div>

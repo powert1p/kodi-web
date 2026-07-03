@@ -1,4 +1,4 @@
-// Экран входа / регистрации в стиле AiPlus (плоский, белый фон, бренд-оранжевый).
+// Экран входа/регистрации (v5: paper-подложка, Golos Text, тёплый бренд-оранжевый).
 // Шаги: 1) ввод телефона → проверка /phone/check → ветка login или register.
 //        2a) login: PIN → вход.
 //        2b) register: имя → PIN → регистрация.
@@ -16,11 +16,11 @@ import { checkPhone } from '../../lib/auth'
 // Этап формы.
 type Step = 'phone' | 'login' | 'register-name' | 'register-pin'
 
-// Маскот-настроение по этапу.
+// Маскот-настроение по этапу (§5 Кёди-протокол: hi на входе).
 function mascotMood(step: Step, hasError: boolean) {
   if (hasError) return 'oops' as const
-  if (step === 'phone') return 'cheer' as const
-  if (step === 'login') return 'think' as const
+  if (step === 'phone') return 'hi' as const
+  if (step === 'login') return 'thinking' as const
   return 'celebrate' as const
 }
 
@@ -35,9 +35,21 @@ function stepTitle(step: Step): string {
 // Подзаголовок по этапу.
 function stepSub(step: Step, phone: string): string {
   if (step === 'phone') return 'Войдём через номер телефона'
-  if (step === 'login') return `Введи PIN для ${phone}`
+  if (step === 'login') return `Введи PIN для ${formatPhoneDisplay(phone)}`
   if (step === 'register-name') return 'Имя видно только тебе'
   return 'Минимум 4 цифры — запомни его'
+}
+
+// Консистентный формат телефона для ОТОБРАЖЕНИЯ (+7 700 000 00 00) — вне
+// зависимости от того, как ученик набрал номер (пробелы/без пробелов/8 вместо 7).
+// Значение, которое реально уходит на сервер, не трогаем (auth.ts принимает
+// сырой ввод как есть). Нестандартный ввод (не 11 цифр) — показываем как есть,
+// не гадаем и не ломаем номер.
+function formatPhoneDisplay(raw: string): string {
+  const digits = raw.replace(/\D/g, '').replace(/^8(\d{10})$/, '7$1')
+  if (digits.length !== 11 || digits[0] !== '7') return raw.trim()
+  const d = digits.slice(1)
+  return `+7 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 8)} ${d.slice(8, 10)}`
 }
 
 export function LoginPage() {
@@ -115,10 +127,10 @@ export function LoginPage() {
     }
   }
 
-  // Кнопка «← Другой номер» / «← Назад» (outlined AiPlus).
+  // Кнопка «← Другой номер» / «← Назад» — тихая ghost (ambient-навигация).
   function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
     return (
-      <ApButton variant="outlined" size="s" block onClick={onClick} disabled={loading}>
+      <ApButton variant="ghost" size="m" full onClick={onClick} disabled={loading}>
         <LeftIcon size={16} />
         {label}
       </ApButton>
@@ -138,11 +150,11 @@ export function LoginPage() {
             placeholder="+7 700 000 00 00"
             inputMode="tel"
             autoComplete="tel"
-            fieldSize="lg"
+            fieldSize="l"
             disabled={loading}
             error={error}
           />
-          <ApButton type="submit" block size="m" isLoading={loading}>
+          <ApButton type="submit" full size="m" loading={loading}>
             Продолжить
           </ApButton>
         </form>
@@ -161,11 +173,11 @@ export function LoginPage() {
             inputMode="numeric"
             autoComplete="current-password"
             maxLength={12}
-            fieldSize="lg"
+            fieldSize="l"
             disabled={loading}
             error={error}
           />
-          <ApButton type="submit" block size="m" isLoading={loading}>
+          <ApButton type="submit" full size="m" loading={loading}>
             Войти
           </ApButton>
           <BackButton onClick={() => { setStep('phone'); setPin(''); setError(null) }} label="Другой номер" />
@@ -182,11 +194,11 @@ export function LoginPage() {
             onChange={(e) => { setName(e.target.value); clearError() }}
             placeholder="Айдана"
             autoComplete="given-name"
-            fieldSize="lg"
+            fieldSize="l"
             disabled={loading}
             error={error}
           />
-          <ApButton type="submit" block size="m">
+          <ApButton type="submit" full size="m">
             Далее
           </ApButton>
           <BackButton onClick={() => { setStep('phone'); setError(null) }} label="Другой номер" />
@@ -206,11 +218,11 @@ export function LoginPage() {
           inputMode="numeric"
           autoComplete="new-password"
           maxLength={12}
-          fieldSize="lg"
+          fieldSize="l"
           disabled={loading}
           error={error}
         />
-        <ApButton type="submit" block size="m" isLoading={loading}>
+        <ApButton type="submit" full size="m" loading={loading}>
           Создать аккаунт
         </ApButton>
         <BackButton onClick={() => { setStep('register-name'); setPin(''); setError(null) }} label="Назад" />
@@ -219,23 +231,28 @@ export function LoginPage() {
   }
 
   return (
-    <div className="relative min-h-dvh bg-bg-primary">
-      <div className="mx-auto flex min-h-dvh w-full max-w-[26rem] flex-col items-center justify-center px-6 pb-12">
+    <div className="relative flex min-h-dvh flex-col bg-paper">
+      <div className="mx-auto flex w-full max-w-[30rem] flex-1 flex-col justify-center px-6 py-8">
+        {/* Герой формы — центрирован как ОДНА группа (мascot+форма+низ):
+            пустота делится пополам сверху/снизу, а не копится единым мёртвым блоком (canon §2.8) */}
         <div
-          className="reveal flex w-full flex-col items-center gap-6"
+          className="reveal flex w-full flex-col items-center gap-8"
           style={{ '--reveal-delay': '0ms' } as CSSProperties}
         >
-          {/* Маскот + заголовок */}
           <div className="flex flex-col items-center gap-3 text-center">
-            <Mascot mood={mood} size={88} className={mood === 'celebrate' ? 'bob' : ''} />
+            <Mascot mood={mood} size="m" className={mood === 'celebrate' ? 'bob' : ''} />
             <div className="flex flex-col gap-1">
-              <h1 className="text-h2 text-text-primary">{stepTitle(step)}</h1>
-              <p className="text-caption1 text-text-secondary">{stepSub(step, phone)}</p>
+              <h1 className="text-h2 text-ink">{stepTitle(step)}</h1>
+              <p className="text-study text-muted">{stepSub(step, phone)}</p>
             </div>
           </div>
 
-          {/* Форма */}
           <div className="w-full">{renderForm()}</div>
+
+          {/* Тихий низ — сразу под формой, не в отдельной пустой половине экрана */}
+          <p className="text-center text-caption1 text-muted">
+            Кёди рядом на каждом шаге — разберём ошибки вместе.
+          </p>
         </div>
       </div>
     </div>

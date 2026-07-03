@@ -10,8 +10,8 @@ import { HubError } from './HubError'
 import { STATE_PRIORITY } from './stateConfig'
 
 // Hub — «срез» ошибок. Главный экран: статус-строка геймификации (streak + XP),
-// приветствие маскота с полосой прогресса, затем плоские плитки-ошибки,
-// отсортированные по приоритету разбора. Каждое действие — чанковая 3D-кнопка.
+// hero с ЕДИНСТВЕННЫМ primary-CTA «Разобрать первую», затем плоские плитки-ошибки,
+// отсортированные по приоритету разбора (сами тапаются, без кнопки-дубля).
 //
 // Геймификация: streak/points — заглушка до соответствующего эндпоинта
 // (на сегодня показываем демо-значения; форму подключим позже).
@@ -51,7 +51,7 @@ export function HubPage() {
             className="reveal"
             style={{ '--reveal-delay': '60ms' } as CSSProperties}
           >
-            <HubHero total={total} done={done} />
+            <HubHero total={total} done={done} firstTaskId={tasks[0]?.id ?? null} />
           </div>
 
           <ProblemTopicsCard delay={100} />
@@ -60,11 +60,11 @@ export function HubPage() {
             className="reveal flex items-center gap-2 px-0.5 pt-1"
             style={{ '--reveal-delay': '120ms' } as CSSProperties}
           >
-            <h2 className="text-h3 text-text-primary">Твои ошибки</h2>
-            <span className="font-num inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-bg-secondary px-1.5 text-caption2-medium tabular-nums text-text-dark-gray">
+            <h2 className="text-h3 text-ink">Твои ошибки</h2>
+            <span className="font-num inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-surface px-1 text-caption2-medium tabular-nums text-text">
               {total}
             </span>
-            <span className="ml-auto text-caption1 text-text-secondary">сложные сверху</span>
+            <span className="ml-auto text-caption1 text-muted">сложные сверху</span>
           </div>
 
           <ul className="flex flex-col gap-3">

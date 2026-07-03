@@ -4,6 +4,7 @@ import { MathText } from '../../components/MathText'
 import { ApButton } from '../../components/ApButton'
 import { ApInformer } from '../../components/ApInformer'
 import { ApTag } from '../../components/ApTag'
+import { ApCard } from '../../components/ApCard'
 import { Mascot } from '../../components/Mascot'
 
 interface VerificationCardProps {
@@ -19,9 +20,10 @@ interface VerificationCardProps {
   onResume: () => void
 }
 
-// Контрольная без подсказок — выделенная карточка AiPlus (selected: бренд-бордер
-// + bg-light-brand-warning): эйбров + условие через KaTeX + поле + «Проверить».
-// Промах — warning-Informer (поддержка, не наказание), ввод сохраняется.
+// Контрольная без подсказок — ApCard tone=brand-soft (единственный ДРУГОЙ активный
+// фокус на этом экране, законно — это единственная интерактивная задача экрана):
+// эйбров + условие через KaTeX + поле + «Проверить». Промах — attn-Informer
+// (поддержка, не наказание, амбер — НИКОГДА красный), ввод сохраняется.
 export function VerificationCard({
   statement,
   wrong,
@@ -43,19 +45,19 @@ export function VerificationCard({
   }
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-stroke-brand bg-bg-light-brand-warning p-4">
+    <ApCard as="article" tone="brand-soft" padding="m" className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <span className="min-w-0 flex-1 truncate text-caption2-medium uppercase tracking-[0.1em] text-text-brand">
+        <span className="min-w-0 flex-1 truncate text-caption2-medium uppercase tracking-[0.1em] text-brand">
           Контрольная
         </span>
-        <ApTag status="default">без подсказок</ApTag>
+        <ApTag status="neutral">без подсказок</ApTag>
       </div>
 
-      <p className="text-h3 text-text-primary">
+      <p className="text-h3 text-ink">
         <MathText text={statement} />
       </p>
 
-      <form onSubmit={handleSubmit} className="flex items-stretch gap-2.5">
+      <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
         <input
           inputMode="decimal"
           value={value}
@@ -63,20 +65,21 @@ export function VerificationCard({
           placeholder="Твой ответ"
           aria-label="Введите ответ контрольной"
           autoComplete="off"
-          className="font-num min-w-0 flex-1 rounded-lg border border-stroke-primary-disabled bg-bg-primary px-4 text-body tabular-nums text-text-primary placeholder:text-text-secondary outline-none focus:border-[1.5px] focus:border-stroke-brand"
+          className="font-num min-w-0 flex-1 rounded-control border border-stroke bg-surface px-4 text-body tabular-nums text-text placeholder:text-muted outline-none focus:border-[1.5px] focus:border-brand"
           style={{ fontSize: '16px' }}
         />
-        <ApButton type="submit" variant="filled" size="m" disabled={!value.trim()}>
+        <ApButton type="submit" variant="primary" size="m" disabled={!value.trim()}>
           Проверить
         </ApButton>
       </form>
 
       {wrong && <RetryBanner attempts={attempts} />}
-    </article>
+    </ApCard>
   )
 }
 
-// Мягкий ретрай: warning-Informer, маскот подбадривает. Без красного, без стыда.
+// Мягкий ретрай: attn-Informer (амбер — «не сошлось», НИКОГДА красный),
+// маскот подбадривает. Учебный текст (canon §1) — реплика Кёди ≥18px.
 function RetryBanner({ attempts }: { attempts: number }) {
   const text =
     attempts >= 2
@@ -86,11 +89,11 @@ function RetryBanner({ attempts }: { attempts: number }) {
   return (
     <div className="reveal">
       <ApInformer
-        type="warning"
-        leading={<Mascot mood="oops" size={40} className="shrink-0" />}
+        tone="attn"
+        leading={<Mascot mood="oops" size="s" className="shrink-0" />}
         title="Почти"
       >
-        {text}
+        <span className="text-study">{text}</span>
       </ApInformer>
     </div>
   )

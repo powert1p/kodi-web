@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { useProblemTopics } from '../../lib/api'
+import { ApCard } from '../../components/ApCard'
 import { ApLinearProgress } from '../../components/ApLinearProgress'
 import { ApTag } from '../../components/ApTag'
 
@@ -8,11 +9,11 @@ interface ProblemTopicsCardProps {
   delay?: number
 }
 
-// Блок «Мои проблемные темы» (AiPlus ap-card) — над списком «Твои ошибки»:
+// Блок «Мои проблемные темы» (ApCard surface) — над списком «Твои ошибки»:
 // тема → бейдж числа ошибок → полоса прогресса закрытия. Сортировка по
 // error_count убывающая (самая горящая тема сверху), топ-1 получает единственный
-// на всю карточку тёплый акцент (ApTag primary «Начни отсюда») — то же зерно,
-// что и warm-подложка HubHero, но не повторяем её целиком, только точечно.
+// на всю карточку тёплый акцент (ApTag brand «Начни отсюда») — то же зерно,
+// что и hero, но не повторяем её целиком, только точечно.
 // Error/empty — тихо скрываем блок (пока темы не посчитаны, лишний шум хуже пустоты).
 export function ProblemTopicsCard({ delay = 0 }: ProblemTopicsCardProps) {
   const { data, isPending, isError } = useProblemTopics()
@@ -25,43 +26,41 @@ export function ProblemTopicsCard({ delay = 0 }: ProblemTopicsCardProps) {
     .slice(0, 5)
 
   return (
-    <section
-      className="ap-card reveal flex flex-col gap-3 p-4"
+    <ApCard
+      as="section"
+      padding="m"
+      className="reveal flex flex-col gap-3"
       style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}
     >
-      <div className="flex items-center gap-2">
-        <h2 className="text-h3 text-text-primary">Мои проблемные темы</h2>
-        <span className="ml-auto text-caption1 text-text-secondary">закрой ошибки</span>
-      </div>
+      <h2 className="text-h3 text-ink">Мои проблемные темы</h2>
 
-      <ul className="flex flex-col gap-3.5">
+      <ul className="flex flex-col gap-4">
         {topics.map((t, i) => {
-          const pct = Math.round(t.closure_progress * 100)
+          const pct = t.closure_progress
           const name = t.name_ru ?? t.topic_id
           const isTop = i === 0
 
           return (
-            <li key={t.topic_id} className="flex flex-col gap-1.5">
+            <li key={t.topic_id} className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <span className="min-w-0 flex-1 truncate text-caption1-medium text-text-primary">
+                <span className="line-clamp-2 min-w-0 flex-1 text-caption1-medium text-ink">
                   {name}
                 </span>
-                {isTop && <ApTag status="primary">Начни отсюда</ApTag>}
-                <span className="font-num inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full bg-bg-secondary px-1.5 text-caption2-medium tabular-nums text-text-dark-gray">
+                {isTop && <ApTag status="brand">Начни отсюда</ApTag>}
+                <span className="font-num inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-paper px-1 text-caption2-medium tabular-nums text-text">
                   {t.error_count}
                 </span>
               </div>
               <ApLinearProgress
                 value={pct}
-                max={100}
                 minShown={0.02}
-                ariaLabel={`Закрытие темы «${name}»: ${pct}%`}
+                ariaLabel={`Закрытие темы «${name}»: ${Math.round(pct * 100)}%`}
               />
             </li>
           )
         })}
       </ul>
-    </section>
+    </ApCard>
   )
 }
 
@@ -69,22 +68,23 @@ export function ProblemTopicsCard({ delay = 0 }: ProblemTopicsCardProps) {
 // не «прыгала» при появлении данных — тот же shimmer, что и в HubSkeleton.
 function ProblemTopicsSkeleton({ delay }: { delay: number }) {
   return (
-    <div
-      className="ap-card reveal flex flex-col gap-3 p-4"
+    <ApCard
+      padding="m"
+      className="reveal flex flex-col gap-3"
       style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}
       aria-busy="true"
       aria-label="Загрузка проблемных тем"
     >
-      <div className="shimmer h-5 w-48 rounded-sm bg-bg-secondary" />
+      <div className="shimmer h-5 w-48 rounded-chip bg-paper" />
       {[0, 1].map((i) => (
-        <div key={i} className="flex flex-col gap-1.5">
+        <div key={i} className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <div className="shimmer h-4 w-32 rounded-sm bg-bg-secondary" />
-            <div className="shimmer ml-auto h-[18px] w-7 rounded-full bg-bg-secondary" />
+            <div className="shimmer h-4 w-32 rounded-chip bg-paper" />
+            <div className="shimmer ml-auto h-5 w-7 rounded-full bg-paper" />
           </div>
-          <div className="shimmer h-2 w-full rounded-xs bg-bg-secondary" />
+          <div className="shimmer h-2 w-full rounded-full bg-paper" />
         </div>
       ))}
-    </div>
+    </ApCard>
   )
 }

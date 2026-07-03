@@ -36,10 +36,10 @@ export function Ladder({
         // Цвет хребта НИЖЕ этого узла = статус следующего перехода (токены AiPlus).
         const spineVar =
           rung.status === 'solved'
-            ? 'var(--bg-success)'
+            ? 'var(--success)'
             : rung.status === 'active'
-              ? 'var(--bg-brand)'
-              : 'var(--stroke-primary-disabled)'
+              ? 'var(--brand)'
+              : 'var(--stroke)'
 
         return (
           <li key={rung.key} className="relative flex gap-3 pb-3 last:pb-0">
@@ -49,10 +49,10 @@ export function Ladder({
                 aria-hidden
                 className={`mt-3 size-3 rounded-full ${
                   rung.status === 'solved'
-                    ? 'bg-bg-success'
+                    ? 'bg-success'
                     : rung.status === 'active'
-                      ? 'bg-bg-brand ring-4 ring-bg-brand/15'
-                      : 'bg-stroke-primary-disabled'
+                      ? 'bg-brand ring-4 ring-brand/15'
+                      : 'bg-stroke'
                 }`}
               />
               {!isLast && (

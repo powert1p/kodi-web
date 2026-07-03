@@ -19,23 +19,23 @@ interface LevelMeta {
   /** Короткая рамочная строка (голос маскота). */
   line: string
   /** Настроение маскота для интро. */
-  mood: 'cheer' | 'think'
+  mood: 'hi' | 'thinking'
 }
 
 export const LEVEL_META: Record<DrillLevel, LevelMeta> = {
   1: {
     eyebrow: 'Уровень 1 · с нуля',
     line: 'Разберём тему вместе — по одному маленькому шагу. Спешить некуда.',
-    mood: 'cheer',
+    mood: 'hi',
   },
   2: {
     eyebrow: 'Уровень 2 · напоминание',
     line: 'Метод ты уже знаешь — давай вспомним, как решать. Подскажу, если что.',
-    mood: 'think',
+    mood: 'thinking',
   },
   3: {
     eyebrow: 'Уровень 3 · почти получилось',
     line: 'Ты был совсем близко. Давай найдём один шаг, где сбилось — и закроем.',
-    mood: 'think',
+    mood: 'thinking',
   },
 }

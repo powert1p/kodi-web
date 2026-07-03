@@ -30,7 +30,7 @@ export function DrillPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-caption1 text-text-secondary">Загружаем задачу…</p>
+        <p className="text-caption1 text-muted">Загружаем задачу…</p>
       </div>
     )
   }
@@ -39,7 +39,7 @@ export function DrillPage() {
   if (isError) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-caption1 text-text-secondary">Не удалось загрузить задачи. Попробуй обновить страницу.</p>
+        <p className="text-caption1 text-muted">Не удалось загрузить задачи. Попробуй обновить страницу.</p>
       </div>
     )
   }
@@ -48,7 +48,7 @@ export function DrillPage() {
   if (!task) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
-        <p className="text-caption1 text-text-secondary">Задача не найдена.</p>
+        <p className="text-caption1 text-muted">Задача не найдена.</p>
       </div>
     )
   }

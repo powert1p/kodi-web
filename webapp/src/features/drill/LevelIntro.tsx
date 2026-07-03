@@ -7,15 +7,15 @@ interface LevelIntroProps {
 }
 
 // Интро уровня: маскот «Кёди» + рамочная строка growth-mindset в его голосе.
-// Оформлено как warning-Informer AiPlus (мягкая бренд-подложка) — уровень
-// выводится из mastery (см. levelConfig).
+// Спокойный neutral-тон (не decorative-бренд — brand зарезервирован под CTA, §1) —
+// уровень выводится из mastery (см. levelConfig).
 export function LevelIntro({ level }: LevelIntroProps) {
   const meta = LEVEL_META[level]
 
   return (
     <ApInformer
-      type="warning"
-      leading={<Mascot mood={meta.mood} size={40} className="shrink-0" />}
+      tone="neutral"
+      leading={<Mascot mood={meta.mood} size="s" className="shrink-0" />}
       title={meta.eyebrow}
     >
       {meta.line}

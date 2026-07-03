@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { MathText } from '../../components/MathText'
-import { CheckIcon } from '../../icons'
+import { CheckIcon, DownIcon } from '../../icons'
 import type { Rung } from '../../lib/ladder'
+import { skillLabel } from './microSkillLabel'
 
 interface RungQuietProps {
   rung: Rung
@@ -8,42 +10,61 @@ interface RungQuietProps {
   index: number
 }
 
-// Решённая ступень — слим-строка с зелёной галочкой (AiPlus success-тон).
+// Решённая ступень — слим-строка с зелёной галочкой (success-тон). Текст шага
+// клампится в 2 строки, но НЕ обрезается безвозвратно (canon §2 п.3) — тап
+// разворачивает/сворачивает полный текст.
 export function RungSolved({ rung, index }: RungQuietProps) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-stroke-success-light bg-bg-success-light px-3 py-2.5">
+    <button
+      type="button"
+      onClick={() => setOpen((v) => !v)}
+      aria-expanded={open}
+      className="flex w-full items-start gap-3 rounded-control border border-success/30 bg-success-soft px-3 py-3 text-left"
+    >
       <span
         aria-hidden
-        className="flex size-6 shrink-0 items-center justify-center rounded-full bg-bg-success text-text-tertiary"
+        className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-success text-on-brand"
       >
         <CheckIcon size={12} />
       </span>
-      <span className="min-w-0 flex-1 truncate text-caption1-medium text-text-success">
+      <span
+        className={[
+          'min-w-0 flex-1 text-caption1-medium text-success',
+          open ? '' : 'line-clamp-2',
+        ].join(' ')}
+      >
         <MathText text={rung.instruction} />
       </span>
-      <span className="font-num shrink-0 text-caption2 tabular-nums text-text-secondary">
-        {rung.kind === 'easier' ? 'разминка' : `шаг ${index}`}
+      <span className="flex shrink-0 items-center gap-2">
+        <span className="font-num text-caption2 tabular-nums text-muted">
+          {rung.kind === 'easier' ? 'разминка' : `шаг ${index}`}
+        </span>
+        <span className={['text-muted transition-transform', open ? 'rotate-180' : ''].join(' ')}>
+          <DownIcon size={14} />
+        </span>
       </span>
-    </div>
+    </button>
   )
 }
 
 // Запертая ступень — затемнённая, без интерактива (виден маршрут впереди).
 export function RungLocked({ rung, index }: RungQuietProps) {
   return (
-    <div className="flex items-center gap-2.5 rounded-lg border border-stroke-primary-disabled bg-bg-tertiary px-3 py-2.5 opacity-60">
+    <div className="flex items-center gap-3 rounded-control border border-stroke bg-paper px-3 py-3 opacity-60">
       <span
         aria-hidden
-        className="flex size-6 shrink-0 items-center justify-center rounded-full border border-stroke-primary-disabled text-text-secondary"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full border border-stroke text-muted"
       >
         <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M6 10V8a6 6 0 1 1 12 0v2M5 10h14v9H5z" />
         </svg>
       </span>
-      <span className="min-w-0 flex-1 truncate text-caption1 text-text-secondary">
-        {rung.microSkill}
+      <span className="line-clamp-2 min-w-0 flex-1 text-caption1 text-muted">
+        {skillLabel(rung.microSkill) ?? 'Этот шаг'}
       </span>
-      <span className="font-num shrink-0 text-caption2 tabular-nums text-text-secondary">
+      <span className="font-num shrink-0 text-caption2 tabular-nums text-muted">
         {rung.kind === 'easier' ? 'разминка' : `шаг ${index}`}
       </span>
     </div>

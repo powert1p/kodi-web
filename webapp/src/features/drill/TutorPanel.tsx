@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApInformer } from '../../components/ApInformer'
+import { ApCard } from '../../components/ApCard'
 import { LongArrowRightIcon } from '../../icons'
 import { sendTutorMessage, ApiError } from '../../lib/api'
 import type { TutorMessage } from '../../lib/types'
@@ -60,10 +61,10 @@ export function TutorPanel({ problemId, decompIdx }: TutorPanelProps) {
   }
 
   return (
-    <article className="ap-card reveal flex flex-col gap-3 p-4">
+    <ApCard as="article" padding="m" className="reveal flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <Mascot mood="think" size={32} className="shrink-0" />
-        <span className="text-caption1-medium text-text-primary">Спроси Кёди про этот шаг</span>
+        <Mascot mood="thinking" size="s" className="shrink-0" />
+        <span className="text-caption1-medium text-ink">Спроси Кёди про этот шаг</span>
       </div>
 
       <div
@@ -81,17 +82,12 @@ export function TutorPanel({ problemId, decompIdx }: TutorPanelProps) {
       </div>
 
       {status === 'error' && (
-        <ApInformer
-          type="warning"
-          role="alert"
-          leading={<span className="text-sm leading-none">🌱</span>}
-        >
+        <ApInformer tone="attn" role="alert" leading={<span className="text-sm leading-none">🌱</span>}>
           <div className="flex flex-col items-start gap-2">
             <span>{errorText}</span>
             <ApButton
-              variant="outlined"
-              size="s"
-              className="min-h-11"
+              variant="secondary"
+              size="m"
               onClick={() => pending && void send(pending)}
             >
               Повторить
@@ -113,33 +109,33 @@ export function TutorPanel({ problemId, decompIdx }: TutorPanelProps) {
           rows={1}
           disabled={status === 'sending'}
           placeholder="Например: почему тут не 20?"
-          className="min-h-11 flex-1 resize-none rounded-lg border border-stroke-primary-disabled bg-bg-primary px-3 py-2.5 text-caption1 text-text-primary outline-none transition-colors placeholder:text-text-secondary focus:border-[1.5px] focus:border-stroke-brand disabled:bg-bg-disabled disabled:text-text-disabled"
+          className="min-h-11 flex-1 resize-none rounded-control border border-stroke bg-surface px-3 py-3 text-caption1 text-text outline-none transition-colors placeholder:text-muted focus:border-[1.5px] focus:border-brand disabled:bg-stroke disabled:text-muted"
         />
         <button
           type="button"
           aria-label="Отправить"
           disabled={status === 'sending' || input.trim().length === 0}
           onClick={submitInput}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-bg-brand text-text-tertiary transition-colors hover:bg-bg-brand-hovered disabled:bg-bg-disabled disabled:text-text-disabled"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand text-on-brand transition-colors hover:bg-brand-deep disabled:bg-stroke disabled:text-muted"
         >
           <LongArrowRightIcon size={20} className={status === 'sending' ? 'animate-spin' : ''} />
         </button>
       </div>
-    </article>
+    </ApCard>
   )
 }
 
-// Пузырь реплики: ученик справа (тёплая бренд-заливка — «это моё»),
-// тьютор слева (белый приподнятый чип на фоне ap-card — «это ответили мне»).
+// Пузырь реплики: ученик справа (тёплая бренд-подложка — «это моё»),
+// тьютор слева (белый приподнятый чип с бордером — «это ответили мне»).
 function Bubble({ role, children }: { role: 'user' | 'assistant'; children: string }) {
   const isUser = role === 'user'
   return (
     <p
       className={[
-        'max-w-[85%] text-caption1 text-text-primary',
+        'max-w-[85%] text-caption1 text-text',
         isUser
-          ? 'self-end rounded-2xl rounded-br-sm bg-bg-brand-disabled px-3 py-2'
-          : 'self-start rounded-2xl rounded-bl-sm border border-stroke-secondary bg-bg-primary px-3 py-2',
+          ? 'self-end rounded-card rounded-br-chip bg-brand-soft px-3 py-2'
+          : 'self-start rounded-card rounded-bl-chip border border-stroke bg-surface px-3 py-2',
       ].join(' ')}
     >
       {children}
@@ -150,11 +146,11 @@ function Bubble({ role, children }: { role: 'user' | 'assistant'; children: stri
 // Индикатор «печатает» — три точки с волной, честная замена ответу на время sending.
 function TypingBubble() {
   return (
-    <div className="flex w-fit items-center gap-1 self-start rounded-2xl rounded-bl-sm border border-stroke-secondary bg-bg-primary px-3 py-2.5">
+    <div className="flex w-fit items-center gap-1 self-start rounded-card rounded-bl-chip border border-stroke bg-surface px-3 py-3">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 animate-bounce rounded-full bg-text-secondary motion-reduce:animate-none"
+          className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted motion-reduce:animate-none"
           style={{ animationDelay: `${i * 120}ms` }}
         />
       ))}

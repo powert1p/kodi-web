@@ -4,21 +4,21 @@ import { ApInformer } from '../../components/ApInformer'
 interface HintBannerProps {
   /** Сократическая подсказка — наводящий вопрос, НИКОГДА не финальный ответ. */
   text: string
-  /** «easier» — climb-down: вставлена ступень попроще (info-тон вместо warning). */
+  /** «easier» — climb-down: вставлена ступень попроще. */
   variant?: 'hint' | 'easier'
 }
 
-// Подсказка Кёди (AiPlus Informer): ободряющий наводящий вопрос. warning-тон
-// (бренд) для hint, info-тон (синий «разберём») для вставленной лёгкой ступени.
-// Появляется через reveal. Никогда не показывает ответ.
+// Подсказка Кёди — спокойный neutral-информер (не бренд-подложка: акцент экрана
+// держит только активная ступень, §1 дисциплина акцента). Появляется через reveal.
+// Никогда не показывает ответ.
 export function HintBanner({ text, variant = 'hint' }: HintBannerProps) {
   const isEasier = variant === 'easier'
 
   return (
     <div className="reveal">
       <ApInformer
-        type={isEasier ? 'info' : 'warning'}
-        leading={<Mascot mood={isEasier ? 'cheer' : 'think'} size={40} className="shrink-0" />}
+        tone="neutral"
+        leading={<Mascot mood={isEasier ? 'hi' : 'thinking'} size="s" className="shrink-0" />}
         title={isEasier ? 'Спустимся на ступень ниже' : 'Подсказка Кёди'}
       >
         {text}

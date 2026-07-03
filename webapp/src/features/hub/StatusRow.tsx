@@ -7,26 +7,23 @@ interface StatusRowProps {
   points: number
 }
 
-// Верхняя статус-строка: streak (часы) + XP (звезда). Плоские пилюли AiPlus —
-// фон bg-tertiary, 1px stroke-secondary, радиус full. Табличные цифры.
-// Иконки из набора AiPlus, тонированы брендом/жёлтым через currentColor.
+// Верхняя статус-строка: streak (часы) + XP (звезда). Плоские пилюли —
+// surface на paper-подложке, 1px stroke, радиус full. Табличные цифры.
 export function StatusRow({ streak, points }: StatusRowProps) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-stroke-secondary bg-bg-tertiary px-3 py-1.5">
-        <span className="text-text-brand">
+      <span className="inline-flex items-center gap-2 rounded-full border border-stroke bg-surface px-3 py-2">
+        <span className="text-brand">
           <HistoryIcon size={18} />
         </span>
-        <span className="font-num text-title tabular-nums text-text-primary">
-          {streak}
-        </span>
+        <span className="font-num text-title tabular-nums text-ink">{streak}</span>
       </span>
 
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-stroke-secondary bg-bg-tertiary px-3 py-1.5">
-        <span className="text-text-yellow">
+      <span className="inline-flex items-center gap-2 rounded-full border border-stroke bg-surface px-3 py-2">
+        <span className="text-attn">
           <StarFilledIcon size={18} />
         </span>
-        <span className="font-num text-title tabular-nums text-text-primary">
+        <span className="font-num text-title tabular-nums text-ink">
           {points.toLocaleString('ru-RU')}
         </span>
       </span>

@@ -15,7 +15,7 @@ export function FinishedCard({ taskId, answer }: FinishedCardProps) {
 
   return (
     <article className="ap-card reveal flex flex-col items-center gap-3 p-5 text-center">
-      <Mascot mood="celebrate" size={72} className="bob" />
+      <Mascot mood="celebrate" size="m" className="bob" />
       <div className="flex flex-col gap-1">
         <h2 className="text-h3 text-text-primary">Все шаги пройдены!</h2>
         <p className="text-caption1 text-text-secondary">
@@ -25,9 +25,9 @@ export function FinishedCard({ taskId, answer }: FinishedCardProps) {
         </p>
       </div>
       <ApButton
-        variant="filled"
+        variant="primary"
         size="m"
-        block
+        full
         onClick={() => navigate(`/closure/${taskId}`)}
       >
         Закрепить

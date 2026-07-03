@@ -1,17 +1,23 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-// ApButton (AiPlus §8.1) — плоская кнопка. Бренд-заливка #FF8C00, текст белый
-// (--text-tertiary), радиус 12, БЕЗ 3D-края/тени. hover/pressed → bg-brand-hovered.
-// Размеры m=48 / s=40 / xs=32. Варианты: filled (default), outlined, error.
-// gap иконка↔текст 8. Заменяет прежнюю чанковую Button3D.
+// ApButton (DESIGN_SYSTEM §3 — контракт закрыт: variant/size/full/disabled/loading).
+// primary — бренд-заливка, on-brand текст, radius-control. secondary — outlined
+// бренд-бордер, brand текст. ghost — без фона/бордера, для тихих/back-действий.
+// Размеры ТОЛЬКО m(48)/l(56) — тач-таргет ≥48 всегда (canon §1).
 
-type Variant = 'filled' | 'outlined'
-type Size = 'm' | 's' | 'xs'
+type Variant = 'primary' | 'secondary' | 'ghost'
+type Size = 'm' | 'l'
 
 const SIZE: Record<Size, string> = {
   m: 'h-12 px-5', // 48
-  s: 'h-10 px-4', // 40
-  xs: 'h-8 px-4 text-caption1-medium', // 32, мельче текст
+  l: 'h-14 px-6', // 56
+}
+
+const VARIANT: Record<Variant, string> = {
+  primary: 'bg-brand text-on-brand hover:bg-brand-deep',
+  secondary:
+    'bg-transparent text-brand border border-brand hover:bg-brand-soft',
+  ghost: 'bg-transparent text-text hover:bg-surface',
 }
 
 interface ApButtonProps
@@ -19,66 +25,49 @@ interface ApButtonProps
   children: ReactNode
   variant?: Variant
   size?: Size
-  /** Растянуть на всю ширину (isExpanded). */
-  block?: boolean
-  /** Ошибочное действие — мягкая красная заливка/текст (НЕ карающая). */
-  isError?: boolean
+  /** Растянуть на всю ширину. */
+  full?: boolean
   /** Загрузка — блокирует клик, показывает спиннер. */
-  isLoading?: boolean
+  loading?: boolean
   /** Доп. классы контейнера (layout, не цвет). */
   className?: string
 }
 
 export function ApButton({
   children,
-  variant = 'filled',
+  variant = 'primary',
   size = 'm',
-  block = false,
-  isError = false,
-  isLoading = false,
+  full = false,
+  loading = false,
   className = '',
   type = 'button',
   disabled,
   ...rest
 }: ApButtonProps) {
-  const isDisabled = disabled || isLoading
-
-  // Цвета по варианту/состоянию (AiPlus §8.1).
-  let tone: string
-  if (isError) {
-    tone =
-      variant === 'outlined'
-        ? 'bg-bg-error-tertiary text-text-error border border-text-error'
-        : 'bg-bg-error-tertiary text-text-error'
-  } else if (variant === 'outlined') {
-    tone =
-      'bg-transparent text-text-brand border border-bg-brand hover:bg-bg-light-brand-warning'
-  } else {
-    tone = 'bg-bg-brand text-text-tertiary hover:bg-bg-brand-hovered'
-  }
+  const isDisabled = disabled || loading
 
   return (
     <button
       type={type}
       disabled={isDisabled}
       className={[
-        'inline-flex items-center justify-center gap-2 rounded-lg text-title transition-colors',
-        'disabled:cursor-not-allowed disabled:bg-bg-disabled disabled:text-text-disabled disabled:border-transparent',
+        'inline-flex items-center justify-center gap-2 rounded-control text-title transition-colors',
+        'disabled:cursor-not-allowed disabled:bg-stroke disabled:text-muted disabled:border-transparent',
         SIZE[size],
-        tone,
-        block ? 'w-full' : '',
+        VARIANT[variant],
+        full ? 'w-full' : '',
         className,
       ]
         .filter(Boolean)
         .join(' ')}
       {...rest}
     >
-      {isLoading ? <Spinner /> : children}
+      {loading ? <Spinner /> : children}
     </button>
   )
 }
 
-// Спиннер кнопки (--text-tertiary на заливке, наследует currentColor).
+// Спиннер кнопки (наследует currentColor от варианта).
 function Spinner() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" className="animate-spin" aria-hidden>

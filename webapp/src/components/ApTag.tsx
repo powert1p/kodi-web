@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react'
 
-// ApTag (AiPlus §8.3) — статусная плашка. Padding 8×4, радиус 8, caption1, без бордера.
-// status → фон/текст по токенам. На цветных подложках текст контрастен (AA).
+// ApTag (DESIGN_SYSTEM §3 — контракт закрыт: status neutral/brand/success/attn).
+// Padding 8×4, радиус chip, caption, без бордера. Синий/красный статусов НЕТ —
+// «почти» состояние теперь neutral (§1: дисциплина акцента, не всё цветное).
 
-export type TagStatus = 'default' | 'error' | 'primary' | 'success' | 'info'
+export type TagStatus = 'neutral' | 'brand' | 'success' | 'attn'
 
 const TONE: Record<TagStatus, string> = {
-  default: 'bg-bg-secondary text-text-dark-gray',
-  error: 'bg-bg-error-secondary text-text-error',
-  primary: 'bg-bg-light-brand-warning text-text-brand',
-  success: 'bg-bg-success-light text-text-success',
-  info: 'bg-bg-info text-text-info',
+  neutral: 'bg-paper text-text',
+  brand: 'bg-brand-soft text-brand',
+  success: 'bg-success-soft text-success',
+  attn: 'bg-attn-soft text-attn',
 }
 
 interface ApTagProps {
@@ -22,7 +22,7 @@ interface ApTagProps {
 }
 
 export function ApTag({
-  status = 'default',
+  status = 'neutral',
   children,
   leading,
   className = '',
@@ -30,7 +30,7 @@ export function ApTag({
   return (
     <span
       className={[
-        'inline-flex shrink-0 items-center gap-1 rounded-sm px-2 py-1 text-caption1',
+        'inline-flex shrink-0 items-center gap-1 rounded-chip px-2 py-1 text-caption1',
         TONE[status],
         className,
       ].join(' ')}

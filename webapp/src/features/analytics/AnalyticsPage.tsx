@@ -5,6 +5,7 @@ import { ErrorBar } from './ErrorBar'
 import { AnalyticsSkeleton } from './AnalyticsSkeleton'
 import { AnalyticsEmpty } from './AnalyticsEmpty'
 import { AnalyticsError } from './AnalyticsError'
+import { skillLabel } from '../drill/microSkillLabel'
 
 // Analytics (/analytics) — «Прогресс» (вкладка нижней навигации, активна здесь).
 // Топ повторяющихся типов ошибок ученика как чанковые горизонтальные полосы
@@ -26,7 +27,10 @@ export function AnalyticsPage() {
   const max = items[0]?.error_count ?? 1
 
   return (
-    <div className="flex flex-col gap-4">
+    // Короткий список (мало паттернов) — центрируем в доступной высоте, а не
+    // оставляем мёртвую половину под ним (canon §2.8). С длинным списком
+    // justify-center не мешает — контент сам заполняет контейнер сверху вниз.
+    <div className="flex min-h-[calc(100dvh-8rem)] flex-col justify-center gap-4">
       <div className="reveal" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
         <AnalyticsHeader total={items.length} />
       </div>
@@ -37,7 +41,9 @@ export function AnalyticsPage() {
             <ErrorBar
               item={{
                 micro_skill: item.micro_skill,
-                label: item.label_ru ?? item.micro_skill,
+                // Внутренний код (canon §2 п.2) — никогда не в UI: нет русского
+                // label_ru → нейтральное «Этот тип ошибок», не snake_case.
+                label: item.label_ru ?? skillLabel(item.micro_skill) ?? 'Этот тип ошибок',
                 topic_label: item.node_id ?? '',
                 count: item.error_count,
                 last_cause: item.last_cause_text,

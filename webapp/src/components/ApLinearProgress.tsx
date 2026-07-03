@@ -1,41 +1,41 @@
 interface ApLinearProgressProps {
-  /** Текущее значение. */
+  /** Доля выполнения 0..1 (контракт DESIGN_SYSTEM §3). */
   value: number
-  /** Максимум. */
-  max: number
   /** Подпись для скринридера. */
   ariaLabel: string
   /** Минимальная видимая доля заливки (0..1), чтобы полоса не «ломалась» на 0. */
   minShown?: number
+  /** success — линия завершения темы/шага (§5 веха); по умолчанию brand. */
+  tone?: 'brand' | 'success'
   className?: string
 }
 
-// ApLinearProgress (AiPlus §8.3) — линейный прогресс. Высота 8, радиус 4,
-// трек --stroke-secondary, заливка --stroke-brand. Анимация ширины 300ms.
+// ApLinearProgress (DESIGN_SYSTEM §3) — линейный прогресс. Высота 8, радиус full,
+// трек stroke, заливка brand/success. Анимация ширины 300ms.
 export function ApLinearProgress({
   value,
-  max,
   ariaLabel,
   minShown = 0,
+  tone = 'brand',
   className = '',
 }: ApLinearProgressProps) {
-  const ratio = max > 0 ? Math.min(value / max, 1) : 0
+  const ratio = Math.min(Math.max(value, 0), 1)
   const shown = Math.max(ratio, minShown) * 100
 
   return (
     <div
-      className={[
-        'h-2 w-full overflow-hidden rounded-xs bg-stroke-secondary',
-        className,
-      ].join(' ')}
+      className={['h-2 w-full overflow-hidden rounded-full bg-stroke', className].join(' ')}
       role="progressbar"
-      aria-valuenow={value}
+      aria-valuenow={Math.round(ratio * 100)}
       aria-valuemin={0}
-      aria-valuemax={max}
+      aria-valuemax={100}
       aria-label={ariaLabel}
     >
       <div
-        className="h-full rounded-xs bg-stroke-brand transition-[width] duration-300 ease-out motion-reduce:transition-none"
+        className={[
+          'h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none',
+          tone === 'success' ? 'bg-success' : 'bg-brand',
+        ].join(' ')}
         style={{ width: `${shown}%` }}
       />
     </div>

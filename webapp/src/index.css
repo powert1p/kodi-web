@@ -3,7 +3,7 @@
 @import './theme/tokens.css';
 @import 'katex/dist/katex.min.css';
 
-/* ---- База (AiPlus: светлая тема, белый фон, DM Sans + Onest) ---- */
+/* ---- База (v5: тёплая бумажная подложка, Golos Text) ---- */
 @layer base {
   :root {
     color-scheme: light;
@@ -16,8 +16,8 @@
 
   body {
     margin: 0;
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
+    background-color: var(--paper);
+    color: var(--text);
     font-family: var(--font-sans);
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
@@ -31,51 +31,66 @@
     font-size: 16px;
   }
 
-  /* Видимый фокус для клавиатуры (не мыши) — бренд-кольцо AiPlus */
+  /* Видимый фокус для клавиатуры (не мыши) — бренд-кольцо */
   :focus-visible {
-    outline: 2px solid var(--stroke-brand);
+    outline: 2px solid var(--brand);
     outline-offset: 2px;
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-chip);
   }
   :focus:not(:focus-visible) {
     outline: none;
   }
 }
 
-/* ---- AiPlus типографика (§3). Все стили — DM Sans/Onest. ---- */
+/* ---- Типографика v5 (DESIGN_SYSTEM §1) — 6 ролей: display/h1/h2/body/caption/label,
+   плюс учебный текст (условие/шаг/реплики Кёди) — отдельная роль ≥18px. Класс-имена
+   сохранены из v4 как словарь вёрстки (значения — единственный источник истины). ---- */
 @layer components {
+  /* display — крупный счётчик/число (не используется пока, задел под будущий герой) */
   .text-h1 {
-    font: 700 32px/38px var(--font-sans);
+    font: 800 32px/38px var(--font-sans);
+    letter-spacing: -0.3px;
+  }
+  /* h1 (канон) — заголовок экрана/героя */
+  .text-h2 {
+    font: 800 24px/30px var(--font-sans);
     letter-spacing: -0.2px;
   }
-  .text-h2 {
-    font: 700 24px/30px var(--font-sans);
-    letter-spacing: -0.15px;
-  }
+  /* h2 (канон) — заголовок секции / крупная инструкция шага */
   .text-h3 {
-    font: 500 20px/24px var(--font-sans);
+    font: 600 20px/26px var(--font-sans);
   }
+  /* control — семиболд-вариант body (заголовки плиток, лейблы кнопок) */
   .text-title {
-    font: 500 16px/22px var(--font-sans);
-    letter-spacing: -0.18px;
+    font: 600 16px/24px var(--font-sans);
   }
+  /* body (канон, точное совпадение) */
   .text-body {
     font: 400 16px/24px var(--font-sans);
   }
-  .text-caption1 {
-    font: 400 14px/20px var(--font-sans);
+  /* учебный текст — условие задачи/реплика Кёди, минимум 18px (canon §1) */
+  .text-study {
+    font: 400 18px/26px var(--font-sans);
   }
+  /* caption (канон) — тяжёлый вариант для акцентных подписей */
   .text-caption1-medium {
-    font: 500 14px/20px var(--font-sans);
+    font: 600 13px/18px var(--font-sans);
   }
-  .text-caption2 {
-    font: 400 12px/16px var(--font-sans);
+  /* caption (канон, точное совпадение) */
+  .text-caption1 {
+    font: 500 13px/18px var(--font-sans);
   }
+  /* label (канон) — эйбров/бейджи */
   .text-caption2-medium {
-    font: 500 12px/16px var(--font-sans);
+    font: 600 11px/16px var(--font-sans);
   }
+  /* label, лёгкий вариант — мелкие вторичные подписи */
+  .text-caption2 {
+    font: 400 11px/16px var(--font-sans);
+  }
+  /* label (канон, точное совпадение) — навигация */
   .text-label-small {
-    font: 500 11px/16px var(--font-sans);
+    font: 600 11px/16px var(--font-sans);
   }
 }
 
@@ -95,18 +110,22 @@
   white-space: nowrap;
 }
 
-/* ---- AiPlus карточка (§8.3): плоская, разделяется 1px-бордером, БЕЗ тени.
-   bg-tertiary (#FAFAFA) + 1px stroke-secondary, радиус 14. ---- */
+/* ---- Плоская карточка (§1): surface + 1px stroke, радиус card, БЕЗ тени.
+   ApCard-компонент использует те же токены — эта утилита остаётся для скелетонов
+   (структурные плейсхолдеры, которым полный API компонента не нужен). ---- */
 @utility ap-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--stroke-secondary);
-  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-card);
 }
 
 /* ---- Утилиты ---- */
 @layer utilities {
+  /* Табличные цифры — Golos Text несёт функцию tnum (проверено: GSUB содержит
+     tnum/pnum), включаем явно поверх font-variant-numeric для полной поддержки. */
   .font-num {
     font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
     letter-spacing: 0;
   }
 
@@ -159,7 +178,7 @@
     }
   }
 
-  /* SIGNATURE: переход активной вкладки нижнего бара (AiPlus §8.5).
+  /* SIGNATURE: переход активной вкладки нижнего бара.
      Иконка лерпится к бренду + лёгкий scale ~1.15; outline→filled свап делает
      компонент. Единственная оркестрованная брендовая микро-анимация — вся
      «смелость» экрана здесь, остальное держим тихим и плоским. */
@@ -172,8 +191,8 @@
     transform: scale(1.15);
   }
 
-  /* Закрытие: мягкий «штамп ЗАКРЫТО» (AiPlus — без механического 3D-snap).
-     Прилетает чуть из масштаба и оседает на easeOut. Только transform/opacity. */
+  /* Закрытие: мягкий «штамп ЗАКРЫТО» — прилетает чуть из масштаба и оседает
+     на easeOut. Только transform/opacity. */
   .stamp {
     animation: stamp 480ms var(--ease-out-soft) both;
   }

@@ -2,9 +2,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { MathText } from '../../components/MathText'
 import { ApButton } from '../../components/ApButton'
+import { ApCard } from '../../components/ApCard'
 import { HintBanner } from './HintBanner'
 import type { Rung } from '../../lib/ladder'
 import { STEP3_OPTIONS } from './mock'
+import { skillLabel } from './microSkillLabel'
 
 interface RungActiveProps {
   rung: Rung
@@ -20,9 +22,9 @@ interface RungActiveProps {
   onSubmit: (value: string) => void
 }
 
-// Активная ступень — единственная выделенная карточка лесенки (AiPlus selected-card:
-// фон bg-light-brand-warning + бордер stroke-brand, радиус 14). compute → поле ввода,
-// choose → outlined-кнопки-варианты. Подсказка/reveal растут под формой.
+// Активная ступень — единственная выделенная карточка лесенки (ApCard tone=brand-soft:
+// это ТЕКУЩИЙ фокус действия, законный второй «активный» акцент экрана — не декоративный).
+// compute → поле ввода, choose → outlined-кнопки-варианты. Подсказка/reveal растут под формой.
 export function RungActive({
   rung,
   index,
@@ -33,6 +35,8 @@ export function RungActive({
 }: RungActiveProps) {
   const [value, setValue] = useState('')
   const isChoose = rung.kind === 'original' && rung.expected_value === 'новая'
+  const label = skillLabel(rung.microSkill)
+  const stepWord = rung.kind === 'easier' ? 'Разминка' : `Шаг ${index}`
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -47,29 +51,31 @@ export function RungActive({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-stroke-brand bg-bg-light-brand-warning p-4">
-      {/* Эйбров: микро-навык + метка ступени */}
+    <ApCard tone="brand-soft" padding="m" className="flex flex-col gap-3">
+      {/* Эйбров: читаемый label шага (никогда код) + позиция */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-caption2-medium uppercase tracking-[0.1em] text-text-brand">
-          {rung.microSkill}
+        <span className="text-caption2-medium uppercase tracking-[0.1em] text-brand">
+          {label ?? stepWord}
         </span>
-        <span className="font-num text-caption2 tabular-nums text-text-secondary">
-          {rung.kind === 'easier' ? 'разминка' : `шаг ${index}`}
-        </span>
+        {label && (
+          <span className="font-num text-caption2 tabular-nums text-muted">
+            {stepWord.toLowerCase()}
+          </span>
+        )}
       </div>
 
-      {/* Инструкция шага */}
-      <p className="text-h3 text-text-primary">
+      {/* Инструкция шага — учебный текст (canon §1: минимум 18px) */}
+      <p className="text-h3 text-ink">
         <MathText text={rung.instruction} />
       </p>
 
       {/* Ввод: число или варианты */}
       {isChoose ? (
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-3">
           {STEP3_OPTIONS.map((opt) => (
             <ApButton
               key={opt}
-              variant="outlined"
+              variant="secondary"
               size="m"
               onClick={() => handleChoose(opt)}
               className="capitalize"
@@ -79,7 +85,7 @@ export function RungActive({
           ))}
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex items-stretch gap-2.5">
+        <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
           <input
             inputMode="decimal"
             value={value}
@@ -87,10 +93,10 @@ export function RungActive({
             placeholder="Твой ответ"
             aria-label="Введите ответ"
             autoComplete="off"
-            className="font-num min-w-0 flex-1 rounded-lg border border-stroke-primary-disabled bg-bg-primary px-4 text-body tabular-nums text-text-primary placeholder:text-text-secondary outline-none focus:border-[1.5px] focus:border-stroke-brand"
+            className="font-num min-w-0 flex-1 rounded-control border border-stroke bg-surface px-4 text-body tabular-nums text-text placeholder:text-muted outline-none focus:border-[1.5px] focus:border-brand"
             style={{ fontSize: '16px' }}
           />
-          <ApButton type="submit" variant="filled" size="m" disabled={!value.trim()}>
+          <ApButton type="submit" variant="primary" size="m" disabled={!value.trim()}>
             Проверить
           </ApButton>
         </form>
@@ -106,16 +112,16 @@ export function RungActive({
 
       {/* Reveal — разобранный шаг как последняя опора (НЕ финальный ответ задачи) */}
       {showReveal && rung.reveal && (
-        <details className="rounded-lg bg-bg-primary p-3" open>
-          <summary className="cursor-pointer text-caption1-medium text-text-info">
+        <details className="rounded-control bg-surface p-3" open>
+          <summary className="cursor-pointer text-caption1-medium text-brand">
             Покажу, как делается этот шаг
           </summary>
-          <p className="mt-2 text-caption1 text-text-primary">
+          <p className="mt-2 text-caption1 text-text">
             <MathText text={rung.reveal} />
           </p>
         </details>
       )}
-    </div>
+    </ApCard>
   )
 }
 

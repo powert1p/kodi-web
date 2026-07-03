@@ -1,155 +1,93 @@
-/* Дизайн-токены приложения «Работа над ошибками» — AiPlus Design System.
-   Источник истины: /Users/esetseitkamal/Downloads/aiplus-design-system/aiplus-design-system.md
-   (§9.1 — CSS custom properties; §9.2 — Tailwind-фрагмент).
+/* Дизайн-токены v5 — «Спокойный + тёплый» (канон: /Users/esetseitkamal/kodi-web/webapp/DESIGN_SYSTEM.md).
+   Эволюция v4 (AiPlus): плоские bordered-карточки и один бренд-оранж сохраняются,
+   добавляется тёплая бумажная подложка, дисциплина акцента (не всё оранжевое = кликабельно)
+   и сжатая радиус-шкала (4 значения вместо 9).
 
-   Направление AiPlus: бренд-оранжевый #FF8C00, светлая тема — канон (белый фон).
-   Поверхности ПЛОСКИЕ — разделяются 1px-бордером, НЕ тенями (тени редки: §6).
-   Радиусы: кнопки/поля 12, карточки 14, чипы/таги 8, pill — полное скругление.
-   ⚠️ --text-tertiary = БЕЛЫЙ → только текст/иконки на ЦВЕТНОМ фоне (не на белом).
+   Роли токенов — см. DESIGN_SYSTEM §1. Значения = LAW, не трогать без синхронной правки канона.
 
-   Tailwind v4: @theme мапит токены в утилиты (bg-brand, text-primary, stroke-* и т.д.).
-   Палитра задаётся базовыми токенами bg / text / stroke (раздел 9.1), а в @theme
-   объявляются производные color-токены, чтобы Tailwind сгенерировал классы. */
+   Tailwind v4: @theme мапит токены в утилиты (bg-paper, text-ink, border-stroke, bg-brand…).
+   Раздел ниже (:root) — «сырые» custom properties; @theme — производные для Tailwind. */
 
 :root {
   /* ---- font ---- */
-  /* DM Sans (латиница/цифры, self-hosted) + Onest (кириллица ru/kz, self-hosted).
-     unicode-range в @font-face маршрутизирует глифы: латиница→DM Sans, кириллица→Onest.
-     Подробности и причина (DM Sans v17 на Google Fonts НЕ содержит cyrillic-сабсета)
-     — в fonts.css. */
-  --font-sans: 'DM Sans', 'Onest', system-ui, sans-serif;
+  /* Golos Text (self-hosted variable, 400..800) — единый гротеск кириллица+латиница,
+     замена пары DM Sans + Onest (v4). Причина и cyrillic-гоча — в fonts.css. */
+  --font-sans: 'Golos Text', system-ui, sans-serif;
 
-  /* ---- background ---- */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f2f2f2;
-  --bg-tertiary: #fafafa;
-  --bg-info: #f3f9fd;
-  --bg-light-brand-warning: #fffaf5;
-  --bg-success-light: #f1faf1;
-  --bg-error-secondary: #fdf6f6;
-  --bg-error-tertiary: #fee2e2;
-  --bg-error-yellow-secondary: #fefce8;
-  --bg-brand: #ff8c00;
-  --bg-brand-disabled: #ffedd6;
-  --bg-brand-hovered: #e67e00;
-  --bg-success: #54b054;
-  --bg-success-secondary: #e8f6e8;
-  --bg-error: #d13438;
-  --bg-disabled: #e6e6e6;
-  --bg-scrim: rgba(0, 0, 0, 0.3);
-  --bg-black: #2b2b2b;
+  /* ---- ink / text / muted ---- */
+  --ink: #1c1b18; /* заголовки */
+  --text: #3d3a34; /* основной текст */
+  --muted: #8a857c; /* подписи — светлее нельзя (AA) */
 
-  /* ---- text / icon ---- */
-  --text-primary: #090909;
-  --text-secondary: #888888;
-  --text-tertiary: #ffffff; /* ⚠️ на цветном фоне */
-  --text-dark-gray: #393939;
-  --text-disabled: #c4c4c4;
-  --text-brand: #ff8c00;
-  --text-success: #54b054;
-  --text-error: #d13438;
-  --text-info: #3595de;
-  --text-yellow: #eab308;
+  /* ---- поверхности ---- */
+  --paper: #faf7f2; /* фон страницы — тёплая подложка */
+  --surface: #ffffff; /* карточки */
+  --stroke: #e8e2d8; /* 1px-бордер разделения */
 
-  /* ---- stroke (бордеры) ---- */
-  --stroke-primary-disabled: #e6e6e6;
-  --stroke-secondary: #f2f2f2;
-  --stroke-tertiary: #fafafa;
-  --stroke-focus: #c4c4c4;
-  --stroke-brand: #ff8c00;
-  --stroke-brand-light: #ffddb3;
-  --stroke-success-light: #9fd89f;
-  --stroke-success: #359b35;
-  --stroke-error-light: #f1bbbc;
-  --stroke-error: #d13438;
-  --stroke-info: #a9d3f2;
-  --stroke-stories: rgba(255, 255, 255, 0.3);
+  /* ---- бренд (ТОЛЬКО действие — см. §1 запрет) ---- */
+  --brand: #ff8c00;
+  --brand-soft: #fff3e2;
+  --brand-deep: #e67e00; /* hover/pressed */
+  --on-brand: #ffffff; /* текст/иконка на заливке brand */
 
-  /* ---- radius ---- */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 14px;
-  --radius-2xl: 16px;
-  --radius-3xl: 20px;
-  --radius-4xl: 24px;
+  /* ---- success / attn (амбер, НЕ красный) ---- */
+  --success: #2e9e5b;
+  --success-soft: #e9f6ee;
+  --attn: #b7791f;
+  --attn-soft: #fbf3e4;
+
+  /* ---- радиусы (4 вместо 9 — §1) ---- */
+  --radius-chip: 8px;
+  --radius-control: 12px;
+  --radius-card: 16px;
   --radius-full: 9999px;
 
-  /* ---- shadow (редко; §6) ---- */
-  --shadow-tooltip: 0 2px 4px rgba(0, 0, 0, 0.2);
-  --shadow-bottom-bar: 0 -1px 10px rgba(0, 0, 0, 0.06);
-  --shadow-overlay: 0 4px 12px rgba(24, 39, 75, 0.12), 0 2px 4px rgba(24, 39, 75, 0.02);
-  --shadow-menu: 0 12px 28px -4px rgba(0, 0, 0, 0.15);
+  /* ---- тени (только 4 — §1) ---- */
+  --shadow-tooltip: 0 2px 4px rgba(28, 27, 24, 0.16);
+  --shadow-bottom-bar: 0 -1px 10px rgba(28, 27, 24, 0.06);
+  --shadow-overlay: 0 4px 12px rgba(28, 27, 24, 0.12), 0 2px 4px rgba(28, 27, 24, 0.03);
+  --shadow-menu: 0 12px 28px -4px rgba(28, 27, 24, 0.16);
 
-  /* ---- тайминги (§10: 150–300ms, easeOut/easeInOut) ---- */
+  /* ---- тайминги (150-300ms, easeOut/easeInOut) ---- */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-bar: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Tailwind v4: объявляем токены color/font/radius в @theme, чтобы получить
-   утилиты (bg-brand, text-primary, stroke-brand, rounded-lg, font-sans ...).
-   Значения тянем из токенов раздела 9.1 выше (single source of truth). */
+   утилиты (bg-paper, text-ink, border-stroke, bg-brand, rounded-card…). */
 @theme {
-  --font-sans: 'DM Sans', 'Onest', system-ui, sans-serif;
+  --font-sans: 'Golos Text', system-ui, sans-serif;
 
-  /* background → bg-* */
-  --color-bg-primary: var(--bg-primary);
-  --color-bg-secondary: var(--bg-secondary);
-  --color-bg-tertiary: var(--bg-tertiary);
-  --color-bg-info: var(--bg-info);
-  --color-bg-light-brand-warning: var(--bg-light-brand-warning);
-  --color-bg-success-light: var(--bg-success-light);
-  --color-bg-error-secondary: var(--bg-error-secondary);
-  --color-bg-error-tertiary: var(--bg-error-tertiary);
-  --color-bg-error-yellow-secondary: var(--bg-error-yellow-secondary);
-  --color-bg-brand: var(--bg-brand);
-  --color-bg-brand-disabled: var(--bg-brand-disabled);
-  --color-bg-brand-hovered: var(--bg-brand-hovered);
-  --color-bg-success: var(--bg-success);
-  --color-bg-success-secondary: var(--bg-success-secondary);
-  --color-bg-error: var(--bg-error);
-  --color-bg-disabled: var(--bg-disabled);
-  --color-bg-black: var(--bg-black);
+  /* ink / text / muted → text / bg / border утилиты */
+  --color-ink: var(--ink);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
 
-  /* text / icon → text-* */
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-tertiary: var(--text-tertiary);
-  --color-text-dark-gray: var(--text-dark-gray);
-  --color-text-disabled: var(--text-disabled);
-  --color-text-brand: var(--text-brand);
-  --color-text-success: var(--text-success);
-  --color-text-error: var(--text-error);
-  --color-text-info: var(--text-info);
-  --color-text-yellow: var(--text-yellow);
+  /* поверхности */
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-stroke: var(--stroke);
 
-  /* stroke → stroke-* / border-* */
-  --color-stroke-primary-disabled: var(--stroke-primary-disabled);
-  --color-stroke-secondary: var(--stroke-secondary);
-  --color-stroke-tertiary: var(--stroke-tertiary);
-  --color-stroke-focus: var(--stroke-focus);
-  --color-stroke-brand: var(--stroke-brand);
-  --color-stroke-brand-light: var(--stroke-brand-light);
-  --color-stroke-success-light: var(--stroke-success-light);
-  --color-stroke-success: var(--stroke-success);
-  --color-stroke-error-light: var(--stroke-error-light);
-  --color-stroke-error: var(--stroke-error);
-  --color-stroke-info: var(--stroke-info);
+  /* бренд */
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-deep: var(--brand-deep);
+  --color-on-brand: var(--on-brand);
 
-  /* radius → rounded-* */
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 14px;
-  --radius-2xl: 16px;
-  --radius-3xl: 20px;
-  --radius-4xl: 24px;
+  /* success / attn */
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-attn: var(--attn);
+  --color-attn-soft: var(--attn-soft);
 
-  /* shadow → shadow-* */
-  --shadow-tooltip: 0 2px 4px rgba(0, 0, 0, 0.2);
-  --shadow-bottom-bar: 0 -1px 10px rgba(0, 0, 0, 0.06);
-  --shadow-overlay: 0 4px 12px rgba(24, 39, 75, 0.12), 0 2px 4px rgba(24, 39, 75, 0.02);
-  --shadow-menu: 0 12px 28px -4px rgba(0, 0, 0, 0.15);
+  /* радиусы → rounded-chip/control/card (rounded-full — стандартный Tailwind) */
+  --radius-chip: var(--radius-chip);
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius-card);
+
+  /* тени → shadow-* */
+  --shadow-tooltip: var(--shadow-tooltip);
+  --shadow-bottom-bar: var(--shadow-bottom-bar);
+  --shadow-overlay: var(--shadow-overlay);
+  --shadow-menu: var(--shadow-menu);
 }
