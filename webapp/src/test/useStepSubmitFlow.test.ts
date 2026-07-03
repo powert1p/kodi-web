@@ -65,6 +65,22 @@ describe('useStepSubmitFlow', () => {
     expect(result.current.needsConsent).toBe(false)
   })
 
+  it('вердикт unsure — это успешный результат, а не ошибка (status=result)', async () => {
+    const verdict: StepVerdict = { verdict: 'unsure', hint: null, confidence: 0.5, step_n: 1 }
+    vi.mocked(postStepSubmit).mockResolvedValue(verdict)
+
+    const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
+
+    await act(async () => {
+      await result.current.start(FILE, { decomp_idx: 0, step_n: 1 })
+    })
+
+    expect(result.current.status).toBe('result')
+    expect(result.current.verdict?.verdict).toBe('unsure')
+    expect(result.current.is503).toBe(false)
+    expect(result.current.needsConsent).toBe(false)
+  })
+
   it('403 consent_required переводит needsConsent=true', async () => {
     vi.mocked(postStepSubmit).mockRejectedValue(new ApiError(403, 'consent_required'))
 

@@ -516,3 +516,60 @@ async def test_step_photo_404(client_for_step):
         assert r.status_code == 404
     finally:
         app_settings.owner_student_id = old
+
+
+@pytest.mark.asyncio
+async def test_step_photo_row_exists_file_missing_404(client_for_step, monkeypatch):
+    """Владелец, строка в БД есть, но файл на диске удалён → 404 (не 500)."""
+    ac, student_id, token, decomp_idx, step_n, pid, tmp_path = client_for_step
+    monkeypatch.setattr("api.routers.trainer.classify_step_photo", _mock_classify("match", 0.9))
+
+    jpeg = _make_tiny_jpeg()
+    resp = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(jpeg), "image/jpeg")},
+    )
+    assert resp.status_code == 200
+
+    from db.base import async_session
+    async with async_session() as session:
+        submission_id = (await session.execute(
+            text("SELECT id FROM step_submissions WHERE student_id = :sid"),
+            {"sid": student_id},
+        )).scalar_one()
+
+    photo_files = list((tmp_path / "steps" / str(student_id)).glob("*.jpg"))
+    assert len(photo_files) == 1
+    photo_files[0].unlink()  # строка в БД остаётся, файл исчезает
+
+    from core.config import settings as app_settings
+    old = app_settings.owner_student_id
+    app_settings.owner_student_id = student_id
+    try:
+        r = await ac.get(
+            f"/api/trainer/step-photo/{submission_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert r.status_code == 404
+    finally:
+        app_settings.owner_student_id = old
+
+
+@pytest.mark.asyncio
+async def test_step_photo_forbidden_nonexistent_id_gate_before_select(client_for_step):
+    """Не-владелец + несуществующий id → 403 (owner-гейт срабатывает раньше SELECT)."""
+    ac, student_id, token, decomp_idx, step_n, pid, tmp_path = client_for_step
+
+    from core.config import settings as app_settings
+    old = app_settings.owner_student_id
+    app_settings.owner_student_id = student_id + 1  # чужой владелец
+    try:
+        r = await ac.get(
+            "/api/trainer/step-photo/999999999",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert r.status_code == 403
+    finally:
+        app_settings.owner_student_id = old
