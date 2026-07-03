@@ -63,10 +63,12 @@ export function useSrez(): UseSrezResult {
     }
   }, [query.isSuccess, tasks.length])
 
-  // Таймер текущей задачи — сбрасывается при переходе на следующую (elapsed_ms).
+  // Таймер текущей задачи — сбрасывается по problem_id, а не по index: иначе
+  // отсчёт первой задачи начинался бы ещё до её появления (с рендера хука) и
+  // включал бы время загрузки среза в elapsed_ms.
   useEffect(() => {
     startedAtRef.current = Date.now()
-  }, [index])
+  }, [currentTask?.problem_id])
 
   // Телеметрия финала — один раз, когда все задачи пройдены.
   useEffect(() => {

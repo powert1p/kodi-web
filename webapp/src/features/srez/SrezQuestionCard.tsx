@@ -17,13 +17,16 @@ interface SrezQuestionCardProps {
 export function SrezQuestionCard({ topic, statement, value, disabled, onChange }: SrezQuestionCardProps) {
   return (
     <ApCard padding="m" className="flex flex-col gap-3">
-      <span className="line-clamp-2 text-caption1 text-muted">Тема: {topic}</span>
+      <span className="text-caption1 text-muted">Тема: {topic}</span>
       <p className="text-study text-ink">
         <MathText text={statement} />
       </p>
+      {/* text, не decimal: в банке есть дроби «1/2» и отрицательные ответы —
+          iOS decimal-клавиатура не содержит «/» и «−», text покрывает всё
+          (корректность важнее эргономики для пилота). */}
       <ApTextField
         fieldSize="l"
-        inputMode="decimal"
+        inputMode="text"
         autoComplete="off"
         placeholder="Твой ответ"
         aria-label="Введите ответ"

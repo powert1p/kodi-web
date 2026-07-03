@@ -6,6 +6,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 // Приложение монтируется под /app/ (nginx проксирует туда статику).
 export default defineConfig({
   base: '/app/',
+  // Дев-прокси на локальный backend (:8000) — нужен только для `npm run dev`,
+  // чтобы живые скриншоты/ручная проверка снимались на vite :5173 против
+  // реального /api. Прод отдаёт /api через nginx same-origin, этой строки не
+  // видит (влияет только на `server`, не на `vite build`).
+  server: { proxy: { '/api': 'http://localhost:8000' } },
   plugins: [
     react(),
     tailwindcss(),
