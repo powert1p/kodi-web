@@ -49,10 +49,28 @@ async def test_events_batch_insert(eclient, db_session):
         {"event_type": "srez_answered", "payload": {"problem_id": 3, "is_correct": False}},
     ]})
     assert r.status_code == 200
-    assert r.json()["inserted"] == 2
+    body = r.json()
+    assert body["received"] == 2
+    assert body["inserted"] == 2
     n = (await db_session.execute(text(
         "SELECT count(*) FROM events WHERE student_id = :sid"), {"sid": sid})).scalar()
     assert n == 2
+
+
+@pytest.mark.asyncio
+async def test_events_batch_truncated_to_20(eclient, db_session):
+    """Батч из 25 событий: приняли 25, записали только 20 (cap), ответ это честно отражает."""
+    ac, token, sid = eclient
+    h = {"Authorization": f"Bearer {token}"}
+    events = [{"event_type": "hub_opened"} for _ in range(25)]
+    r = await ac.post("/api/trainer/events", headers=h, json={"events": events})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["received"] == 25
+    assert body["inserted"] == 20
+    n = (await db_session.execute(text(
+        "SELECT count(*) FROM events WHERE student_id = :sid"), {"sid": sid})).scalar()
+    assert n == 20
 
 
 @pytest.mark.asyncio
@@ -70,4 +88,7 @@ async def test_events_export_owner_only(eclient):
     assert r2.status_code == 200
     assert "text/csv" in r2.headers["content-type"]
     assert "event_type" in r2.text
+    # Невалидный format → 422 (Query pattern="^csv$")
+    r3 = await ac.get("/api/trainer/events/export?format=json", headers={"Authorization": f"Bearer {token}"})
+    assert r3.status_code == 422
     settings.owner_student_id = old

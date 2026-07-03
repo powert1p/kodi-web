@@ -942,6 +942,9 @@ class EventsBatchIn(BaseModel):
 
 
 class EventsBatchOut(BaseModel):
+    # received — сколько событий пришло в запросе; inserted — сколько реально записано
+    # (после усечения до 20). Раньше поля не было — клиент не видел, что часть батча отброшена.
+    received: int
     inserted: int
 
 
@@ -951,6 +954,7 @@ async def post_events(request: Request, payload: EventsBatchIn) -> EventsBatchOu
     """Пишет batch событий телеметрии (≤20). Неизвестные event_type НЕ отклоняем."""
     session, student = await _get_current_student(request)
     try:
+        received = len(payload.events)
         events = payload.events[:20]  # cap 20 за запрос
         for ev in events:
             await session.execute(
@@ -964,11 +968,13 @@ async def post_events(request: Request, payload: EventsBatchIn) -> EventsBatchOu
         await session.commit()
     finally:
         await session.close()
-    return EventsBatchOut(inserted=len(events))
+    return EventsBatchOut(received=received, inserted=len(events))
 
 
 @router.get("/events/export")
-async def get_events_export(request: Request, format: str = Query("csv")) -> Response:
+async def get_events_export(
+    request: Request, format: str = Query("csv", pattern="^csv$")
+) -> Response:
     """CSV-выгрузка всех событий. Только владелец (settings.owner_student_id), иначе 403."""
     session, student = await _get_current_student(request)
     try:
