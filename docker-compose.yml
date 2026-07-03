@@ -42,6 +42,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       VISION_PROVIDER: ${VISION_PROVIDER:-gemini}
+      # owner-гейт выгрузки телеметрии (/api/trainer/events/export); 0 = выгрузка никому
+      OWNER_STUDENT_ID: ${OWNER_STUDENT_ID:-0}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       PORT: "8000"
