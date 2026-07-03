@@ -4,6 +4,7 @@ import { ApButton } from '../../components/ApButton'
 import { Mascot } from '../../components/Mascot'
 import { CameraUploadIcon } from '../../icons'
 import { HintBanner } from './HintBanner'
+import { track } from '../../lib/telemetry'
 import type { StepVerdict } from '../../lib/types'
 import type { StepSubmitStatus } from './useStepSubmitFlow'
 
@@ -31,6 +32,10 @@ export function StepSubmitPanel({ stepN, status, verdict, onPhoto, onRetry }: St
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // Телеметрия ретрая после unsure — на фактическом повторном фото (файл
+      // реально выбран), а не на приходе вердикта: до этого момента пользователь
+      // мог и не повторить попытку.
+      if (verdict?.verdict === 'unsure') void track('step_retry_after_unsure')
       onRetry()
       onPhoto(file)
     }

@@ -82,14 +82,27 @@ function DrillContent({ task }: { task: WrongTask }) {
   const stepFlow = useStepSubmitFlow()
   const activeRung = drill.activeRung
   const isOriginalActive = activeRung?.kind === 'original'
-  const photoMode = mode === 'tetrad' && isOriginalActive
+  // choose-ступень (варианты ответа, напр. «новая/старая» цена) — фотографировать
+  // нечего, фото-режим на неё не распространяется (решение директора). Тот же
+  // маркер, что и в RungActive (isChoose): expected_value==='новая' на original-ступени.
+  const isChooseActive = isOriginalActive && activeRung?.expected_value === 'новая'
+  const photoMode = mode === 'tetrad' && isOriginalActive && !isChooseActive
   const activeStepN =
     activeRung && activeRung.kind === 'original' ? Number(activeRung.key.slice(1)) : null
+
+  // Стухший stepFlow: при смене активной ступени (correct/climb-down/climb-back)
+  // панель не должна монтироваться со старым mismatch/unsure-вердиктом предыдущего
+  // шага — сбрасываем flow на каждую смену activeRung.
+  useEffect(() => {
+    stepFlow.reset()
+    // eslint-disable-next-line -- намеренно: реагируем только на смену активной ступени
+  }, [activeRung?.key])
 
   // Мост вердикта фото-шага в машину лесенки: match/mismatch реюзают
   // существующие пути ladder.submit (correct/wrong — climb-down и hint работают
   // как обычно), unsure машину НЕ трогает — это не ошибка, а «не разглядел»,
-  // ждём повторного фото того же шага.
+  // ждём повторного фото того же шага (телеметрия retry — в StepSubmitPanel,
+  // на фактическом повторном фото, не здесь на приходе вердикта).
   useEffect(() => {
     if (stepFlow.status !== 'result' || !stepFlow.verdict || !activeRung) return
     const v = stepFlow.verdict
@@ -106,8 +119,6 @@ function DrillContent({ task }: { task: WrongTask }) {
       // Сентинел не сопадёт ни с одним expected_value — гарантированный «wrong»,
       // реюз climb-down/hint; сам сентинел юзеру нигде не показывается.
       drill.submit('nomatch')
-    } else {
-      void track('step_retry_after_unsure')
     }
     // eslint-disable-next-line -- намеренно узкие deps: реагируем только на смену вердикта фото-шага
   }, [stepFlow.status, stepFlow.verdict])
@@ -140,10 +151,12 @@ function DrillContent({ task }: { task: WrongTask }) {
   // Опора для 503-fallback — reveal активного шага (не финальный ответ задачи).
   const fallbackHint = drill.activeRung?.reveal ?? null
 
-  // В режиме «По тетради» на активной original-ступени панель сдачи фото шага —
-  // единственный фото-CTA экрана; фото-путь целой задачи прячется, чтобы не
-  // спорить с ним за primary-действие (один primary-CTA на экран).
-  const showPhotoPath = !drill.finished && !photoMode
+  // В режиме «По тетради» фото-путь целой задачи прячется целиком (не только
+  // когда сама панель шага активна) — иначе на easier-ступени (photoMode=false,
+  // но mode==='tetrad') рядом с текстовым вводом разминки всплывал бы отдельный
+  // «Сфотографировать решение», хотя пользователь явно выбрал режим фото-шага.
+  // Один primary-CTA на экран — держим по режиму, не по конкретной ступени.
+  const showPhotoPath = !drill.finished && mode === 'input'
 
   // Есть ли ступени для лесенки
   const hasSteps = task.steps.length > 0
@@ -181,6 +194,9 @@ function DrillContent({ task }: { task: WrongTask }) {
               mode={mode}
               onChange={(m) => {
                 setMode(m)
+                // Возврат в «Ввод» — сброс flow, чтобы стухший вердикт фото-шага
+                // не всплыл, если пользователь снова переключится на «По тетради».
+                if (m === 'input') stepFlow.reset()
                 void track('step_mode_switched', { mode: m })
               }}
             />
