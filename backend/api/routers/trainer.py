@@ -284,6 +284,7 @@ class ConsentIn(BaseModel):
 
 
 @router.post("/consent")
+@limiter.limit("10/minute")
 async def post_consent(request: Request, payload: ConsentIn) -> dict:
     """Проставляет согласие родителя на использование фото + timestamp."""
     session, student = await _get_current_student(request)
@@ -897,6 +898,7 @@ async def post_srez_start(request: Request) -> SrezStartOut:
 
 
 @router.post("/srez/answer", response_model=SrezAnswerOut)
+@limiter.limit("30/minute")
 async def post_srez_answer(request: Request, payload: SrezAnswerIn) -> SrezAnswerOut:
     """Проверяет ответ задачи среза и пишет attempt(source='diagnostic').
     НЕ возвращает correct_answer/solution (задачи потом попадут в drill)."""
