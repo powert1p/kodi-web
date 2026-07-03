@@ -1,6 +1,6 @@
 # Текущий план — kodi-web
 
-**Обновлено:** 2026-07-02
+**Обновлено:** 2026-07-03 · **Стратегия:** [docs/VISION.md](../VISION.md) — этап 0 (ядро тренажёра) закрыт, следующий = Этап 1 «Поэтапная сдача» (MVP стартапа: eval-набор кириллица+клетка → consent-флоу → поэтапный флоу)
 
 Контекст: воскрешение проекта из learning-эпохи. Полный разбор — [AUDIT-REPORT.md](../../AUDIT-REPORT.md), спека — [docs/specs/2026-06-22-kodi-web-audit-scaffold-revive.md](../specs/2026-06-22-kodi-web-audit-scaffold-revive.md).
 

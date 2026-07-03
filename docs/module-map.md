@@ -1,8 +1,8 @@
 # Module Map
 
-> **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-06-24 (слой тем CC).** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
+> **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-07-03 (граф v02, чистка dead code, тренажёр+тьютор).** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
 
-**Масштаб:** 10 core-модулей (+ ~40 модулей в `scorers/`+`classifiers/` — DEAD CODE в рантайме), `routes.py` ~1070 строк (монолит, 19 эндпоинтов, вкл. публичный `graph/public` без auth), 5 Flutter-фич (auth/dashboard/practice/diagnostic/exam), 10 DB-таблиц (`__tablename__` ×10: +`topics`,`topic_edges` со слоя тем 2026-06-24), 2525 задач / 118 нод графа / 43 темы CC.
+**Масштаб:** 13 core-модулей без __init__ (scorers/classifiers удалены 2026-07-03), `routes.py` ~1070 строк (монолит, 19 эндпоинтов) + `routers/trainer.py` (8 эндпоинтов тренажёра), 5 Flutter-фич + 5 PWA-фич (webapp/), 18 DB-таблиц, 2525 задач / **114 нод графа v02 / 36 тем CC**.
 
 ## Backend: Core (`backend/core/`)
 
@@ -17,10 +17,7 @@
 | bkt.py | Bayesian Knowledge Tracing: обновление `p_mastery` после каждого ответа (Corbett & Anderson) | `bkt_update`, `is_mastered`, `record_attempt`, `MASTERY_THRESHOLD=0.85`, `MASTERY_ALGO_VERSION` | 230 |
 | graph.py | Операции с графом знаний (Knowledge Space Theory): outer/inner fringe, prerequisites, backward walk | `get_prerequisites`, `get_dependents`, `get_mastery_map`, `get_outer_fringe` | 157 |
 | config.py | Настройки из `.env` (dataclass); фикс `postgres://`→`postgresql+asyncpg://` | `settings`, `Settings`, `is_privileged`, `_fix_database_url` | 69 |
-| **scorers/** (19 файлов) | **DEAD CODE в рантайме** — offline-тулинг оценки сложности задач (per-block `score_problem`). 0 runtime-импортов; `raw_score`/`sub_difficulty` сидятся прямо из JSON в `seed.py` | реестр в `__init__.py` (FR/AR/EQ/…) | ~2149 |
-| **classifiers/** (21 файл) | **DEAD CODE в рантайме** — offline-тулинг автоклассификации задач по темам (per-block `classify`). 0 runtime-импортов нигде (включая scripts) | `ClassifyResult`, реестр в `__init__.py` | ~2031 |
-
-> ⚠️ `scorers/` + `classifiers/` (~40 модулей, ~4180 строк) **не импортируются в рантайме** — это offline-тулинг подготовки банка задач. В проде значения `raw_score`/`sub_difficulty` берутся как есть из `problems_v10.json` (`seed.py:107-108`). Не путать их пороги с алгоритмическими.
+> `scorers/` + `classifiers/` (~40 модулей, ~4180 строк offline-тулинга) **УДАЛЕНЫ 2026-07-03** (chore-чистка, commit 0049629; были dead code — 0 runtime-импортов). Значения `raw_score`/`sub_difficulty` берутся как есть из `problems_v10.json` (`seed.py`).
 
 ## Backend: API & App (`backend/api/`, `backend/web.py`, `backend/run.py`)
 
@@ -37,7 +34,7 @@
 | File | Назначение | Ключевое | ~Lines |
 |------|-----------|----------|--------|
 | seed.py | Загрузка графа (nodes+edges) и задач из JSON при пустой таблице; upsert по версии. **`seed_topics`** — идемпотентный upsert слоя тем, зовётся ВСЕГДА (не gated по nodes) | `seed_graph`, `seed_problems`, `seed_topics`, `PROBLEMS_VERSION="v10.1"` | 254 |
-| models.py | SQLAlchemy-модели, **10 таблиц**: `Node`, `Edge`, `Problem`, `Student`, `Mastery`, `Attempt`, `ProblemReport`, `Setting`, `Topic`, `TopicEdge` (+`Node.topic_id`) | `__tablename__` ×10, ключевые поля Student/Mastery (см. CLAUDE.md) | 201 |
+| models.py | SQLAlchemy-модели, **18 таблиц**: ядро (`Node`,`Edge`,`Problem`,`Student`,`Mastery`,`Attempt`,`ProblemReport`,`Setting`,`Topic`,`TopicEdge`) + тренажёр (`MicroSkill`,`DecompositionProblem`,`ProblemStep`,`ProblemFingerprint`,`ErrorCapture`,`RecurringError`,`TutorSession`,`TutorMessage`) | `__tablename__` ×18 | ~385 |
 | base.py | Async-движок (asyncpg), `async_session` factory, `Base` (DeclarativeBase), pool 10+5 | `engine`, `async_session`, `Base`, `get_session` | 24 |
 
 ## Backend: Scripts & Data
@@ -47,7 +44,7 @@
 | scripts/generate_images.py | Offline: рендер PNG-карточек для всех задач (стек-дроби, unicode-математика, адаптивная высота), запись в `static/questions[_kz]/` + поле `image_file` в JSON | `--lang ru/kz`, STIX/DejaVu fonts | 814 |
 | scripts/patch_units.py | Offline: добавление подсказок единиц измерения («(Ответ в часах)») в условия задач RU+KZ | `UNIT_HINT_RU`, `--dry-run` | 388 |
 | data/problems_v10.json | Банк задач — **2525 шт** (dict), привязаны к нодам; поля `raw_score`/`sub_difficulty`/`image_file` | — | ~2.4 MB |
-| data/nis_knowledge_graph_v01.json | Граф знаний — **118 нод** (+ metadata); `name_ru`/`name_kz`, edges-пререквизиты | — | ~50 KB |
+| data/nis_knowledge_graph_v01.json | Граф знаний **v02 — 114 нод / 181 ребро** (чистка 2026-07-03, вердикт в specs); `name_ru`/`name_kz`, edges-пререквизиты | — | ~50 KB |
 
 ## Frontend: App (`frontend/apps/kodi_web/lib/`)
 
@@ -105,17 +102,7 @@
 
 ## Frontend: Кабинет «Работа над ошибками» (`cabinet/`) — НОВЫЙ, отдельно от Flutter
 
-> Добавлено: 2026-06-23. React 19 + TS + Vite SPA (НЕ Flutter) — кабинет разбора ошибок среза; mobile-first, embeddable в мобилку через WebView. Пока на mock-данных (`cabinet/src/mock/`), backend-интеграция — отдельный заход. Запуск: `cd cabinet && npm run dev` (HashRouter: `/#/`, `/#/task/:id`, `/#/closure/:id`).
-
-| Путь | Назначение |
-|------|-----------|
-| cabinet/src/pages/{HubPage,TaskPage,ClosurePage}.tsx | Экраны: срез-хаб / разбор (лесенка) / закрытие |
-| cabinet/src/components/ladder/{Ladder,Rung,RungInput,RungOptions,HintBanner}.tsx | Лесенка понимания (signature); рунги compute/choose, gating, climb-down |
-| cabinet/src/components/tutor/ | AI-тьютор bottom-sheet (mock) |
-| cabinet/src/hooks/useLadder.ts | Состояние лесенки: рунги, вставка easier-ступени, climb-back. ⚠️ `<Ladder key={task.id}>` в TaskPage — иначе стейт течёт между задачами |
-| cabinet/src/mock/{srez,hints,tutor}.ts | Mock-срез по форме backend-декомпозиции (тема→микро-навык→задача-в-шагах) + Socratic-подсказки |
-| cabinet/src/lib/math.ts | KaTeX-рендер $...$ + нормализация ответов (дроби/десятичные) |
-| cabinet/src/index.css | Дизайн-токены (@theme): Lexend/Bricolage/Space Grotesk, светофор mastery, слоистый фон |
+> Прото-фронт `cabinet/src/` УДАЛЁН 2026-07-03 (chore-чистка, commit 54ab122) — весь функционал перенесён в `webapp/` (useLadder/math.ts портированы). Остался только оффлайн-движок авторинга ниже (+ `cabinet/src/mock/srez.ts` как WIP-файл владельца).
 
 ### Движок авторинга лесенок (`cabinet/engine/`)
 | Путь | Назначение |

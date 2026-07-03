@@ -21,7 +21,7 @@ HTTP (FastAPI, web.py) ─► api/routes.py (монолит, 1070 строк: ro
 
 - **web.py** — FastAPI app: CORS, security-headers middleware, slowapi rate-limit, SPA-фолбэк (отдаёт `web_static/` + index.html на не-API роуты).
 - **api/routes.py** — ВСЕ эндпоинты в одном файле (auth, practice, diagnostic, exam, stats, graph, reports). Hand-rolled auth через `_get_current_student` + ручной `(session, student)` + `try/finally` в каждом хендлере (не `Depends()`). ⚠️ Цель рефакторинга — разбить на `routers/` + `security.py` (см. AUDIT API-3).
-- **core/** — алгоритмы без знания об HTTP/ORM-сессии (принимают session как аргумент). `scorers/` + `classifiers/` (~40 модулей) — **dead code** в рантайме (offline-тулинг калибровки; данные уже запечены в JSON).
+- **core/** — алгоритмы без знания об HTTP/ORM-сессии (принимают session как аргумент). `scorers/`+`classifiers/` удалены 2026-07-03 (были dead code; данные запечены в JSON).
 - **db/** — `models.py` (8 таблиц, typed `Mapped[...]`), `base.py` (async engine + sessionmaker + pool), `seed.py` (идемпотентный сид графа и задач).
 
 ## Поток ученика (CJM)
