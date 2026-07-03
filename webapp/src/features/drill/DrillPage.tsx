@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { useParams } from 'react-router-dom'
+import { track } from '../../lib/telemetry'
 import { DrillHeader } from './DrillHeader'
 import { LevelIntro } from './LevelIntro'
 import { ProblemCard } from './ProblemCard'
@@ -73,6 +74,21 @@ function DrillContent({ task }: { task: WrongTask }) {
 
   // Прогресс шапки: решённые оригиналы +1 (текущий), но не больше всего.
   const current = Math.min(drill.solvedOriginals + 1, drill.totalOriginals)
+
+  // Телеметрия открытия/ухода с drill. finishedRef держит актуальный статус
+  // разбора для cleanup-эффекта: unmount без завершения → drill_left.
+  const openTrackedRef = useRef(false)
+  const finishedRef = useRef(drill.finished)
+  finishedRef.current = drill.finished
+  useEffect(() => {
+    if (!openTrackedRef.current) {
+      openTrackedRef.current = true
+      void track('drill_opened', { task_id: task.id })
+    }
+    return () => {
+      if (!finishedRef.current) void track('drill_left', { task_id: task.id })
+    }
+  }, [task.id])
 
   // Подпись шага по номеру (для диагноза «нашёл на шаге N»). Только человеческий label — не код (§2.2).
   const stepLabel = (n: number): string | null => {

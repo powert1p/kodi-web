@@ -5,6 +5,7 @@ import { ApInformer } from '../../components/ApInformer'
 import { ApCard } from '../../components/ApCard'
 import { LongArrowRightIcon } from '../../icons'
 import { sendTutorMessage, ApiError } from '../../lib/api'
+import { track } from '../../lib/telemetry'
 import type { TutorMessage } from '../../lib/types'
 
 interface TutorPanelProps {
@@ -27,6 +28,15 @@ export function TutorPanel({ problemId, decompIdx }: TutorPanelProps) {
   const [input, setInput] = useState('')
 
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Телеметрия открытия панели тьютора — один раз за монтирование.
+  const openTrackedRef = useRef(false)
+  useEffect(() => {
+    if (!openTrackedRef.current) {
+      openTrackedRef.current = true
+      void track('tutor_opened')
+    }
+  }, [])
 
   // Автоскролл к последней реплике при любом изменении переписки.
   useEffect(() => {

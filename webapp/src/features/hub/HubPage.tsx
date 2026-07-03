@@ -1,5 +1,6 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { useWrongTasks } from './useWrongTasks'
+import { track } from '../../lib/telemetry'
 import { StatusRow } from './StatusRow'
 import { HubHero } from './HubHero'
 import { ProblemTopicsCard } from './ProblemTopicsCard'
@@ -23,6 +24,15 @@ const POINTS = 1280
 export function HubPage() {
   const { data, isPending, isError, refetch } = useWrongTasks()
   const { data: profile } = useMe()
+
+  // Телеметрия открытия hub — один раз за монтирование (ref-guard от повторов при ре-рендере).
+  const openTrackedRef = useRef(false)
+  useEffect(() => {
+    if (!openTrackedRef.current) {
+      openTrackedRef.current = true
+      void track('hub_opened')
+    }
+  }, [])
 
   // Триаж: сначала «разберём», потом «почти», потом «готово».
   const tasks = data

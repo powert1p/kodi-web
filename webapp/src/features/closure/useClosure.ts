@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { startVerification, answerVerification } from '../../lib/api'
+import { track } from '../../lib/telemetry'
 import type { VerificationProblemDTO } from '../../lib/types'
 
 /** Статус закрепления: загрузка / решает / ошибся / закрыл / ошибка сети. */
@@ -53,6 +54,7 @@ export function useClosure(
         .then((res) => {
           if (res.correct) {
             setStatus('correct')
+            void track('closure_passed')
             // Ошибка закрыта на сервере (recurring_errors.resolved) — обновляем
             // кэши hub'а, чтобы список ошибок/проблемных тем сразу отразил закрытие.
             queryClient.invalidateQueries({ queryKey: ['wrong-tasks'] })
