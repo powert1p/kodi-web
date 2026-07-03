@@ -72,3 +72,47 @@ async def test_consent_endpoint_sets_flag(cclient, db_session):
     ), {"sid": sid})).fetchone()
     assert row.photo_consent is True
     assert row.photo_consent_at is not None
+
+
+@pytest_asyncio.fixture
+async def rclient(db_session):
+    """Клиент против свежей *_test БД без предзаполненного студента — для тестов регистрации."""
+    if not _TEST_URL:
+        pytest.skip("TEST_DATABASE_URL не задан")
+
+    import api.routes as routes_module
+    import db.base as db_base
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    eng = create_async_engine(_TEST_URL)
+    fac = async_sessionmaker(eng, expire_on_commit=False)
+    o1, o2 = db_base.async_session, routes_module.async_session
+    db_base.async_session = fac
+    routes_module.async_session = fac
+    from web import app
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
+        yield ac
+    db_base.async_session = o1
+    routes_module.async_session = o2
+    await eng.dispose()
+
+
+@pytest.mark.asyncio
+async def test_register_without_checkbox_leaves_consent_null(rclient, db_session):
+    """Снятый чекбокс при регистрации = «не ответил» (NULL), НЕ отказ (False)."""
+    r = await rclient.post("/api/auth/phone/register", json={
+        "name": "Тест Студент",
+        "phone": "+77011234567",
+        "pin": "1234",
+    })
+    assert r.status_code == 200
+    token = r.json()["access_token"]
+
+    row = (await db_session.execute(text(
+        "SELECT photo_consent, photo_consent_at FROM students WHERE phone = :phone"
+    ), {"phone": "+77011234567"})).fetchone()
+    assert row.photo_consent is None
+    assert row.photo_consent_at is None
+
+    me = await rclient.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me.status_code == 200
+    assert me.json()["photo_consent"] is None

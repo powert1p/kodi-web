@@ -1,91 +1,102 @@
-# Kodi Error Trainer — Design System (v4, AiPlus)
+# DESIGN SYSTEM v5 — «Спокойный + тёплый» (канон, 2026-07-03)
 
-> **Source of truth:** the framework-agnostic AiPlus spec at
-> `/Users/esetseitkamal/Downloads/aiplus-design-system/aiplus-design-system.md`
-> (§9.1 CSS variables, §3 type, §4 spacing, §5 radii, §6 shadows, §8 components).
-> This doc summarizes the adoption; the spec wins on any conflict.
->
-> Supersedes v3 ("Duolingo-style warm orange" with chunky-3D push-buttons) and the
-> earlier v1 dark / v2 claymorphism. v4 adopts the owner's REAL product language: **AiPlus.**
+> Направление зафиксировано дизайн-директором (Fable) по research
+> `docs/specs/2026-07-03-research-ai-design.md` и скриншот-аудиту. **Эстетику исполнитель не пересматривает.**
+> v5 = эволюция v4 (AiPlus): сохраняем плоские bordered-карточки, один бренд-оранж, радиусы —
+> добавляем тёплую подложку, дисциплину акцента, Кёди-протокол и машинные гейты.
+> Любая UI-работа: прочти этот файл → возьми эталон → реализуй по паттерну → прогони гейты.
+> Правило из research: «инструкция не переживает свежий контекст — переживает то, что не проходит гейт».
 
-## Direction — AiPlus flat-bordered clarity
+## 0. Характер продукта (зачем так)
 
-- **Light theme is canon.** Background is **white `#FFFFFF`** (`--bg-primary`), never cream.
-- **Surfaces are FLAT** — separated by **1px borders**, not shadows, not clay, not 3D edges.
-  Shadows are rare (only the bottom bar, tooltip, menu, overlay per §6).
-- **One brand color: orange `#FF8C00`** (`--bg-brand` / `--text-brand` / `--stroke-brand`).
-  NOT the v3 `#EA580C`.
-- Radii: **buttons/inputs 12** (`--radius-lg`), **cards 14** (`--radius-xl`), **chips/tags 8**
-  (`--radius-sm`), **bottom-bar/dialog top 16**, **pill = full**.
-- Spacing on a **4-grid** (4/8/12/16/20/24) with thin 2/6 steps.
+Пользователь — 10-13 лет, дома, один на один со СВОИМИ ошибками. Продукт не имеет права быть
+ни «детсадовским» (с 12-13 лет отторжение всего kiddie), ни канцелярским кабинетом.
+**База — спокойная и взрослая** («мы разберёмся»), **характер — тёплый, точечный**, через Кёди
+в 4 моментах (§5). Ошибка — материал для роста: о ней говорит Кёди, никогда — «системный» тон,
+никогда — красный.
 
-## Typography — DM Sans + Onest (Cyrillic)
+## 1. Токены (`src/theme/tokens.css` — единственный источник; менять ТОЛЬКО вместе с этим файлом)
 
-- Canonical face is **DM Sans** (400/500/700), `--font-sans: 'DM Sans','Onest',system-ui,sans-serif`.
-- ⚠️ **Cyrillic gotcha:** the Google Fonts build of DM Sans (v17) ships **only latin / latin-ext —
-  no Cyrillic subset**. This app is ru/kz, so Cyrillic would fall back to system-ui and break.
-  **Fix:** self-host DM Sans (latin, carries the brand character + numerals) **+ Onest** (cyrillic /
-  cyrillic-ext — a modern geometric grotesque whose character sits very close to DM Sans).
-  `@font-face` `unicode-range` routes glyphs automatically: latin → DM Sans, Cyrillic → Onest.
-  All four woff2 are self-hosted in `src/theme/fonts/` (offline-ready PWA). See `src/theme/fonts.css`.
-- Type scale (`.text-h1/h2/h3/title/body/caption1/caption2/label-small` in `index.css`, §3):
-  h1 32/38·700, h2 24/30·700, h3 20/24·500, title 16/22·500, body 16/24·400,
-  caption1 14/20·400, caption2 12/16·400, label-small 11/16·500.
+**Шрифт:** Golos Text (400/500/600/800), self-hosted, единый для кириллицы и латиницы —
+замена пары DM Sans+Onest. Математика/цифры: `font-feature-settings: "tnum"` (проверить при внедрении; нет tnum — оставить дефолт и записать сюда). ЗАПРЕЩЕНЫ: Inter, Roboto, Arial, system-ui как первичный.
 
-## Tokens
+**Цвет (роль → токен):**
+- `ink` #1C1B18 — заголовки · `text` #3D3A34 — основной · `muted` #8A857C — подписи (светлее нельзя).
+- `paper` #FAF7F2 — фон страницы (тёплая подложка вместо голого white) · `surface` #FFF — карточки · `stroke` #E8E2D8.
+- `brand` #FF8C00 — **ТОЛЬКО действие**: primary-CTA, прогресс, активный шаг/таб. Не ведёт к действию → не оранжевое.
+- `brand-soft` #FFF3E2 — выделенная подложка · `brand-deep` #E67E00 — hover.
+- `success` #2E9E5B / `success-soft` #E9F6EE · `attn` #B7791F / `attn-soft` #FBF3E4 (тёплый амбер = «не сошлось», НЕ красный).
+- Синий informer УПРАЗДНЁН: четвёртому акценту взяться неоткуда.
 
-- Full AiPlus CSS custom properties (§9.1) live in `src/theme/tokens.css`:
-  `--bg-*`, `--text-*`, `--stroke-*`, `--radius-*`, `--shadow-*` (all exact values).
-- ⚠️ **`--text-tertiary` = WHITE** — only for text/icons on a COLORED fill (button, chip, badge,
-  active pagination). NEVER on white (invisible).
-- Tailwind v4 `@theme` (in the same file) maps tokens → utilities: `bg-bg-brand`, `text-text-primary`,
-  `border-stroke-secondary`, `rounded-lg`, `font-sans`, etc.
-  Gotcha: keep `*/`-bearing token names out of CSS comments (e.g. write "color/font/radius tokens",
-  not `--color-*/--font-*`) — `*/` prematurely closes the comment and breaks dev PostCSS.
+**Сетка:** отступы кратны 4px; **полушаги (6/10/14 = Tailwind 1.5/2.5/3.5) запрещены** — ловит `npm run lint:design`.
+**Радиусы (4 вместо 9):** 8 чипы · 12 контролы · 16 карточки · full пилюли.
+**Тени:** только 4 существующие (tooltip/bottom-bar/overlay/menu); остальное — плоскость + 1px `stroke`.
+**Типографика:** display 32/38·800 · h1 24/30·800 · h2 20/26·600 · body 16/24·400 · caption 13/18·500 · label 11/16·600.
+**Учебный текст (условие, шаг, реплики Кёди) — минимум 18px. Тач-таргеты ≥48px; поле ввода шага 56px.**
 
-## Components (AiPlus §8) — shared in `src/components/`
+## 2. Жёсткие запреты (NEVER — ловятся гейтами или критиком)
 
-- **ApButton** — flat. filled = `bg-brand` + white `text-tertiary`, hover → `bg-brand-hovered`;
-  outlined = brand border/text, hover → `bg-light-brand-warning`; radius 12; sizes m=48/s=40/xs=32;
-  `isError` / `isLoading` / `block`. NO 3D press, NO shadow. (Replaces the v3 `Button3D`.)
-- **ApTextField** — radius 12, filled `bg-tertiary`, border `stroke-primary-disabled` (1px) →
-  focus `stroke-brand` (1.5px); error `stroke-error`; label `text-secondary`.
-- **ApLinearProgress** — h8/r4, track `stroke-secondary`, fill `stroke-brand`.
-- **ApTag** — padding 8×4, radius 8, caption1; statuses default/error/primary/success/info.
-- **ApInformer** — banner: padding 12, radius 12, 1px border; info/warning/success/error. Used for
-  the diagnosis "found-the-step", hints, retry banner, and level intro.
-- **ApBottomBar** — top radius 16, `--shadow-bottom-bar`, icon 22, label 11px.
-  **SIGNATURE:** active tab swaps outline→filled icon, color lerps to `bg-brand`, scale ~1.15
-  (`.ap-nav-icon` / `.ap-nav-active`). The one orchestrated branded motion; everything else is quiet.
-- `.ap-card` utility (in `index.css`) — flat card: `bg-tertiary` + 1px `stroke-secondary`, radius 14.
+1. NEVER сырой hex/px вне tokens.css; NEVER произвольный Tailwind `p-[13px]`, `bg-[#…]`.
+2. NEVER внутренние идентификаторы в UI: `int_add_sub`, node_id, любой snake_case. Только `micro_skills.label_ru`; нет подписи — нейтральное «этот шаг», не код.
+3. NEVER обрезание смыслового текста без пути прочитать целиком: `line-clamp-2` + полный текст на экране деталей; однострочный ellipsis посреди слова для названий тем/шагов запрещён.
+4. NEVER единицы/валюта, которых нет в задаче («46 ₽» на голой арифметике — реальный инцидент).
+5. NEVER показывать ответ шага до попытки (текст, плейсхолдер, aria).
+6. NEVER красный для ошибок; NEVER тёмная тема; NEVER градиентные фоны; NEVER новые шрифты/икон-паки.
+7. NEVER второй primary-CTA на экране; NEVER главное действие текст-ссылкой.
+8. NEVER мёртвая нижняя половина: пустота под контентом+CTA < 30% вьюпорта 390×844 — иначе сжать экран или поднять следующий блок.
 
-## Icons — `src/icons/index.tsx`
+## 3. Компоненты (закрытые контракты — эталоны в `src/components/`)
 
-AiPlus SVGs (from the spec's `icons/`) reproduced as React components with `currentColor` (so they
-tint via `color`/tokens): Home/HomeActive, Task/TaskActive (nav), Left/Right/Down/LongArrowRight,
-Close/Restart/CameraUpload(cloud_upload)/Eye/Search, Check/Star/StarFilled/Checklist/History.
-Outline 1.5px (24) / 1.2px (16), filled variants for active states.
+| Компонент | Контракт (только эти пропсы) | Эталон |
+|---|---|---|
+| ApButton | variant primary/secondary/ghost · size m(48)/l(56) · full · disabled/loading | ClosurePage |
+| ApCard | tone surface/brand-soft/success-soft/attn-soft · padding m/l | HubHero |
+| ApTag | status neutral/brand/success/attn · size | StateChip |
+| ApInformer | tone neutral/attn/success (синего НЕТ) + слот иконки | DiagnosisCard |
+| ApLinearProgress | value 0..1 · tone brand/success | ProblemTopicsCard |
+| Mascot | mood hi/thinking/oops/celebrate · size s(40)/m(64)/l(96) | §5 |
+| ApTextField | size m/l · state default/error/disabled | RungActive |
+| ConsentCard | variant hub/drill (hub: compact/secondary/без маскота · drill: mascot thinking+primary) · onGranted? · onDismiss? · tone всегда attn-soft | HubPage/DrillPage |
 
-## Product personality (kept, lightly)
+Новый UI собирается ИЗ них. Новый компонент → сначала строка в таблице, потом код.
+`className` на Ap* — только layout (margin/grid), НЕ цвет/шрифт/радиус.
 
-- Mascot **«Кёди»** (orange sprout, `src/components/Mascot.tsx`) retained as an illustrative accent,
-  re-tinted to AiPlus tokens (`--bg-brand` / `--bg-success`). Greeting / diagnosis / closure / login.
-- Supportive growth-mindset tone kept: a mistake is «где растёт мозг», NEVER a punishing red.
-  State traffic-light maps to AiPlus tags: «разберём» = info (blue), «почти» = primary (brand),
-  «готово» = success (green).
-- Gamification rendered with AiPlus tags/pills/progress (streak, XP), not chunky game widgets.
+## 4. Паттерны экрана
 
-## States & motion
+- **Один экран — одно главное действие.** Primary-CTA (кнопка ≥48px) виден без скролла; остальное ghost/secondary.
+- **Иерархия хаба:** hero («что делать сейчас») → прогресс тем → список. Заголовки не конкурируют с CTA по весу.
+- **Плотность:** первый смысловой блок ≤96px от верха; запрет №8.
+- **Ширина:** контент max-width 480px; ≥768px — центр на `paper` (не мобильная колонка во всю ширь). Двухколонка планшета — отдельным решением.
+- **Состояния:** loading (skeleton формы контента) / error (голосом Кёди + retry) / empty (что сделать) / success — у каждого экрана.
+- **Motion:** stagger-появление блоков (80-120мс) — единственная системная анимация; bounce/дрожь запрещены; `prefers-reduced-motion` всегда. Confetti — только закрытие ошибки и 100% темы.
 
-- Every component ships loading (skeleton+shimmer) / empty (one line + CTA, celebratory) /
-  error (component-level retry, no red, no apology) / hover / focus-visible (2px `stroke-brand` ring).
-- One orchestrated page-load stagger (`.reveal`); content visible without JS. `prefers-reduced-motion`
-  honored (reveal/stamp/confetti/bob/nav-scale all neutralized).
+## 5. Кёди-протокол (эмоциональная работа — только здесь)
 
-## Known AA notes (AiPlus-canonical values)
+| Момент | mood | size | Тон |
+|---|---|---|---|
+| Вход / пустой хаб | hi | m | «Привет! Сегодня разберём…» |
+| Диагноз ошибки | thinking | m | «Смотри, вот тут сбилось — глянем вместе» (никогда «Неверно») |
+| Застревание (2+ фейла шага) | oops | s | «Бывает! Попробуем полегче?» |
+| Закрытие ошибки / веха темы | celebrate | l | Празднует преодоление («Эту ошибку ты победил») |
 
-These ratios are defined by the AiPlus spec itself (kept faithfully, not deviated):
-- white-on-`#FF8C00` button label = 2.33:1 — passes only as AA-large with large/bold labels;
-- `text-brand` orange as TEXT on white (eyebrows/tag text) ≈ 2.33:1; `text-secondary #888` on white
-  3.54:1 (AA-large). Body/heading `text-primary #090909` on white = 19.9:1 (AA).
-  See the task report for the full audit.
+Один Кёди на экран; не говорит — значит его нет. Ошибку формулирует всегда Кёди;
+вердикт «не сошлось» — амбер, без восклицаний и стыда.
+
+## 6. Дизайн-протокол для Opus (постановка и приёмка UI-задач)
+
+**Формат задачи (только такой):** (1) экран/компонент; (2) файл-эталон для паттерна; (3) токены/компоненты; (4) скриншот или ASCII-макет целевого состояния; (5) бинарный DoD-чеклист. НЕ «придумай экран/стиль» — композицию задаёт этот файл или макет в задаче.
+
+**Цикл приёмки:**
+1. `npm run lint:design` + `npx vitest run` + `npm run build` — зелёные.
+2. Playwright-скриншот 390×844 (+768 при структурных изменениях) → **отдельный критик-вызов** (не самопроверка: −20-40 п.п. точности): критику дать скриншот + §2/§4, ответ по бинарному чеклисту (CTA один и виден? иерархия? запреты? токены?).
+3. 1-2 итерации по конкретной критике. После 2-3 — стоп, фиксируй (плато).
+4. При осознанном изменении внешности — обновить эталоны в `webapp/design-baselines/`.
+
+**Чек перед коммитом:** grep диффа на `#[0-9a-fA-F]{3,6}` и `\[(#|\d+px)` вне tokens.css — пусто.
+
+## 7. Гейты (код)
+
+- `npm run lint:design` — скрипт: не-токен hex/px/полушаги/запретные шрифты в src/ → exit 1.
+- Playwright `toHaveScreenshot` для 3 ключевых экранов (hub/drill/closure) против `design-baselines/`.
+- axe-core smoke hub/drill: 0 critical/serious.
+- Дрейф-аудит ежемесячно: lint:design по всему src + просмотр baseline-диффов.

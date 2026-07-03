@@ -242,7 +242,9 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
             pin_hash=_hash_pin(body.pin),
             registered=True,
             lang="ru",
-            photo_consent=body.photo_consent,
+            # Снятый чекбокс = «родитель ещё не ответил» (NULL), а НЕ отказ (False) —
+            # иначе ConsentCard на хабе (показывается только при NULL) никогда не появится.
+            photo_consent=True if body.photo_consent else None,
             photo_consent_at=(datetime.now(timezone.utc) if body.photo_consent else None),
         )
         session.add(student)

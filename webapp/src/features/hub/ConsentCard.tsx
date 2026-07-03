@@ -19,7 +19,7 @@ export function isConsentDismissed(): boolean {
 }
 
 interface ConsentCardProps {
-  /** Задержка stagger-reveal в мс (позиция в общей ленте hub). Игнорируется, если задан onDismiss (drill). */
+  /** Задержка stagger-reveal в мс (позиция в общей ленте hub). Работает независимо от onDismiss. */
   delay?: number
   /** Вызывается ПОСЛЕ успешного сохранения согласия — например, вернуть фото-поток к повтору (drill). */
   onGranted?: () => void
@@ -29,13 +29,19 @@ interface ConsentCardProps {
    * Не задан — карточка сама скрывается на сессию (сценарий hub).
    */
   onDismiss?: () => void
+  /**
+   * hub — компактная карточка в общей ленте: БЕЗ Mascot, «Разрешаю» = secondary
+   * (единственный primary на экране — hero-CTA). drill (default) — Mascot thinking + primary,
+   * там ConsentCard единственный CTA на экране.
+   */
+  variant?: 'hub' | 'drill'
 }
 
 // Мягкое напоминание про согласие на фото (DESIGN_SYSTEM §0/§5): тёплый амбер —
-// «не сошлось», НЕ тревога и НЕ красный. Единственный primary-CTA карточки — «Разрешаю».
-// Переиспользуется в двух местах: хаб (photo_consent == null, самостоятельный dismiss)
-// и drill при 403 от /trainer/diagnose (сервер требует согласие, dismiss = продолжить без фото).
-export function ConsentCard({ delay = 0, onGranted, onDismiss }: ConsentCardProps) {
+// «не сошлось», НЕ тревога и НЕ красный.
+// Переиспользуется в двух местах: хаб (photo_consent == null, самостоятельный dismiss, variant="hub")
+// и drill при 403 от /trainer/diagnose (сервер требует согласие, dismiss = продолжить без фото, variant="drill").
+export function ConsentCard({ delay = 0, onGranted, onDismiss, variant = 'drill' }: ConsentCardProps) {
   const queryClient = useQueryClient()
   // В hub-режиме (onDismiss не задан) карточка сама себя скрывает по сессионному флагу —
   // нужно и при первом маунте (пришли на хаб заново), и мгновенно по клику «Позже».
@@ -73,7 +79,7 @@ export function ConsentCard({ delay = 0, onGranted, onDismiss }: ConsentCardProp
       style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}
     >
       <div className="flex items-start gap-3">
-        <Mascot mood="thinking" size="m" className="shrink-0" />
+        {variant === 'drill' && <Mascot mood="thinking" size="m" className="shrink-0" />}
         <div className="flex flex-col gap-1 pt-0.5">
           <h3 className="text-h3 text-ink">Спросим родителя</h3>
           <p className="text-body text-text">
@@ -88,7 +94,7 @@ export function ConsentCard({ delay = 0, onGranted, onDismiss }: ConsentCardProp
 
       <div className="flex items-center gap-3">
         <ApButton
-          variant="primary"
+          variant={variant === 'hub' ? 'secondary' : 'primary'}
           size="m"
           className="flex-1"
           loading={grant.isPending}

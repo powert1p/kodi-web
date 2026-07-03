@@ -45,7 +45,7 @@ export function HubPage() {
 
       {!isPending && !isError && total === 0 && (
         <>
-          {showConsent && <ConsentCard delay={0} />}
+          {showConsent && <ConsentCard delay={0} variant="hub" />}
           <div className="reveal" style={{ '--reveal-delay': '60ms' } as CSSProperties}>
             <HubEmpty />
           </div>
@@ -54,7 +54,7 @@ export function HubPage() {
 
       {!isPending && !isError && total > 0 && (
         <>
-          {showConsent && <ConsentCard delay={0} />}
+          {showConsent && <ConsentCard delay={0} variant="hub" />}
 
           <div
             className="reveal"
