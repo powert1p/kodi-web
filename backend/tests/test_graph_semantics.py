@@ -14,12 +14,6 @@ _GRAPH_PATH = _DATA_DIR / "nis_knowledge_graph_v01.json"
 _TOPICS_PATH = _DATA_DIR / "cc_topics_v01.json"
 _PROBLEMS_PATH = _DATA_DIR / "problems_v10.json"
 
-# Известное расхождение с вердиктом v02 (зафиксировано осознанно, см.
-# backend/scripts/apply_graph_v02.py и раздел 5 вердикта): RETAG DA01/DA02
-# (3.MD.B → 6.SP.B, оба узла разом) осиротяет тему 3.MD.B — вердикт этого не
-# учёл. Не чиним от себя — фиксируем как разрешённое исключение.
-ALLOWED_EMPTY_TOPICS = {"3.MD.B"}
-
 
 def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
@@ -92,19 +86,17 @@ def test_every_node_has_topic():
 
 
 def test_no_unexpected_empty_topics():
-    """Каждая тема имеет ≥1 узел, кроме осознанно разрешённого списка (см. ALLOWED_EMPTY_TOPICS)."""
+    """Каждая тема имеет ≥1 узел (v02.1: 3.MD.B тоже удалена — пустых тем быть не должно)."""
     t = _topics()
     topic_ids = {x["id"] for x in t["topics"]}
-    assert len(topic_ids) == 37
+    assert len(topic_ids) == 36
 
     node_count_by_topic: dict[str, int] = {}
     for tid in t["node_topic"].values():
         node_count_by_topic[tid] = node_count_by_topic.get(tid, 0) + 1
 
     empty_topics = {tid for tid in topic_ids if node_count_by_topic.get(tid, 0) == 0}
-    assert empty_topics == ALLOWED_EMPTY_TOPICS, (
-        f"неожиданные пустые темы: {empty_topics - ALLOWED_EMPTY_TOPICS}"
-    )
+    assert not empty_topics, f"неожиданные пустые темы: {empty_topics}"
 
 
 def test_all_problem_node_ids_exist_in_graph():

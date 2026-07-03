@@ -1,7 +1,7 @@
 {
  "meta": {
-  "topics": 37,
-  "edges": 39,
+  "topics": 36,
+  "edges": 38,
   "nodes_mapped": 114
  },
  "strands": [
@@ -67,14 +67,6 @@
   }
  ],
  "topics": [
-  {
-   "id": "3.MD.B",
-   "strand": "MD",
-   "grade": 3,
-   "order": 2,
-   "name_ru": "Чтение и построение диаграмм",
-   "name_kz": "Диаграммаларды оқу және сызу"
-  },
   {
    "id": "3.MD.D",
    "strand": "MD",
@@ -368,10 +360,6 @@
   [
    "3.MD.D",
    "4.MD.A"
-  ],
-  [
-   "3.NF.A",
-   "3.MD.B"
   ],
   [
    "3.NF.A",

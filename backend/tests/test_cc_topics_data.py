@@ -13,10 +13,11 @@ def _load() -> dict:
 
 def test_counts():
     d = _load()
-    # 43/61 → 37/39 после чистки графа v02 (docs/specs/2026-07-03-graph-v02-verdict.md):
-    # удалены 6 пустых тем + их topic_edges, узлы NM01/NM02/NM03/ALG01 удалены из графа.
-    assert len(d["topics"]) == 37
-    assert len(d["topic_edges"]) == 39
+    # 43/61 → 36/38 после чистки графа v02/v02.1 (docs/specs/2026-07-03-graph-v02-verdict.md):
+    # удалены 7 пустых тем (6 изначально + осиротевшая 3.MD.B после RETAG DA01/DA02)
+    # + их topic_edges, узлы NM01/NM02/NM03/ALG01 удалены из графа.
+    assert len(d["topics"]) == 36
+    assert len(d["topic_edges"]) == 38
     assert len(d["strands"]) == 10
 
 
