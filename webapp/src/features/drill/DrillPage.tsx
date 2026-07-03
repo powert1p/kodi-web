@@ -73,10 +73,11 @@ function DrillContent({ task }: { task: WrongTask }) {
   // Прогресс шапки: решённые оригиналы +1 (текущий), но не больше всего.
   const current = Math.min(drill.solvedOriginals + 1, drill.totalOriginals)
 
-  // Подпись шага по номеру (для диагноза «нашёл на шаге N»).
+  // Подпись шага по номеру (для диагноза «нашёл на шаге N»). Только человеческий label — не код (§2.2).
   const stepLabel = (n: number): string | null => {
     const step = task.steps.find((s) => s.n === n)
-    return step ? `шаг ${n} — ${step.micro_skill.toLowerCase()}` : `шаг ${n}`
+    if (!step?.micro_skill_label) return `шаг ${n}`
+    return `шаг ${n} — ${step.micro_skill_label.toLowerCase()}`
   }
 
   // Опора для 503-fallback — reveal активного шага (не финальный ответ задачи).
