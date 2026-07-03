@@ -32,5 +32,9 @@ pgdata/
 # Данные учеников (не в git)
 backend/data/error_photos/
 
+# Бэкапы data-миграций (создаются скриптами fix_*.py, не коммитятся)
+backend/data/*.bak-*
+backend/data/backup_*.csv
+
 # Playwright MCP runtime
 .playwright-mcp/
