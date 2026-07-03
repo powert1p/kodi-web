@@ -407,3 +407,29 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
     )
+
+
+class StepSubmission(Base):
+    """Одна сдача фото шага лесенки (Блок 1.2). Датасет фото+шаг+вердикт."""
+
+    __tablename__ = "step_submissions"
+    __table_args__ = (
+        Index("idx_step_submissions_student_created", "student_id", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    decomp_idx: Mapped[int] = mapped_column(Integer, nullable=False)
+    step_n: Mapped[int] = mapped_column(Integer, nullable=False)
+    problem_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="SET NULL"), nullable=True
+    )
+    verdict: Mapped[str] = mapped_column(String(16), nullable=False)  # match|mismatch|unsure
+    confidence: Mapped[float | None] = mapped_column(Float)
+    matched_micro_skill: Mapped[str | None] = mapped_column(String(50))
+    photo_path: Mapped[str] = mapped_column(Text, nullable=False)     # относительно photo_dir
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )

@@ -168,6 +168,22 @@ async def on_startup():
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_events_student_created ON events (student_id, created_at)",
+            # ── поэтапная сдача лесенки (Блок 1.2) ──
+            """
+            CREATE TABLE IF NOT EXISTS step_submissions (
+                id                  BIGINT      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                student_id          BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                decomp_idx          INTEGER     NOT NULL,
+                step_n              INTEGER     NOT NULL,
+                problem_id          INTEGER     REFERENCES problems(id) ON DELETE SET NULL,
+                verdict             VARCHAR(16) NOT NULL,
+                confidence          FLOAT,
+                matched_micro_skill VARCHAR(50),
+                photo_path          TEXT        NOT NULL,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_step_submissions_student_created ON step_submissions (student_id, created_at)",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")
