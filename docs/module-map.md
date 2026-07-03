@@ -2,7 +2,7 @@
 
 > **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-07-03 (граф v02, чистка dead code, тренажёр+тьютор).** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
 
-**Масштаб:** 13 core-модулей без __init__ (scorers/classifiers удалены 2026-07-03), `routes.py` ~1070 строк (монолит, 19 эндпоинтов) + `routers/trainer.py` (8 эндпоинтов тренажёра), 5 Flutter-фич + 5 PWA-фич (webapp/), 18 DB-таблиц, 2525 задач / **114 нод графа v02 / 36 тем CC**.
+**Масштаб:** 13 core-модулей без __init__ (scorers/classifiers удалены 2026-07-03), `routes.py` ~1070 строк (монолит, 19 эндпоинтов) + `routers/trainer.py` (16 эндпоинтов тренажёра), 5 Flutter-фич + 5 PWA-фич (webapp/), 20 DB-таблиц, 2525 задач / **114 нод графа v02 / 36 тем CC**.
 
 ## Backend: Core (`backend/core/`)
 
@@ -34,7 +34,7 @@
 | File | Назначение | Ключевое | ~Lines |
 |------|-----------|----------|--------|
 | seed.py | Загрузка графа (nodes+edges) и задач из JSON при пустой таблице; upsert по версии. **`seed_topics`** — идемпотентный upsert слоя тем, зовётся ВСЕГДА (не gated по nodes) | `seed_graph`, `seed_problems`, `seed_topics`, `PROBLEMS_VERSION="v10.1"` | 254 |
-| models.py | SQLAlchemy-модели, **18 таблиц**: ядро (`Node`,`Edge`,`Problem`,`Student`,`Mastery`,`Attempt`,`ProblemReport`,`Setting`,`Topic`,`TopicEdge`) + тренажёр (`MicroSkill`,`DecompositionProblem`,`ProblemStep`,`ProblemFingerprint`,`ErrorCapture`,`RecurringError`,`TutorSession`,`TutorMessage`) | `__tablename__` ×18 | ~385 |
+| models.py | SQLAlchemy-модели, **20 таблиц**: ядро (`Node`,`Edge`,`Problem`,`Student`,`Mastery`,`Attempt`,`ProblemReport`,`Setting`,`Topic`,`TopicEdge`) + тренажёр (`MicroSkill`,`DecompositionProblem`,`ProblemStep`,`ProblemFingerprint`,`ErrorCapture`,`RecurringError`,`TutorSession`,`TutorMessage`) + пилот (`Event`,`StepSubmission`) | `__tablename__` ×20 | ~385 |
 | base.py | Async-движок (asyncpg), `async_session` factory, `Base` (DeclarativeBase), pool 10+5 | `engine`, `async_session`, `Base`, `get_session` | 24 |
 
 ## Backend: Scripts & Data

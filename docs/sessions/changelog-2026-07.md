@@ -1,5 +1,15 @@
 # Сессии — 2026-07
 
+## 2026-07-04 00:36
+**Тип:** plan (спека `docs/specs/2026-07-03-step-submit-block12.md`, план `docs/superpowers/plans/2026-07-03-step-submit-block12.md`)
+**Зачем:** Блок 1.2 мастер-плана «Поэтапная сдача» — ядро MVP стартапа: ребёнок решает в тетради по ступеням лесенки и сдаёт фото КАЖДОГО шага; система классифицирует (не транскрибирует) и копит датасет фото+шаг+вердикт. Продолжение автономной ночной сессии (после Блока 1.0).
+**Что сделано:** 7 SDD-тасок: (1) таблица `step_submissions` (датасет: student/decomp_idx/step_n/verdict/confidence/photo_path); (2) `classify_step_photo()` — узкая vision-классификация (строгая json_schema verdict match|mismatch|unsure, реюз model_chain/strict-fallback diagnose_photo); (3) `POST /trainer/step-submit` (гейты consent-403/413/415/503/rate-limit, фото после commit в `error_photos/steps/`); (4) owner-эндпоинты export CSV + step-photo; (5) FE `useStepSubmitFlow`; (6) режим «По тетради» в drill (тумблер, сдача ступени фото, unsure=«сфотай ещё раз» без штрафа, мост в ladder без правки машины); (7) E2E + добивка security-тестов. Плюс 2 деплой-фикса: max_tokens 256→1024 (thinking-токены gemini обрезали JSON на реальных фото — найдено E2E) и bind-mount `error_photos` (датасет не переживал rebuild контейнера).
+**Решение:** классификация вместо транскрипции (принцип VISION.md — 87% ошибок моделей это чтение); мягкость: mismatch с confidence<0.6 → unsure, unsure НЕ ошибка и не двигает wrongStreak (false-reject хуже пропуска); ladder.ts не тронут — мост drill.submit(expected_value)/(сентинел 'nomatch'), значения юзеру не видны (проверено ревью до рендера); choose-ступени остаются интерактивными в фото-режиме; seen_value клиенту не отдаётся (утечка соседнего шага); Блок 1.1 (eval-набор) НЕ блокер — порог уточнится по его данным.
+**Итог:** задеплоено и live-проверено на проде реальным Gemini: «23+45=68» → match confidence 1.0, «23+45=58» → mismatch 1.0; строки в step_submissions + фото на диске (volume); health 200; миграция existing-БД ок. 121 pytest + 50 vitest + tsc/lint:design/build чистые. Merge ff → main (0afb56c), push.
+**Открытые вопросы:** rate-limit 15/min на step-submit может жать усердного ребёнка (429 → generic-текст); seen_value можно копить в датасет (owner-only) для будущего файнтюна; STEP_CONFIDENCE_THRESHOLD=0.6 ждёт калибровки Блоком 1.1; P1 контент-баг банка (ступень палит ответ «23 + 45 = 68») — виден прямо в live-срезе, следующий кусок; DEV-мок wrong-tasks маскирует пустой hub.
+**Файлы:** backend/core/llm_openai.py, backend/api/routers/trainer.py, backend/db/models.py, webapp/src/features/drill/StepModeToggle.tsx, StepSubmitPanel.tsx, useStepSubmitFlow.ts, docker-compose.yml
+**Issue:** —
+
 ## 2026-07-03 20:35
 **Тип:** plan (спека `docs/specs/2026-07-03-pilot-prep-block10.md`, план `docs/superpowers/plans/2026-07-03-pilot-prep-block10.md`)
 **Зачем:** Блок 1.0 мастер-плана «Пилот-подготовка»: свежий ученик упирался в «Всё разобрано» (нет источника ошибок в PWA), сбор детских фото юридически не закрыт, поведение пилота нечем мерить. Владелец на выходных — заход полностью автономный (вопросы запрещены, развилки решал оркестратор).
