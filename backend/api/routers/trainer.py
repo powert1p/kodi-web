@@ -25,7 +25,7 @@ from api.routes import _get_current_student, limiter
 from core.agent_context import build_agent_context
 from core.config import settings
 from core.grading import check_answer
-from core.llm_openai import LlmUnavailable, diagnose_photo
+from core.llm_openai import LlmUnavailable, StepClassification, classify_step_photo, diagnose_photo
 from core.srez import pick_srez_problems
 from core.trainer import (
     StepDTO,
@@ -579,6 +579,167 @@ async def post_diagnose(
         confidence=result.confidence,
         image_ref=image_ref,
     )
+
+
+# ── Пошаговая сдача: фото одного шага лесенки (Блок 1.2) ──────────────────────
+
+class StepSubmitOut(BaseModel):
+    """Ответ эндпоинта /step-submit."""
+
+    verdict: str            # match | mismatch | unsure
+    hint: str | None        # mistake_ru при mismatch, иначе None (expected_value не раскрываем)
+    confidence: float
+    step_n: int
+
+
+@router.post("/step-submit", response_model=StepSubmitOut)
+@limiter.limit("15/minute")
+async def post_step_submit(
+    request: Request,
+    decomp_idx: int = Form(...),
+    step_n: int = Form(...),
+    problem_id: int | None = Form(None),
+    photo: UploadFile = FastApiFile(...),
+) -> StepSubmitOut:
+    """Принимает фото одного шага лесенки → узкая vision-классификация → мягкий вердикт.
+
+    Flow:
+      1. Auth + consent-гейт (как /diagnose).
+      2. size/content-type гейты (413/415) — паттерн /diagnose.
+      3. Загружаем шаг из problem_steps (404 если нет).
+      4. statement — из problems, если problem_id передан.
+      5. classify_step_photo (LlmUnavailable → 503).
+      6. Порог: mismatch с confidence < settings.step_confidence_threshold → unsure
+         (false-reject хуже пропуска — мягкость по умолчанию).
+      7. При mismatch — fingerprint-hint из problem_fingerprints по (decomp_idx, micro_skill).
+      8. INSERT INTO step_submissions ВСЕГДА (включая unsure).
+      9. Файл фото — на диск ПОСЛЕ коммита (steps/{student_id}/{uuid}.jpg).
+    """
+    session, student = await _get_current_student(request)
+    try:
+        # Сбор фото гейтится согласием родителя (Блок 1.0)
+        if student.photo_consent is not True:
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "consent_required",
+                        "message": "Нужно согласие родителя на использование фото."},
+            )
+
+        # ── size-guard по Content-Length (быстрая проверка до чтения в память) ──
+        if photo.size is not None and photo.size > _MAX_PHOTO_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Фото превышает лимит {_MAX_PHOTO_BYTES // (1024 * 1024)} МБ",
+            )
+
+        # Проверка content_type: только допустимые форматы изображений
+        _ALLOWED_CONTENT_TYPES = {
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "image/heic",
+            "image/heif",
+        }
+        if photo.content_type is None:
+            # Если content_type не передан — считаем JPEG (мобильные клиенты)
+            content_type: str = "image/jpeg"
+        elif photo.content_type not in _ALLOWED_CONTENT_TYPES:
+            raise HTTPException(
+                status_code=415,
+                detail="Поддерживаются только JPEG/PNG/WEBP/HEIC",
+            )
+        else:
+            content_type = photo.content_type
+
+        image_bytes = await photo.read()
+        # Постчтение-проверка: Content-Length может лгать, сверяемся по факту
+        if len(image_bytes) > _MAX_PHOTO_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail=f"Фото превышает лимит {_MAX_PHOTO_BYTES // (1024 * 1024)} МБ",
+            )
+
+        # ── Шаг из problem_steps (404 если нет) ──────────────────────────────
+        step_row = (await session.execute(
+            text("SELECT n, instruction_ru, micro_skill, expected_value FROM problem_steps "
+                 "WHERE decomp_idx = :d AND n = :n"),
+            {"d": decomp_idx, "n": step_n},
+        )).fetchone()
+        if step_row is None:
+            raise HTTPException(status_code=404,
+                detail=f"Шаг {step_n} декомпозиции {decomp_idx} не найден")
+
+        # ── statement (контекст) — если problem_id задан ─────────────────────
+        statement = ""
+        if problem_id is not None:
+            prob = (await session.execute(
+                text("SELECT text_ru FROM problems WHERE id = :pid"),
+                {"pid": problem_id},
+            )).fetchone()
+            if prob is not None:
+                statement = prob.text_ru
+
+        # ── Классификация (LlmUnavailable → 503) ─────────────────────────────
+        try:
+            cls: StepClassification = await classify_step_photo(
+                image_bytes=image_bytes, content_type=content_type,
+                statement=statement, instruction_ru=step_row.instruction_ru,
+                expected_value=step_row.expected_value,
+            )
+        except LlmUnavailable as exc:
+            logger.warning("LLM недоступен для step-submit: %s", exc)
+            raise HTTPException(
+                status_code=503,
+                detail="Сервис проверки фото временно недоступен. Попробуйте позже.",
+            ) from exc
+
+        # ── Порог: mismatch с низкой confidence → unsure ─────────────────────
+        # ⚠️ Ревью Task 2: verdict валидируем против допустимого набора — всё
+        # неожиданное трактуем как 'unsure' (мягкость: false-reject хуже пропуска).
+        verdict = cls.verdict if cls.verdict in {"match", "mismatch", "unsure"} else "unsure"
+        if verdict == "mismatch" and cls.confidence < settings.step_confidence_threshold:
+            verdict = "unsure"
+
+        # ── fingerprint-hint только при mismatch ─────────────────────────────
+        hint: str | None = None
+        matched_ms: str | None = None
+        if verdict == "mismatch":
+            fp = (await session.execute(
+                text("SELECT mistake_ru FROM problem_fingerprints "
+                     "WHERE decomp_idx = :d AND micro_skill = :ms LIMIT 1"),
+                {"d": decomp_idx, "ms": step_row.micro_skill},
+            )).fetchone()
+            if fp is not None:
+                hint = fp.mistake_ru
+                matched_ms = step_row.micro_skill
+
+        # ── Путь фото (относительно photo_dir) ───────────────────────────────
+        file_name = f"{uuid4().hex}.jpg"
+        photo_path = f"steps/{student.id}/{file_name}"
+
+        # ── INSERT ВСЕГДА (включая unsure) ───────────────────────────────────
+        await session.execute(
+            text("INSERT INTO step_submissions "
+                 "(student_id, decomp_idx, step_n, problem_id, verdict, confidence, "
+                 " matched_micro_skill, photo_path, created_at) "
+                 "VALUES (:sid,:d,:n,:pid,:v,:conf,:ms,:path,NOW())"),
+            {"sid": student.id, "d": decomp_idx, "n": step_n, "pid": problem_id,
+             "v": verdict, "conf": cls.confidence, "ms": matched_ms, "path": photo_path},
+        )
+        await session.commit()
+    finally:
+        await session.close()
+
+    # ── Файл фото — на диск ПОСЛЕ коммита (паттерн /diagnose) ───────────────
+    photo_dir = Path(settings.photo_dir)
+    student_dir = photo_dir / "steps" / str(student.id)
+    try:
+        student_dir.mkdir(parents=True, exist_ok=True)
+        (student_dir / file_name).write_bytes(image_bytes)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Не удалось записать фото шага (%s): %s", photo_path, exc)
+
+    return StepSubmitOut(verdict=verdict, hint=hint, confidence=cls.confidence, step_n=step_n)
 
 
 # ── Verification (closure): проверочная задача того же навыка ─────────────────
