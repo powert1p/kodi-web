@@ -1157,3 +1157,72 @@ async def get_events_export(
         writer.writerow([r.id, r.student_id, r.event_type, payload, r.created_at])
     return Response(content=buf.getvalue(), media_type="text/csv",
                     headers={"Content-Disposition": "attachment; filename=events.csv"})
+
+
+# ── Датасет пошаговых сдач: owner-only CSV-экспорт + отдача фото (Блок 1.2) ───
+
+
+@router.get("/step-submissions/export")
+async def get_step_submissions_export(
+    request: Request, format: str = Query("csv", pattern="^csv$")
+) -> Response:
+    """CSV-выгрузка step_submissions (мета). Только владелец, иначе 403.
+
+    photo_path отдаём как есть (относительный путь внутри photo_dir) — абсолютные
+    пути на диске наружу не палим.
+    """
+    session, student = await _get_current_student(request)
+    try:
+        is_owner = settings.owner_student_id != 0 and student.id == settings.owner_student_id
+        if not is_owner:
+            raise HTTPException(status_code=403, detail="Только для владельца")
+        rows = (await session.execute(
+            text(
+                "SELECT id, student_id, decomp_idx, step_n, problem_id, verdict, "
+                "       confidence, matched_micro_skill, photo_path, created_at "
+                "FROM step_submissions ORDER BY created_at"
+            )
+        )).fetchall()
+    finally:
+        await session.close()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        "id", "student_id", "decomp_idx", "step_n", "problem_id", "verdict",
+        "confidence", "matched_micro_skill", "photo_path", "created_at",
+    ])
+    for r in rows:
+        writer.writerow([
+            r.id, r.student_id, r.decomp_idx, r.step_n, r.problem_id, r.verdict,
+            r.confidence, r.matched_micro_skill, r.photo_path, r.created_at,
+        ])
+    return Response(content=buf.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=step_submissions.csv"})
+
+
+@router.get("/step-photo/{submission_id}")
+async def get_step_photo(request: Request, submission_id: int) -> Response:
+    """Фото сдачи по id. Только владелец (403). 404 если строки/файла нет.
+
+    Owner-гейт ДО чтения photo_path — не-владельцу не палим сам факт
+    существования строки. Путь файла собираем ТОЛЬКО из settings.photo_dir +
+    photo_path из БД — никакого пользовательского ввода в путь.
+    """
+    session, student = await _get_current_student(request)
+    try:
+        is_owner = settings.owner_student_id != 0 and student.id == settings.owner_student_id
+        if not is_owner:
+            raise HTTPException(status_code=403, detail="Только для владельца")
+        row = (await session.execute(
+            text("SELECT photo_path FROM step_submissions WHERE id = :id"),
+            {"id": submission_id},
+        )).fetchone()
+    finally:
+        await session.close()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Сдача не найдена")
+    file_path = Path(settings.photo_dir) / row.photo_path
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="Файл фото не найден")
+    return Response(content=file_path.read_bytes(), media_type="image/jpeg")
