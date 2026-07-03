@@ -121,12 +121,14 @@ export interface LadderState {
  * @returns объект LadderState с мутирующим submit()
  */
 export function createLadder(steps: StepDTO[], easierRung?: EasierRung): LadderState {
-  // Внутренний изменяемый массив ступеней
+  // Внутренний изменяемый массив ступеней.
+  // microSkill — ТОЛЬКО человеческая подпись (label_ru); голый код на UI запрещён
+  // (DESIGN_SYSTEM §2.2). Подписи нет — нейтральное «этот шаг», не код.
   let rungs: Rung[] = steps.map((s, i) => ({
     key: `s${s.n}`,
     kind: 'original' as RungKind,
     instruction: s.instruction_ru,
-    microSkill: s.micro_skill,
+    microSkill: s.micro_skill_label ?? 'этот шаг',
     expected_value: s.expected_value,
     status: (i === 0 ? 'active' : 'locked') as RungStatus,
     reveal: s.reveal,

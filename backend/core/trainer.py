@@ -40,6 +40,9 @@ class DecompRow(NamedTuple):
     answer: str
     primary_micro_skill: str | None
     all_steps_verified: bool
+    # Человеческая подпись умения (micro_skills.label_ru); None если код не найден
+    # в каталоге micro_skills или primary_micro_skill сам None (§2.2 DESIGN_SYSTEM).
+    primary_micro_skill_label: str | None = None
 
 
 class EasierDecompRow(NamedTuple):
@@ -217,6 +220,8 @@ class StepDTO:
     expected_value: str
     kind: str = "compute"
     reveal: None = None
+    # Человеческая подпись умения (micro_skills.label_ru); None если код не найден (§2.2)
+    micro_skill_label: str | None = None
 
 
 @dataclass
@@ -235,6 +240,9 @@ class WrongTask:
     state: str
     wrong_answer: str
     mastery: float
+    # Человеческая подпись primary_micro_skill (micro_skills.label_ru); None если
+    # умение не определено или код не найден в каталоге (§2.2 DESIGN_SYSTEM).
+    primary_micro_skill_label: str | None = None
 
 
 def _coerce_answer_given(answer_given: str | None, problem_id: int) -> str:
@@ -266,11 +274,14 @@ async def resolve_decomp(
     Возвращает DecompRow или None.
     """
     # ── Шаг 1: linked decomp ─────────────────────────────────────────────────
+    # LEFT JOIN micro_skills — человеческая подпись умения вместо голого кода (§2.2)
     linked = await session.execute(
         text(
-            "SELECT idx, node_id, answer, primary_micro_skill, all_steps_verified "
-            "FROM decomposition_problems "
-            "WHERE problems_db_id = :pid "
+            "SELECT dp.idx, dp.node_id, dp.answer, dp.primary_micro_skill, "
+            "       dp.all_steps_verified, ms.label_ru AS primary_micro_skill_label "
+            "FROM decomposition_problems dp "
+            "LEFT JOIN micro_skills ms ON ms.code = dp.primary_micro_skill "
+            "WHERE dp.problems_db_id = :pid "
             "LIMIT 1"
         ),
         {"pid": problem_id},
@@ -283,15 +294,18 @@ async def resolve_decomp(
             answer=row.answer,
             primary_micro_skill=row.primary_micro_skill,
             all_steps_verified=row.all_steps_verified,
+            primary_micro_skill_label=row.primary_micro_skill_label,
         )
 
     # ── Шаг 2: same-node all_steps_verified decomp ────────────────────────────
     same_node = await session.execute(
         text(
-            "SELECT idx, node_id, answer, primary_micro_skill, all_steps_verified "
-            "FROM decomposition_problems "
-            "WHERE node_id = :nid AND all_steps_verified = true "
-            "ORDER BY idx"
+            "SELECT dp.idx, dp.node_id, dp.answer, dp.primary_micro_skill, "
+            "       dp.all_steps_verified, ms.label_ru AS primary_micro_skill_label "
+            "FROM decomposition_problems dp "
+            "LEFT JOIN micro_skills ms ON ms.code = dp.primary_micro_skill "
+            "WHERE dp.node_id = :nid AND dp.all_steps_verified = true "
+            "ORDER BY dp.idx"
         ),
         {"nid": node_id},
     )
@@ -309,6 +323,7 @@ async def resolve_decomp(
                 answer=c.answer,
                 primary_micro_skill=c.primary_micro_skill,
                 all_steps_verified=c.all_steps_verified,
+                primary_micro_skill_label=c.primary_micro_skill_label,
             )
 
     # Любая verified-запись на том же узле
@@ -319,6 +334,7 @@ async def resolve_decomp(
         answer=c.answer,
         primary_micro_skill=c.primary_micro_skill,
         all_steps_verified=c.all_steps_verified,
+        primary_micro_skill_label=c.primary_micro_skill_label,
     )
 
 
@@ -405,12 +421,15 @@ async def build_wrong_tasks(
 
         # Маппинг шагов из ProblemStep → StepDTO
         if decomp is not None:
+            # LEFT JOIN micro_skills — человеческая подпись умения шага (§2.2)
             steps_raw = await session.execute(
                 text(
-                    "SELECT n, instruction_ru, micro_skill, expected_value "
-                    "FROM problem_steps "
-                    "WHERE decomp_idx = :didx "
-                    "ORDER BY n"
+                    "SELECT ps.n, ps.instruction_ru, ps.micro_skill, ps.expected_value, "
+                    "       ms.label_ru AS micro_skill_label "
+                    "FROM problem_steps ps "
+                    "LEFT JOIN micro_skills ms ON ms.code = ps.micro_skill "
+                    "WHERE ps.decomp_idx = :didx "
+                    "ORDER BY ps.n"
                 ),
                 {"didx": decomp.idx},
             )
@@ -420,15 +439,18 @@ async def build_wrong_tasks(
                     instruction_ru=s.instruction_ru,
                     micro_skill=s.micro_skill,
                     expected_value=s.expected_value,
+                    micro_skill_label=s.micro_skill_label,
                 )
                 for s in steps_raw
             ]
             decomp_idx = decomp.idx
             primary_micro_skill = decomp.primary_micro_skill
+            primary_micro_skill_label = decomp.primary_micro_skill_label
         else:
             steps = []
             decomp_idx = None
             primary_micro_skill = None
+            primary_micro_skill_label = None
 
         mastery_val = mastery_map.get(row.node_id, 0.0)
 
@@ -446,6 +468,7 @@ async def build_wrong_tasks(
                 state=route_state(mastery_val),
                 wrong_answer=_coerce_answer_given(row.answer_given, row.problem_id),
                 mastery=mastery_val,
+                primary_micro_skill_label=primary_micro_skill_label,
             )
         )
 

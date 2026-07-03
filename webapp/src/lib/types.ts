@@ -12,6 +12,9 @@ export interface StepDTO {
   n: number
   instruction_ru: string
   micro_skill: string
+  /** Человеческая подпись micro_skill (label_ru); null — код не найден в каталоге.
+   * Показывать пользователю ТОЛЬКО её, никогда — micro_skill (запрет DESIGN_SYSTEM §2.2). */
+  micro_skill_label: string | null
   expected_value: string
   kind: StepKind
   /** Подсказка-раскрытие; null — раскрытия нет. */
@@ -29,6 +32,8 @@ export interface WrongTask {
   /** Правильный ответ. */
   answer: string
   primary_micro_skill: string | null
+  /** Человеческая подпись primary_micro_skill (label_ru); см. запрет §2.2. */
+  primary_micro_skill_label: string | null
   decomp_idx: number | null
   steps: StepDTO[]
   state: TaskState
@@ -101,6 +106,8 @@ export interface VerificationProblemDTO {
   topic_label: string
   statement: string
   micro_skill: string | null
+  /** Человеческая подпись micro_skill (label_ru); см. запрет §2.2. */
+  micro_skill_label: string | null
   xp: number
 }
 
@@ -112,6 +119,8 @@ export interface Diagnosis {
   cause_text: string
   level: number
   micro_skill: string | null
+  /** Человеческая подпись micro_skill (label_ru); см. запрет §2.2. */
+  micro_skill_label: string | null
   /** Уверенность диагноза, 0..1. */
   confidence: number
   image_ref: string

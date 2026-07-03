@@ -20,7 +20,7 @@ export function FinishedCard({ taskId, answer }: FinishedCardProps) {
         <h2 className="text-h3 text-text-primary">Все шаги пройдены!</h2>
         <p className="text-caption1 text-text-secondary">
           Итог:{' '}
-          <span className="font-num tabular-nums text-text-success">{answer} ₽</span>.
+          <span className="font-num tabular-nums text-text-success">{answer}</span>.
           Теперь закрепим — без подсказок.
         </p>
       </div>

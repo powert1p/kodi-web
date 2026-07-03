@@ -34,6 +34,11 @@ async def vclient(db_session):
         "INSERT INTO problems (node_id, text_ru, answer, sub_difficulty) "
         "VALUES ('VF01', 'контрольная', '20', 2) RETURNING id"
     ))).scalar_one()
+    # Каталог micro_skills — нужен для label_ru в ответе verification/start (§2.2)
+    await db_session.execute(text(
+        "INSERT INTO micro_skills (code, label_ru) VALUES ('vf_skill', 'Навык проверки') "
+        "ON CONFLICT (code) DO NOTHING"
+    ))
     # recurring_errors ключуется ДИАГНОСТИРОВАННЫМ failed_micro_skill ('vf_failed_ms'),
     # который отличается от primary_micro_skill decomp'а, приходящего с FE ('vf_skill') —
     # резолв должен идти по node_id, а не по совпадению micro_skill.
@@ -73,6 +78,21 @@ async def test_verification_start_returns_other_problem(vclient):
     assert body["problem_id"] == p2
     assert body["statement"] == "контрольная"
     assert body["node_id"] == "VF01"
+    # label_ru из micro_skills вместо голого кода на UI (запрет §2.2 DESIGN_SYSTEM)
+    assert body["micro_skill_label"] == "Навык проверки"
+
+
+@pytest.mark.asyncio
+async def test_verification_start_micro_skill_label_none_for_unknown_code(vclient):
+    """Неизвестный micro_skill (нет в каталоге) → micro_skill_label=None, без 500."""
+    ac, token, p1, p2, sid = vclient
+    resp = await ac.post("/api/trainer/verification/start",
+                         headers={"Authorization": f"Bearer {token}"},
+                         json={"problem_id": p1, "micro_skill": "unknown_skill_code"})
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["micro_skill"] == "unknown_skill_code"
+    assert body["micro_skill_label"] is None
 
 
 @pytest.mark.asyncio

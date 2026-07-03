@@ -372,6 +372,65 @@ async def test_build_wrong_tasks_main(db_session) -> None:
     assert t2.state == "revisit"  # mastery=0.30 → "revisit"
 
 
+# ─── build_wrong_tasks: primary_micro_skill_label / step.micro_skill_label ───
+# (§2.2 DESIGN_SYSTEM — запрет голых внутренних кодов на UI, только label_ru)
+
+@pytest.mark.asyncio
+async def test_build_wrong_tasks_micro_skill_label(db_session) -> None:
+    """
+    primary_micro_skill_label и steps[].micro_skill_label заполняются из
+    micro_skills.label_ru через LEFT JOIN; для кода, отсутствующего в
+    каталоге, — None (без 500).
+    """
+    from core.trainer import build_wrong_tasks
+
+    STUDENT_ID = 9002
+    NODE = "AR03"
+
+    await _seed_student(db_session, STUDENT_ID)
+    await _seed_node(db_session, NODE, "Арифметика В")
+
+    # Каталог micro_skills: known_skill есть, unknown_skill — нет
+    await db_session.execute(
+        text(
+            "INSERT INTO micro_skills (code, label_ru) VALUES ('known_skill', 'Известное умение') "
+            "ON CONFLICT (code) DO NOTHING"
+        )
+    )
+
+    pid = await _seed_problem(db_session, NODE, "Задача 3", "42")
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, primary_micro_skill, all_steps_verified, problems_db_id) "
+            "VALUES (700, :nid, '42', 'known_skill', true, :pid)"
+        ),
+        {"nid": NODE, "pid": pid},
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO problem_steps (decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+            "VALUES (700, 1, 'Шаг 1', 'known_skill', '42'), "
+            "       (700, 2, 'Шаг 2', 'unknown_skill', '42')"
+        )
+    )
+    await _seed_mastery(db_session, STUDENT_ID, NODE, 0.5)
+    await _seed_attempt(db_session, STUDENT_ID, pid, NODE, answer_given="41")
+    await db_session.commit()
+
+    tasks = await build_wrong_tasks(db_session, STUDENT_ID, days=14, limit=30)
+    assert len(tasks) == 1
+    task = tasks[0]
+
+    assert task.primary_micro_skill == "known_skill"
+    assert task.primary_micro_skill_label == "Известное умение"
+
+    assert len(task.steps) == 2
+    assert task.steps[0].micro_skill_label == "Известное умение"
+    assert task.steps[1].micro_skill == "unknown_skill"
+    assert task.steps[1].micro_skill_label is None, "Код вне каталога → None, а не код"
+
+
 # ═══════════════════════════════════════════════════════════════
 # Task 6: route_level + pick_easier_decomp + pick_verification_problem
 # ═══════════════════════════════════════════════════════════════

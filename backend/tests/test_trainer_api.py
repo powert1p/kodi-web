@@ -209,7 +209,7 @@ async def test_wrong_tasks_returns_200(client_with_student):
 
     # Проверяем структуру первой задачи
     task = body["tasks"][0]
-    for field in ("id", "problem_id", "node_id", "topic_label", "statement", "answer", "state", "wrong_answer", "mastery", "steps"):
+    for field in ("id", "problem_id", "node_id", "topic_label", "statement", "answer", "state", "wrong_answer", "mastery", "steps", "primary_micro_skill_label"):
         assert field in task, f"В задаче отсутствует поле '{field}'"
 
 
@@ -244,9 +244,9 @@ async def test_analytics_returns_my_top(client_with_student):
     assert isinstance(body["my_top"], list)
     assert len(body["my_top"]) >= 2, f"Ожидалось >=2 записей my_top, получено {len(body['my_top'])}"
 
-    # Проверяем структуру первой записи
+    # Проверяем структуру первой записи (label_ru — человеческая подпись, §2.2)
     item = body["my_top"][0]
-    for field in ("micro_skill", "error_count", "node_id"):
+    for field in ("micro_skill", "label_ru", "error_count", "node_id"):
         assert field in item, f"В my_top-записи отсутствует поле '{field}'"
 
     # Первая запись — int_add (error_count=5 > frac_div error_count=3)
@@ -367,6 +367,14 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
 
     pid = await _seed_problem_api(db_session, NODE, "Найди x: 2x = 8", "4")
 
+    # Каталог micro_skills — нужен для label_ru в ответе /diagnose (DESIGN_SYSTEM §2.2)
+    await db_session.execute(
+        text(
+            "INSERT INTO micro_skills (code, label_ru) VALUES ('div_basic', 'Базовое деление') "
+            "ON CONFLICT (code) DO NOTHING"
+        )
+    )
+
     # Вставляем неверную попытку для resolve_wrong_answer
     row = await db_session.execute(
         text(
@@ -450,11 +458,13 @@ async def test_diagnose_200_body_and_file(client_for_diagnose, monkeypatch):
     assert resp.status_code == 200, f"Ожидался 200, получен {resp.status_code}: {resp.text}"
 
     body = resp.json()
-    for field in ("transcription", "failed_step", "cause_text", "level", "micro_skill", "confidence", "image_ref"):
+    for field in ("transcription", "failed_step", "cause_text", "level", "micro_skill", "micro_skill_label", "confidence", "image_ref"):
         assert field in body, f"Отсутствует поле '{field}' в ответе"
 
     assert body["transcription"] == "2x = 8, x = 8 (ошибка: делитель забыт)"
     assert body["micro_skill"] == "div_basic"
+    # label_ru из micro_skills вместо голого кода на UI (запрет §2.2 DESIGN_SYSTEM)
+    assert body["micro_skill_label"] == "Базовое деление"
     assert body["confidence"] == pytest.approx(0.92)
 
     # Проверяем, что файл фото сохранён на диск

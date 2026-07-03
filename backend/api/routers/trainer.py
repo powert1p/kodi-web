@@ -48,6 +48,9 @@ class StepOut(BaseModel):
     n: int
     instruction_ru: str
     micro_skill: str
+    # Человеческая подпись умения (micro_skills.label_ru); None — код не найден в
+    # каталоге. Фронт обязан показывать её вместо micro_skill (запрет §2.2).
+    micro_skill_label: str | None
     expected_value: str
     kind: str
     reveal: Any  # None или строка — оставляем гибким
@@ -63,6 +66,8 @@ class WrongTaskOut(BaseModel):
     statement: str
     answer: str
     primary_micro_skill: str | None
+    # Человеческая подпись primary_micro_skill (micro_skills.label_ru); см. §2.2
+    primary_micro_skill_label: str | None
     decomp_idx: int | None
     steps: list[StepOut]
     state: str
@@ -129,6 +134,7 @@ def _step_to_out(step: StepDTO) -> StepOut:
         n=step.n,
         instruction_ru=step.instruction_ru,
         micro_skill=step.micro_skill,
+        micro_skill_label=step.micro_skill_label,
         expected_value=step.expected_value,
         kind=step.kind,
         reveal=step.reveal,
@@ -145,6 +151,7 @@ def _task_to_out(task: WrongTask) -> WrongTaskOut:
         statement=task.statement,
         answer=task.answer,
         primary_micro_skill=task.primary_micro_skill,
+        primary_micro_skill_label=task.primary_micro_skill_label,
         decomp_idx=task.decomp_idx,
         steps=[_step_to_out(s) for s in task.steps],
         state=task.state,
@@ -279,6 +286,9 @@ class DiagnosisOut(BaseModel):
     cause_text: str
     level: int
     micro_skill: str | None
+    # Человеческая подпись micro_skill (micro_skills.label_ru); None — умение не
+    # определено или код не найден в каталоге (запрет §2.2 DESIGN_SYSTEM).
+    micro_skill_label: str | None
     confidence: float
     image_ref: str          # путь относительно photo_dir
 
@@ -435,6 +445,19 @@ async def post_diagnose(
         # Используем micro_skill из vision-результата; fallback — из fingerprint
         failed_micro_skill: str | None = result.micro_skill or fallback_micro_skill
 
+        # Человеческая подпись умения для клиента (§2.2 — запрет голых кодов в UI).
+        # Подпись строим для result.micro_skill — того же кода, что уходит в ответ
+        # (DiagnosisOut.micro_skill), а не для failed_micro_skill (может включать
+        # fallback-код из fingerprint, который клиенту не отдаётся).
+        result_micro_skill_label: str | None = None
+        if result.micro_skill:
+            result_micro_skill_label = (
+                await session.execute(
+                    text("SELECT label_ru FROM micro_skills WHERE code = :ms"),
+                    {"ms": result.micro_skill},
+                )
+            ).scalar()
+
         await session.execute(
             text(
                 "INSERT INTO error_captures "
@@ -513,6 +536,7 @@ async def post_diagnose(
         cause_text=result.cause_text,
         level=result.level,
         micro_skill=result.micro_skill,
+        micro_skill_label=result_micro_skill_label,
         confidence=result.confidence,
         image_ref=image_ref,
     )
@@ -531,6 +555,10 @@ class VerificationStartOut(BaseModel):
     topic_label: str
     statement: str
     micro_skill: str | None
+    # Человеческая подпись micro_skill (micro_skills.label_ru); §2.2 — запрет
+    # голых кодов в UI. micro_skill здесь эхо клиентского payload, поэтому
+    # подпись ищем явным lookup, а не переносим готовое значение из БД.
+    micro_skill_label: str | None
     xp: int
 
 
@@ -569,12 +597,23 @@ async def post_verification_start(request: Request, payload: VerificationStartIn
         topic_label = (await session.execute(
             text("SELECT name_ru FROM nodes WHERE id = :nid"), {"nid": node_id}
         )).scalar() or node_id
+
+        # Человеческая подпись micro_skill (эхо клиента) — lookup явным запросом
+        micro_skill_label: str | None = None
+        if payload.micro_skill:
+            micro_skill_label = (
+                await session.execute(
+                    text("SELECT label_ru FROM micro_skills WHERE code = :ms"),
+                    {"ms": payload.micro_skill},
+                )
+            ).scalar()
     finally:
         await session.close()
 
     return VerificationStartOut(
         problem_id=vp.id, node_id=vp.node_id, topic_label=topic_label,
-        statement=vp.text_ru, micro_skill=payload.micro_skill, xp=_VERIFICATION_XP,
+        statement=vp.text_ru, micro_skill=payload.micro_skill,
+        micro_skill_label=micro_skill_label, xp=_VERIFICATION_XP,
     )
 
 
@@ -633,15 +672,20 @@ async def get_easier(
         row = await pick_easier_decomp(session, micro_skill=micro_skill, exclude_idx=exclude_idx)
         if row is None:
             raise HTTPException(status_code=404, detail="Нет более простой декомпозиции для навыка")
+        # LEFT JOIN micro_skills — человеческая подпись умения шага (§2.2)
         steps_raw = await session.execute(
             text(
-                "SELECT n, instruction_ru, micro_skill, expected_value FROM problem_steps "
-                "WHERE decomp_idx = :didx ORDER BY n"
+                "SELECT ps.n, ps.instruction_ru, ps.micro_skill, ps.expected_value, "
+                "       ms.label_ru AS micro_skill_label "
+                "FROM problem_steps ps "
+                "LEFT JOIN micro_skills ms ON ms.code = ps.micro_skill "
+                "WHERE ps.decomp_idx = :didx ORDER BY ps.n"
             ),
             {"didx": row.idx},
         )
         steps = [
             StepOut(n=s.n, instruction_ru=s.instruction_ru, micro_skill=s.micro_skill,
+                    micro_skill_label=s.micro_skill_label,
                     expected_value=s.expected_value, kind="compute", reveal=None)
             for s in steps_raw
         ]

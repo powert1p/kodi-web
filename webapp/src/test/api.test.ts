@@ -28,6 +28,7 @@ const MOCK_TASK: WrongTask = {
   statement: 'Задача',
   answer: '5',
   primary_micro_skill: null,
+  primary_micro_skill_label: null,
   decomp_idx: null,
   steps: [],
   state: 'revisit',
