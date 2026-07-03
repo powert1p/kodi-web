@@ -4,6 +4,7 @@ import { HubPage } from './features/hub/HubPage'
 import { DrillPage } from './features/drill/DrillPage'
 import { ClosurePage } from './features/closure/ClosurePage'
 import { AnalyticsPage } from './features/analytics/AnalyticsPage'
+import { SrezPage } from './features/srez/SrezPage'
 import { LoginPage } from './features/auth/LoginPage'
 import { RequireAuth, RequireGuest } from './features/auth/RequireAuth'
 
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/drill/:taskId" element={<DrillPage />} />
                 <Route path="/closure/:taskId" element={<ClosurePage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/srez" element={<SrezPage />} />
               </Routes>
             </AppShell>
           </RequireAuth>

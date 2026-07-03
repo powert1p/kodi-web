@@ -16,8 +16,8 @@ export function HubEmpty() {
           Ни одной незакрытой ошибки. Мозг сегодня прокачан — так держать!
         </p>
       </div>
-      <ApButton variant="primary" size="m" onClick={() => navigate('/analytics')}>
-        Посмотреть прогресс
+      <ApButton variant="primary" size="m" onClick={() => navigate('/srez')}>
+        Пройти мини-срез
       </ApButton>
     </ApCard>
   )
