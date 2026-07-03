@@ -10483,7 +10483,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Вычислите: 2x + 3y при x = 5, y = 4.",
       "answer": "22",
       "answer_type": "number",
@@ -10504,7 +10504,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Вычислите (a − b)² при a = 7, b = 3.",
       "answer": "16",
       "answer_type": "number",
@@ -10525,7 +10525,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Упростите: 7m − 3m + 2n − n. Каков коэффициент при m?",
       "answer": "4",
       "answer_type": "number",
@@ -10546,7 +10546,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Найдите значение 2a² − 3a + 1 при a = 2.",
       "answer": "3",
       "answer_type": "number",
@@ -10567,7 +10567,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Упростите: (x + y) + 2(x − y). Каков коэффициент при x?",
       "answer": "3",
       "answer_type": "number",
@@ -10588,7 +10588,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Найдите значение (a + b)² − (a − b)² при a = 3, b = 2.",
       "answer": "24",
       "answer_type": "number",
@@ -13488,7 +13488,7 @@
       "raw_score": 11.23
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Какое число противоположно числу 5?",
       "answer": "-5",
       "answer_type": "number",
@@ -13509,7 +13509,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Найдите |−12|.",
       "answer": "12",
       "answer_type": "number",
@@ -13530,7 +13530,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Какое из чисел наименьшее: −3, 0, 2, −7, 5?",
       "answer": "-7",
       "answer_type": "number",
@@ -13551,7 +13551,7 @@
       "potential_l5": true
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Какое число больше: −4 или −9?",
       "answer": "-4",
       "answer_type": "number",
@@ -13572,7 +13572,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Найдите |−3| + |−7| − |5|.",
       "answer": "5",
       "answer_type": "number",
@@ -13593,7 +13593,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Между какими соседними целыми числами находится −3.7? Найдите меньшее из них.",
       "answer": "-4",
       "answer_type": "number",
@@ -13614,7 +13614,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: −5 + 8",
       "answer": "3",
       "answer_type": "number",
@@ -13635,7 +13635,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: −3 − 7",
       "answer": "-10",
       "answer_type": "number",
@@ -13656,7 +13656,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−4) × (−5)",
       "answer": "20",
       "answer_type": "number",
@@ -13677,7 +13677,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−24) ÷ 6",
       "answer": "-4",
       "answer_type": "number",
@@ -13698,7 +13698,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−3)² + (−2)³",
       "answer": "1",
       "answer_type": "number",
@@ -13719,7 +13719,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: −10 + 4 × (−3) − (−6)",
       "answer": "-16",
       "answer_type": "number",
@@ -13740,7 +13740,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Какое число находится на координатной прямой на 3 единицы правее −2?",
       "answer": "1",
       "answer_type": "number",
@@ -13761,7 +13761,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Найдите расстояние между точками −3 и 5 на координатной прямой.",
       "answer": "8",
       "answer_type": "number",
@@ -13782,7 +13782,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Найдите середину отрезка [−4; 6].",
       "answer": "1",
       "answer_type": "number",
@@ -13803,7 +13803,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Точка A(−2) переместилась на 7 единиц влево. Координата?",
       "answer": "-9",
       "answer_type": "number",
@@ -13824,7 +13824,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Найдите расстояние между −3.5 и 2.5.",
       "answer": "6",
       "answer_type": "number",
@@ -13845,7 +13845,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Середина отрезка — точка 1. Один конец — (−3). Найдите другой конец.",
       "answer": "5",
       "answer_type": "number",
@@ -27394,7 +27394,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Найдите значение выражения 3a − 2b при a = 4, b = 3",
       "answer": "6",
       "answer_type": "number",
@@ -27415,7 +27415,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Найдите значение выражения a² − b² при a = 5, b = 3",
       "answer": "16",
       "answer_type": "number",
@@ -27436,7 +27436,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Найдите значение выражения (2x + y)/(x − y) при x = 5, y = 1",
       "answer": "2.75",
       "answer_type": "number",
@@ -27457,7 +27457,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Если a + b = 10 и ab = 21, найдите a² + b²",
       "answer": "58",
       "answer_type": "number",
@@ -27478,7 +27478,7 @@
       "potential_l5": true
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Если x − y = 4 и xy = 12, найдите x² + y²",
       "answer": "40",
       "answer_type": "number",
@@ -27968,7 +27968,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Найдите |−7| + |3| − |−2|",
       "answer": "8",
       "answer_type": "number",
@@ -27989,7 +27989,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Какое из чисел больше: −3/4 или −5/6?",
       "answer": "−3/4",
       "answer_type": "text",
@@ -28010,7 +28010,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Найдите сумму всех целых x, для которых |x| ≤ 3 и x < 0",
       "answer": "−6",
       "answer_type": "number",
@@ -28031,7 +28031,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Сколько целых чисел расположено между −|−3,5| и |2,5|?",
       "answer": "6",
       "answer_type": "number",
@@ -28052,7 +28052,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−8) + 15",
       "answer": "7",
       "answer_type": "number",
@@ -28073,7 +28073,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−6) × (−4) + (−3) × 5",
       "answer": "9",
       "answer_type": "number",
@@ -28094,7 +28094,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−2)³ + (−3)² × (−1)",
       "answer": "−17",
       "answer_type": "number",
@@ -28115,7 +28115,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−1)²⁰ + (−1)²¹ + (−1)²² + (−1)²³",
       "answer": "0",
       "answer_type": "number",
@@ -28136,7 +28136,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Найдите значение выражения (−2)⁴ − (−3)² × 2 + (−1)⁵",
       "answer": "−3",
       "answer_type": "number",
@@ -28157,7 +28157,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Найдите расстояние между точками A(−3) и B(5) на координатной прямой.",
       "answer": "8",
       "answer_type": "number",
@@ -28178,7 +28178,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Точка A(−4) сдвинулась на 7 единиц вправо. Какова её новая координата?",
       "answer": "3",
       "answer_type": "number",
@@ -28199,7 +28199,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Найдите координату середины отрезка AB, если A(−5) и B(3).",
       "answer": "−1",
       "answer_type": "number",
@@ -28220,7 +28220,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Точки A и B расположены на координатной прямой так, что A(−2) и AB = 10. Точка B правее A. Найдите координату точки, делящей AB в отношении 3:2 от A.",
       "answer": "4",
       "answer_type": "number",
@@ -28241,7 +28241,7 @@
       "potential_l5": true
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Точки M(−7) и N(5) расположены на координатной прямой. Точка P расположена между ними так, что MP = 3MN/4. Найдите координату P.",
       "answer": "2",
       "answer_type": "number",
@@ -38333,7 +38333,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Упростите произведение 2x · 5x и найдите его значение при x = 2.",
       "answer": "40",
       "answer_type": "integer",
@@ -38354,7 +38354,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "ALG01",
+      "node_id": "AL01",
       "text_ru": "Упростите произведение 2m · 3m и найдите его значение при m = 3.",
       "answer": "54",
       "answer_type": "integer",
@@ -40860,7 +40860,7 @@
       "raw_score": 5.18
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Какое из чисел −7, 3, −1, 5 является наименьшим?",
       "answer": "-7",
       "answer_type": "integer",
@@ -40881,7 +40881,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "RN01",
       "text_ru": "Сколько отрицательных чисел среди: −3, 0, 5, −8, 2, −1?",
       "answer": "3",
       "answer_type": "integer",
@@ -40902,7 +40902,7 @@
       "potential_l5": true
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "На числовой прямой отмечены точки A(−4) и B(7). Найдите расстояние между ними.",
       "answer": "11",
       "answer_type": "integer",
@@ -40923,7 +40923,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Найдите значение выражения |−5| + |3 − 8| − |−2|.",
       "answer": "8",
       "answer_type": "integer",
@@ -40944,7 +40944,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM01",
+      "node_id": "MD01",
       "text_ru": "Сколько целых чисел удовлетворяют неравенству |x| ≤ 4?",
       "answer": "9",
       "answer_type": "integer",
@@ -40965,7 +40965,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: 12 + (−7).",
       "answer": "5",
       "answer_type": "integer",
@@ -40986,7 +40986,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: −9 − (−4).",
       "answer": "-5",
       "answer_type": "integer",
@@ -41007,7 +41007,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: −4 + 7 − (−3) + (−6) − 2.",
       "answer": "-2",
       "answer_type": "integer",
@@ -41028,7 +41028,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: −11 + 4 − (−7) + (−3) − 6 + 12.",
       "answer": "3",
       "answer_type": "integer",
@@ -41049,7 +41049,7 @@
       "potential_l5": true
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−2)³ + (−3)² − (−1)⁵.",
       "answer": "2",
       "answer_type": "integer",
@@ -41070,7 +41070,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM02",
+      "node_id": "RN01",
       "text_ru": "Вычислите: (−1/2) + 3/4 − (−1/4).",
       "answer": "1/2",
       "answer_type": "fraction",
@@ -41092,7 +41092,7 @@
       "potential_l5": false
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Точки A(−2) и B(10) расположены на числовой прямой. Найдите координату точки C, которая делит отрезок AB в отношении 1:3, считая от A.",
       "answer": "1",
       "answer_type": "integer",
@@ -41113,7 +41113,7 @@
       "potential_l5": true
     },
     {
-      "node_id": "NM03",
+      "node_id": "RN01",
       "text_ru": "Точки A(1) и B(9) расположены на числовой прямой. Найдите координату точки C, которая делит отрезок AB в отношении 3:1, считая от A.",
       "answer": "7",
       "answer_type": "integer",
@@ -42726,7 +42726,7 @@
     },
     {
       "text_ru": "Вычислите: (−31/8)+(+2,5)+(−33/8)",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-5,5",
       "difficulty": 3,
       "solution_ru": "−31/8 + (−33/8) = −64/8 = −8.\n−8 + 2,5 = −5,5.",
@@ -43001,7 +43001,7 @@
     },
     {
       "text_ru": "Вычислите: 2,5 − (−1/5 − (−0,3 − 1/4))",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "2,15",
       "difficulty": 3,
       "solution_ru": "−0,3 − 1/4 = −0,3 − 0,25 = −0,55.\n−1/5 − (−0,55) = −0,2 + 0,55 = 0,35.\n2,5 − 0,35 = 2,15.",
@@ -43454,7 +43454,7 @@
     },
     {
       "text_ru": "Вычислите: (−2/3 : 5/6 ⋅ 1,2) + 2,5 : (−0,5)",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-5,96",
       "difficulty": 3,
       "solution_ru": "−2/3 : 5/6 = −2/3 ⋅ 6/5 = −4/5.\n−4/5 ⋅ 1,2 = −4/5 ⋅ 6/5 = −24/25 = −0,96.\n2,5 : (−0,5) = −5.\n−0,96 + (−5) = −5,96.",
@@ -43825,7 +43825,7 @@
     },
     {
       "text_ru": "Если a=−5; b=−7, то найдите значение выражения: (a−b):(b−a)",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-1",
       "difficulty": 2,
       "solution_ru": "1) a − b = −5 − (−7) = 2\n2) b − a = −7 − (−5) = −2\n3) (a−b) : (b−a) = 2 : (−2) = −1",
@@ -44001,7 +44001,7 @@
     },
     {
       "text_ru": "Вычислите: 5,8−(−9,2)+8,7−(−6,4)",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "30,1",
       "difficulty": 3,
       "solution_ru": "1) 5,8 + 9,2 + 8,7 + 6,4 = 30,1",
@@ -44450,7 +44450,7 @@
     },
     {
       "text_ru": "Вычислите: −8−(−5−(−9−(−3−(−7))))",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-16",
       "difficulty": 4,
       "solution_ru": "1) −3 − (−7) = −3 + 7 = 4\n2) −9 − 4 = −13\n3) −5 − (−13) = −5 + 13 = 8\n4) −8 − 8 = −16",
@@ -44704,7 +44704,7 @@
     },
     {
       "text_ru": "Вычислите: −2 − (7 − (−11 − (2 − (−5))))",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-27",
       "difficulty": 4,
       "solution_ru": "Вычисляем изнутри: 2 − (−5) = 7. Далее: −11 − 7 = −18. Далее: 7 − (−18) = 25. Итого: −2 − 25 = −27.",
@@ -44899,7 +44899,7 @@
     },
     {
       "text_ru": "Вычислите выгодным путём: −570 + 250 − 130",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-450",
       "difficulty": 2,
       "solution_ru": "Группируем отрицательные: (−570 − 130) + 250 = −700 + 250 = −450.",
@@ -44978,7 +44978,7 @@
     },
     {
       "text_ru": "Вычислите: −11 + (−9 − (−7 − (−2 + (−8))))",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-23",
       "difficulty": 4,
       "solution_ru": "Изнутри: −2 + (−8) = −10. Далее: −7 − (−10) = −7 + 10 = 3. Далее: −9 − 3 = −12. Итого: −11 + (−12) = −23.",
@@ -45806,7 +45806,7 @@
     },
     {
       "text_ru": "Вычислите: ((-3)⁴ + (-3)² · 2) / (-3)²",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "11",
       "difficulty": 2,
       "solution_ru": "(-3)⁴ = 81, (-3)² = 9.\n(81 + 9·2) / 9 = (81+18)/9 = 99/9 = 11.",
@@ -46062,7 +46062,7 @@
     },
     {
       "text_ru": "Вычислите: ((-2)⁴ + (-6)² · 3) / (-4)²",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "7,75",
       "difficulty": 2,
       "solution_ru": "(-2)⁴ = 16, (-6)² = 36, (-4)² = 16.\n(16 + 36·3)/16 = (16+108)/16 = 124/16 = 31/4 = 7,75.",
@@ -46356,7 +46356,7 @@
     },
     {
       "text_ru": "Вычислите: ((-0,5)² + (-0,5)² · 2) / (-1,5)²",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "1/3",
       "difficulty": 2,
       "solution_ru": "(-0,5)² = 0,25; (-1,5)² = 2,25.\n(0,25 + 0,25·2) / 2,25 = 0,75 / 2,25 = 75/225 = 1/3.",
@@ -48226,7 +48226,7 @@
     },
     {
       "text_ru": "Найдите |AB|, если координата точки A (0,895); а координата точки B ( -114,105).",
-      "node_id": "NM03",
+      "node_id": "MD01",
       "answer": "115",
       "difficulty": 3,
       "solution_ru": "Расстояние на координатной прямой: |AB| = |0,895 − (−114,105)| = |0,895 + 114,105| = |115| = 115.",
@@ -49490,7 +49490,7 @@
     },
     {
       "text_ru": "На координатной прямой даны точки R(−49) и F(5). Найдите значение |RF|.",
-      "node_id": "NM03",
+      "node_id": "MD01",
       "answer": "54",
       "difficulty": 3,
       "solution_ru": "|RF| = |5 − (−49)| = |5 + 49| = 54.",
@@ -49510,7 +49510,7 @@
     },
     {
       "text_ru": "Если a = −3, b = −7, найдите значение выражения: (a − b) : (b − a)",
-      "node_id": "NM02",
+      "node_id": "RN01",
       "answer": "-1",
       "difficulty": 2,
       "solution_ru": "a − b = −3 − (−7) = 4.\nb − a = −7 − (−3) = −4.\n(a−b):(b−a) = 4/(−4) = −1.",

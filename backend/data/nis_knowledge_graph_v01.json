@@ -2,8 +2,8 @@
   "metadata": {
     "title": "НИШ Math Knowledge Graph v0.1",
     "description": "Flat DAG for NIS 7th grade math entrance exam preparation. Covers grades 3-6 prerequisite skills decomposed from 40 exam questions across 29 test variants.",
-    "total_nodes": 142,
-    "total_edges": 247,
+    "total_nodes": 114,
+    "total_edges": 181,
     "format": "Each node has prerequisite edges (list of node IDs that must be mastered before this node). Tags are for human filtering only - the algorithm traverses edges regardless of tags.",
     "difficulty_scale": "1=grade 3 basics, 2=grade 4, 3=grade 5, 4=grade 6, 5=olympiad/NIS-specific",
     "mastery_threshold": "BKT P(mastery) >= 0.95 with consistent performance across varied problems"
@@ -84,7 +84,9 @@
       "name_ru": "Действия с многозначными числами",
       "name_kz": "Көпмәнді сандармен амалдар",
       "prerequisites": [
-        "AR05"
+        "AR01",
+        "AR02",
+        "AR03"
       ],
       "tag": "arithmetic",
       "exam_questions": [
@@ -216,7 +218,8 @@
       "name_kz": "Жай көбейткіштерге жіктеу",
       "prerequisites": [
         "DV03",
-        "AR03"
+        "AR03",
+        "DV02"
       ],
       "tag": "divisibility",
       "exam_questions": [
@@ -288,7 +291,8 @@
       "name_ru": "Правильные и неправильные дроби, смешанные числа",
       "name_kz": "Дұрыс және бұрыс бөлшектер, аралас сандар",
       "prerequisites": [
-        "FR01"
+        "FR01",
+        "AR04"
       ],
       "tag": "fractions",
       "exam_questions": [
@@ -451,14 +455,13 @@
       "name_ru": "Закрашенная часть фигуры (доля)",
       "name_kz": "Фигураның боялған бөлігі",
       "prerequisites": [
-        "FR01",
-        "GE02"
+        "FR01"
       ],
       "tag": "fractions",
       "exam_questions": [
         33
       ],
-      "difficulty": 3,
+      "difficulty": 2,
       "description": "Определение дроби по визуальному представлению"
     },
     {
@@ -511,7 +514,6 @@
       "name_kz": "Жай және ондық бөлшектер арасында ауыстыру",
       "prerequisites": [
         "DC01",
-        "FR01",
         "AR03"
       ],
       "tag": "decimals",
@@ -618,8 +620,7 @@
       "name_ru": "Концентрация (задачи на смеси)",
       "name_kz": "Концентрация (қоспа есептері)",
       "prerequisites": [
-        "PC05",
-        "EQ02"
+        "PC05"
       ],
       "tag": "percent",
       "exam_questions": [
@@ -649,7 +650,7 @@
       "name_kz": "Пропорция (анықтамасы, негізгі қасиеті)",
       "prerequisites": [
         "PR01",
-        "FR07"
+        "FR03"
       ],
       "tag": "proportion",
       "exam_questions": [
@@ -767,8 +768,7 @@
       "name_ru": "Текстовые задачи на составление уравнения",
       "name_kz": "Теңдеуге мәтін есептер",
       "prerequisites": [
-        "EQ02",
-        "FR09"
+        "EQ02"
       ],
       "tag": "equations",
       "exam_questions": [
@@ -812,8 +812,7 @@
       "name_ru": "Нахождение неизвестного по двум разностям",
       "name_kz": "Екі айырма бойынша белгісізді табу",
       "prerequisites": [
-        "EQ01",
-        "AR06"
+        "EQ01"
       ],
       "tag": "equations",
       "exam_questions": [
@@ -827,8 +826,7 @@
       "name_ru": "Верное равенство (подбор знаков/чисел)",
       "name_kz": "Дұрыс теңдік",
       "prerequisites": [
-        "AR05",
-        "EQ01"
+        "AR05"
       ],
       "tag": "equations",
       "exam_questions": [
@@ -871,7 +869,8 @@
       "name_ru": "Модульные неравенства",
       "name_kz": "Модуль теңсіздіктер",
       "prerequisites": [
-        "MD02"
+        "MD02",
+        "AL03"
       ],
       "tag": "equations",
       "exam_questions": [
@@ -900,7 +899,8 @@
       "name_ru": "Раскрытие скобок, приведение подобных",
       "name_kz": "Жақшаларды ашу, ұқсас мүшелерді келтіру",
       "prerequisites": [
-        "AL01"
+        "AL01",
+        "RN01"
       ],
       "tag": "algebra",
       "exam_questions": [
@@ -944,8 +944,7 @@
       "name_ru": "Координатная прямая, отрицательные числа",
       "name_kz": "Координаталық түзу, теріс сандар",
       "prerequisites": [
-        "AR01",
-        "FR01"
+        "AR01"
       ],
       "tag": "numbers",
       "exam_questions": [
@@ -989,9 +988,7 @@
       "name_ru": "Понятие чисел (виды, классификация)",
       "name_kz": "Сандар ұғымы (түрлері)",
       "prerequisites": [
-        "RN02",
-        "FR01",
-        "DC01"
+        "RN02"
       ],
       "tag": "numbers",
       "exam_questions": [
@@ -1033,8 +1030,7 @@
       "name_ru": "Площадь комбинированных (составных) фигур",
       "name_kz": "Құрама фигуралардың ауданы",
       "prerequisites": [
-        "GE02",
-        "FR09"
+        "GE02"
       ],
       "tag": "geometry",
       "exam_questions": [
@@ -1063,7 +1059,8 @@
       "name_kz": "Шеңбердің ұзындығы",
       "prerequisites": [
         "DC03",
-        "AR02"
+        "AR02",
+        "FR07"
       ],
       "tag": "geometry",
       "exam_questions": [
@@ -1092,7 +1089,6 @@
       "name_ru": "Окружность и круг (комбинированные задачи)",
       "name_kz": "Шеңбер мен дөңгелек (құрамалы есептер)",
       "prerequisites": [
-        "GE05",
         "GE06",
         "GE03"
       ],
@@ -1110,7 +1106,7 @@
       "name_kz": "Масштаб",
       "prerequisites": [
         "PR02",
-        "DC03"
+        "CV02"
       ],
       "tag": "geometry",
       "exam_questions": [
@@ -1124,7 +1120,7 @@
       "name_ru": "Симметрия",
       "name_kz": "Симметрия",
       "prerequisites": [
-        "RN03"
+        "GE01"
       ],
       "tag": "geometry",
       "exam_questions": [
@@ -1289,8 +1285,7 @@
       "name_ru": "Встречное и противоположное движение",
       "name_kz": "Қарама-қарсы қозғалыс",
       "prerequisites": [
-        "WP01",
-        "EQ01"
+        "WP01"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1305,8 +1300,7 @@
       "name_kz": "Судағы қозғалыс",
       "prerequisites": [
         "WP02",
-        "EQ02",
-        "FR06"
+        "EQ02"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1321,8 +1315,8 @@
       "name_ru": "Производительность (задачи на работу)",
       "name_kz": "Өнімділік (жұмыс есептері)",
       "prerequisites": [
-        "FR08",
-        "AR03"
+        "AR03",
+        "AR02"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1338,8 +1332,7 @@
       "prerequisites": [
         "WP04",
         "FR06",
-        "FR08",
-        "EQ02"
+        "FR08"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1353,8 +1346,7 @@
       "name_ru": "Урожайность",
       "name_kz": "Түсімділік",
       "prerequisites": [
-        "WP04",
-        "PR02"
+        "WP04"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1384,8 +1376,7 @@
       "name_ru": "Распилы, разрезы",
       "name_kz": "Кесулер",
       "prerequisites": [
-        "AR01",
-        "EQ01"
+        "AR01"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1399,8 +1390,7 @@
       "name_ru": "Количество страниц (цифр в нумерации)",
       "name_kz": "Бет саны (нөмірлеудегі цифрлар)",
       "prerequisites": [
-        "AR10",
-        "AR06"
+        "AR10"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1528,7 +1518,7 @@
       "name_ru": "Закономерности (числовые и фигурные)",
       "name_kz": "Заңдылықтар (сандық және фигуралық)",
       "prerequisites": [
-        "AR05"
+        "AR02"
       ],
       "tag": "logic",
       "exam_questions": [
@@ -1543,8 +1533,7 @@
       "name_ru": "Последовательности (арифметическая и другие)",
       "name_kz": "Тізбектер (арифметикалық және басқа)",
       "prerequisites": [
-        "LG01",
-        "EQ01"
+        "LG01"
       ],
       "tag": "logic",
       "exam_questions": [
@@ -1588,7 +1577,7 @@
       "name_ru": "Новое логическое действие",
       "name_kz": "Жаңа логикалық амал",
       "prerequisites": [
-        "AR05"
+        "AL01"
       ],
       "tag": "logic",
       "exam_questions": [
@@ -1602,7 +1591,7 @@
       "name_ru": "Логические вопросы (истина/ложь)",
       "name_kz": "Логикалық сұрақтар",
       "prerequisites": [
-        "AR05"
+        "AR01"
       ],
       "tag": "logic",
       "exam_questions": [
@@ -1617,7 +1606,7 @@
       "name_ru": "Таблицы (логические задачи)",
       "name_kz": "Кестелер (логикалық есептер)",
       "prerequisites": [
-        "AR05"
+        "AR01"
       ],
       "tag": "logic",
       "exam_questions": [
@@ -1659,8 +1648,7 @@
       "name_ru": "Диаграммы (столбчатые, круговые)",
       "name_kz": "Диаграммалар",
       "prerequisites": [
-        "PC01",
-        "FR01"
+        "PC01"
       ],
       "tag": "data",
       "exam_questions": [
@@ -1689,8 +1677,7 @@
       "name_ru": "Медиана, мода, размах",
       "name_kz": "Медиана, мода, өзгеріс ауқымы",
       "prerequisites": [
-        "WP07",
-        "AR06"
+        "WP07"
       ],
       "tag": "data",
       "exam_questions": [
@@ -1698,56 +1685,6 @@
       ],
       "difficulty": 3,
       "description": "Статистические характеристики набора данных"
-    },
-    {
-      "id": "NM01",
-      "name_ru": "Отрицательные числа и модуль",
-      "name_kz": "Теріс сандар және модуль",
-      "prerequisites": [
-        "AR01"
-      ],
-      "tag": "numbers",
-      "exam_questions": [],
-      "difficulty": 2,
-      "description": "Понятие отрицательного числа, модуль, сравнение, расположение на числовой прямой"
-    },
-    {
-      "id": "NM02",
-      "name_ru": "Действия с отрицательными числами",
-      "name_kz": "Теріс сандармен амалдар",
-      "prerequisites": [
-        "NM01",
-        "AR02"
-      ],
-      "tag": "numbers",
-      "exam_questions": [],
-      "difficulty": 2,
-      "description": "Сложение, вычитание, умножение, деление отрицательных чисел"
-    },
-    {
-      "id": "NM03",
-      "name_ru": "Координатная прямая",
-      "name_kz": "Координаталық түзу",
-      "prerequisites": [
-        "NM01"
-      ],
-      "tag": "numbers",
-      "exam_questions": [],
-      "difficulty": 3,
-      "description": "Координаты точек, середина отрезка, расстояние на координатной прямой"
-    },
-    {
-      "id": "ALG01",
-      "name_ru": "Алгебраические выражения",
-      "name_kz": "Алгебралық өрнектер",
-      "prerequisites": [
-        "AR05",
-        "NM02"
-      ],
-      "tag": "algebra",
-      "exam_questions": [],
-      "difficulty": 3,
-      "description": "Упрощение и вычисление значений буквенных выражений"
     }
   ]
 }

@@ -13,8 +13,10 @@ def _load() -> dict:
 
 def test_counts():
     d = _load()
-    assert len(d["topics"]) == 43
-    assert len(d["topic_edges"]) == 61
+    # 43/61 → 37/39 после чистки графа v02 (docs/specs/2026-07-03-graph-v02-verdict.md):
+    # удалены 6 пустых тем + их topic_edges, узлы NM01/NM02/NM03/ALG01 удалены из графа.
+    assert len(d["topics"]) == 37
+    assert len(d["topic_edges"]) == 39
     assert len(d["strands"]) == 10
 
 
@@ -22,7 +24,7 @@ def test_every_node_mapped_to_existing_topic():
     d = _load()
     topic_ids = {t["id"] for t in d["topics"]}
     graph_nodes = {n["id"] for n in json.loads(_GRAPH.read_text(encoding="utf-8"))["nodes"]}
-    # ровно 118 узлов покрыты, ни одного лишнего/сироты
+    # ровно 114 узлов покрыты (после v02), ни одного лишнего/сироты
     assert set(d["node_topic"].keys()) == graph_nodes
     for nid, tid in d["node_topic"].items():
         assert tid in topic_ids, f"{nid} → несуществующая тема {tid}"
