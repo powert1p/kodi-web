@@ -110,3 +110,38 @@ export async function registerWithPin(phone: string, name: string, pin: string, 
   const data = (await res.json()) as AuthTokenResponse
   setToken(data.access_token)
 }
+
+/** DEV-фикстура профиля (бэкенд недоступен локально) — photo_consent: null, чтобы ConsentCard было чем демонстрировать. */
+const MOCK_PROFILE: StudentProfile = {
+  id: 1,
+  first_name: 'Айдана',
+  last_name: null,
+  username: null,
+  full_name: 'Айдана',
+  lang: 'ru',
+  registered: true,
+  diagnostic_complete: true,
+  has_paused_diagnostic: false,
+  photo_consent: null,
+}
+
+/**
+ * Получает профиль текущего студента (/auth/me) — источник photo_consent для consent-UI.
+ * В DEV (не в тестах): бэкенд недоступен/упал → подставляем фикстуру (тот же паттерн, что
+ * и в fetchWrongTasks).
+ */
+export async function fetchMe(): Promise<StudentProfile> {
+  const token = getToken()
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return res.json() as Promise<StudentProfile>
+  } catch (err) {
+    if (import.meta.env.DEV && import.meta.env.MODE !== 'test') {
+      return MOCK_PROFILE
+    }
+    throw err
+  }
+}

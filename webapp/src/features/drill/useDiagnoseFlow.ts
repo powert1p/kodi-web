@@ -6,6 +6,7 @@
 import { useState, useCallback } from 'react'
 import { useDiagnose, ApiError } from '../../lib/api'
 import { compressForUpload } from '../../lib/image'
+import { track } from '../../lib/telemetry'
 import type { Diagnosis } from '../../lib/types'
 import { MOCK_DIAGNOSIS } from './mock'
 
@@ -16,6 +17,8 @@ interface DiagnoseFlow {
   diagnosis: Diagnosis | null
   /** true — ошибка была 503 (показываем worked-solution fallback). */
   is503: boolean
+  /** true — ошибка была 403: сервер требует согласие родителя (показываем ConsentCard, не DiagnosisError). */
+  needsConsent: boolean
   start: (file: File, problemId: number) => Promise<void>
   reset: () => void
 }
@@ -27,12 +30,15 @@ export function useDiagnoseFlow(): DiagnoseFlow {
   const [status, setStatus] = useState<DiagnoseStatus>('idle')
   const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null)
   const [is503, setIs503] = useState(false)
+  const [needsConsent, setNeedsConsent] = useState(false)
   const diagnose = useDiagnose()
 
   const start = useCallback(
     async (file: File, problemId: number) => {
       setIs503(false)
+      setNeedsConsent(false)
       setStatus('uploading')
+      void track('photo_submitted')
       try {
         const photo = await compressForUpload(file)
         setStatus('diagnosing')
@@ -43,6 +49,12 @@ export function useDiagnoseFlow(): DiagnoseFlow {
           setDiagnosis(result)
           setStatus('result')
         } catch (err) {
+          // 403 — родитель ещё не дал согласие на фото → ConsentCard вместо generic-ошибки.
+          if (err instanceof ApiError && err.status === 403) {
+            setNeedsConsent(true)
+            setStatus('error')
+            return
+          }
           // 503 от живого бэка → поддерживающий fallback (worked-solution).
           if (err instanceof ApiError && err.status === 503) {
             setIs503(true)
@@ -69,7 +81,8 @@ export function useDiagnoseFlow(): DiagnoseFlow {
     setStatus('idle')
     setDiagnosis(null)
     setIs503(false)
+    setNeedsConsent(false)
   }, [])
 
-  return { status, diagnosis, is503, start, reset }
+  return { status, diagnosis, is503, needsConsent, start, reset }
 }

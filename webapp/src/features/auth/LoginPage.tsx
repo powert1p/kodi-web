@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApTextField } from '../../components/ApTextField'
+import { ConsentCheckbox } from './ConsentCheckbox'
 import { LeftIcon } from '../../icons'
 import { useAuth } from './AuthContext'
 import { checkPhone } from '../../lib/auth'
@@ -60,6 +61,7 @@ export function LoginPage() {
   const [phone, setPhone] = useState('')
   const [pin, setPin] = useState('')
   const [name, setName] = useState('')
+  const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -118,7 +120,7 @@ export function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await register(phone.trim(), name.trim(), pin.trim())
+      await register(phone.trim(), name.trim(), pin.trim(), consent)
       navigate('/', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось зарегистрироваться')
@@ -222,6 +224,7 @@ export function LoginPage() {
           disabled={loading}
           error={error}
         />
+        <ConsentCheckbox checked={consent} onChange={setConsent} disabled={loading} />
         <ApButton type="submit" full size="m" loading={loading}>
           Создать аккаунт
         </ApButton>

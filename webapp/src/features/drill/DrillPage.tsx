@@ -8,6 +8,7 @@ import { PhotoCapture } from './PhotoCapture'
 import { DiagnosingState } from './DiagnosingState'
 import { DiagnosisCard } from './DiagnosisCard'
 import { DiagnosisError } from './DiagnosisError'
+import { ConsentCard } from '../hub/ConsentCard'
 import { TutorPanel } from './TutorPanel'
 import { FinishedCard } from './FinishedCard'
 import { useDrill } from './useDrill'
@@ -152,7 +153,14 @@ function DrillContent({ task }: { task: WrongTask }) {
             </>
           )}
 
-          {flow.status === 'error' && (
+          {flow.status === 'error' && flow.needsConsent && (
+            // 403 — сервер требует согласие родителя: своя карточка вместо generic-ошибки.
+            // «Разрешаю» отправляет согласие и сразу возвращает к PhotoCapture (повторить фото);
+            // «Позже» — тоже возврат к PhotoCapture (без фото продолжаем по лесенке).
+            <ConsentCard onGranted={flow.reset} onDismiss={flow.reset} />
+          )}
+
+          {flow.status === 'error' && !flow.needsConsent && (
             <DiagnosisError
               fallbackHint={fallbackHint}
               onRetry={flow.reset}
