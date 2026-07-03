@@ -121,6 +121,18 @@ export interface SrezTask {
   total: number
 }
 
+/** Тип вердикта проверки одного шага лесенки (Блок 1.2). */
+export type StepVerdictKind = 'match' | 'mismatch' | 'unsure'
+
+/** Вердикт проверки шага (зеркало BE StepSubmitOut). */
+export interface StepVerdict {
+  verdict: StepVerdictKind
+  /** Подсказка при mismatch (fingerprint-hint); null — раскрытия нет. */
+  hint: string | null
+  confidence: number
+  step_n: number
+}
+
 /** Диагноз ошибки (визуальный разбор по фото/тексту решения). */
 export interface Diagnosis {
   transcription: string

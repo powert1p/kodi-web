@@ -3,7 +3,7 @@
 // Bearer JWT берётся из localStorage по ключу STORAGE_KEY.
 
 import { useQuery, useMutation } from '@tanstack/react-query'
-import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO, SrezTask } from './types'
+import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO, SrezTask, StepVerdict } from './types'
 import { MOCK_WRONG_TASKS } from '../features/hub/mock'
 
 /** Ключ хранилища JWT-токена. */
@@ -158,6 +158,33 @@ export async function postDiagnose(params: DiagnoseParams): Promise<Diagnosis> {
   return res.json() as Promise<Diagnosis>
 }
 
+/** Параметры запроса проверки одного шага лесенки (Блок 1.2). */
+export interface StepSubmitParams {
+  decomp_idx: number
+  step_n: number
+  problem_id?: number
+  photo: File | Blob
+}
+
+/**
+ * Отправить фото одного шага лесенки для узкой vision-проверки.
+ * Тело запроса — multipart/form-data (поля: decomp_idx, step_n, problem_id?, photo).
+ */
+export async function postStepSubmit(params: StepSubmitParams): Promise<StepVerdict> {
+  const form = new FormData()
+  form.append('decomp_idx', String(params.decomp_idx))
+  form.append('step_n', String(params.step_n))
+  if (params.problem_id !== undefined) form.append('problem_id', String(params.problem_id))
+  form.append('photo', params.photo)
+
+  const res = await apiFetch(`${API_BASE}/trainer/step-submit`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: form,
+  })
+  return res.json() as Promise<StepVerdict>
+}
+
 // ——————————————————————————————————
 // TanStack Query хуки
 // ——————————————————————————————————
@@ -198,6 +225,13 @@ export function useAnalytics() {
 export function useDiagnose() {
   return useMutation({
     mutationFn: (params: DiagnoseParams) => postDiagnose(params),
+  })
+}
+
+/** Хук-мутация: проверка одного шага лесенки по фото. */
+export function useStepSubmit() {
+  return useMutation({
+    mutationFn: (params: StepSubmitParams) => postStepSubmit(params),
   })
 }
 

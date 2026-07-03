@@ -2,7 +2,7 @@
 // многошаговой лесенкой (проценты), ступень «попроще» для climb-down и
 // мок-диагноз по фото. Заменяется реальным API/vision позже.
 
-import type { WrongTask, Diagnosis } from '../../lib/types'
+import type { WrongTask, Diagnosis, StepVerdict } from '../../lib/types'
 import type { EasierRung } from '../../lib/ladder'
 
 // Задача: «Цена 1200 ₽ выросла на 15%, затем снизилась на 10%».
@@ -86,3 +86,6 @@ export const MOCK_DIAGNOSIS: Diagnosis = {
   confidence: 0.82,
   image_ref: 'mock://solution-photo',
 }
+
+// Мок-вердикт поэтапной сдачи (Блок 1.2): демонстрирует happy-path без бэка.
+export const MOCK_STEP_VERDICT: StepVerdict = { verdict: 'match', hint: null, confidence: 0.9, step_n: 1 }
