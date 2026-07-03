@@ -111,6 +111,16 @@ export interface VerificationProblemDTO {
   xp: number
 }
 
+/** Одна задача мини-среза (Блок 1.0). Правильный ответ на клиент НЕ приходит. */
+export interface SrezTask {
+  problem_id: number
+  statement: string
+  answer_type: string | null
+  node_title: string
+  position: number
+  total: number
+}
+
 /** Диагноз ошибки (визуальный разбор по фото/тексту решения). */
 export interface Diagnosis {
   transcription: string

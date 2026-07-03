@@ -58,6 +58,7 @@ export interface StudentProfile {
   registered: boolean
   diagnostic_complete: boolean
   has_paused_diagnostic: boolean
+  photo_consent: boolean | null
 }
 
 // ——————————————————————————————————
@@ -96,11 +97,11 @@ export async function loginWithPin(phone: string, pin: string): Promise<void> {
 }
 
 /** Регистрация нового студента. Сохраняет токен в localStorage. */
-export async function registerWithPin(phone: string, name: string, pin: string): Promise<void> {
+export async function registerWithPin(phone: string, name: string, pin: string, photoConsent: boolean): Promise<void> {
   const res = await fetch(`${AUTH_BASE}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone, name, pin }),
+    body: JSON.stringify({ phone, name, pin, photo_consent: photoConsent }),
   })
   if (!res.ok) {
     const detail = await res.json().then((d: { detail?: string }) => d.detail).catch(() => null)

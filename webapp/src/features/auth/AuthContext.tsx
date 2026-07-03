@@ -16,8 +16,8 @@ interface AuthContextValue {
   token: string | null
   /** Войти по номеру телефона и PIN. Сохраняет токен. */
   login: (phone: string, pin: string) => Promise<void>
-  /** Зарегистрироваться с именем и PIN. Сохраняет токен. */
-  register: (phone: string, name: string, pin: string) => Promise<void>
+  /** Зарегистрироваться с именем, PIN и согласием на фото. Сохраняет токен. */
+  register: (phone: string, name: string, pin: string, photoConsent: boolean) => Promise<void>
   /** Выйти из аккаунта (удаляет токен). */
   logout: () => void
 }
@@ -38,8 +38,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setTokenState(getToken())
   }, [])
 
-  const register = useCallback(async (phone: string, name: string, pin: string) => {
-    await registerWithPin(phone, name, pin)
+  const register = useCallback(async (phone: string, name: string, pin: string, photoConsent: boolean) => {
+    await registerWithPin(phone, name, pin, photoConsent)
     setTokenState(getToken())
   }, [])
 

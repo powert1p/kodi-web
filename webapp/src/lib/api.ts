@@ -3,7 +3,7 @@
 // Bearer JWT берётся из localStorage по ключу STORAGE_KEY.
 
 import { useQuery, useMutation } from '@tanstack/react-query'
-import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO } from './types'
+import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO, SrezTask } from './types'
 import { MOCK_WRONG_TASKS } from '../features/hub/mock'
 
 /** Ключ хранилища JWT-токена. */
@@ -251,4 +251,40 @@ export async function fetchEasier(microSkill: string, excludeIdx?: number | null
   if (excludeIdx != null) params.set('exclude_idx', String(excludeIdx))
   const res = await apiFetch(`${API_BASE}/trainer/easier?${params.toString()}`, { headers: authHeaders() })
   return res.json()
+}
+
+// ── Мини-срез (Блок 1.0) ──
+export async function startSrez(): Promise<SrezTask[]> {
+  const res = await apiFetch(`${API_BASE}/trainer/srez/start`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  })
+  const data = (await res.json()) as { tasks?: SrezTask[] }
+  return data.tasks ?? []
+}
+
+export async function answerSrez(problemId: number, answer: string, elapsedMs?: number): Promise<{ is_correct: boolean }> {
+  const res = await apiFetch(`${API_BASE}/trainer/srez/answer`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ problem_id: problemId, answer, elapsed_ms: elapsedMs ?? null }),
+  })
+  return res.json() as Promise<{ is_correct: boolean }>
+}
+
+/** Хук-мутация: старт мини-среза (запускает единожды после регистрации). */
+export function useSrezStart() {
+  return useMutation({
+    mutationFn: () => startSrez(),
+  })
+}
+
+// ── Consent (Блок 1.0) ──
+export async function postConsent(photoConsent: boolean): Promise<void> {
+  await apiFetch(`${API_BASE}/trainer/consent`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photo_consent: photoConsent }),
+  })
 }
