@@ -75,6 +75,8 @@ class Settings:
         "PHOTO_DIR",
         os.path.join(os.path.dirname(__file__), "..", "data", "error_photos"),
     )
+    # Порог уверенности для step-submit: mismatch с confidence ниже → трактуем как unsure
+    step_confidence_threshold: float = float(os.getenv("STEP_CONFIDENCE_THRESHOLD", "0.6"))
     # Telegram user_id владельца (для owner-only функций)
     owner_student_id: int = int(os.getenv("OWNER_STUDENT_ID", "0") or 0)
     debug: bool = os.getenv("DEBUG", "false").lower() == "true"

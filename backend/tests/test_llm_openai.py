@@ -374,3 +374,133 @@ async def test_gemini_strict_rejected_falls_back_to_no_strict() -> None:
     rf = second_call_kwargs.get("response_format", {})
     schema_sent = rf.get("json_schema", {})
     assert "strict" not in schema_sent, "повторный запрос не должен содержать strict в json_schema"
+
+
+# ─── classify_step_photo — узкая vision-классификация одного шага ───────────
+
+_STEP_MATCH_PAYLOAD = {"verdict": "match", "seen_value": "115", "confidence": 0.9}
+_STEP_MISMATCH_PAYLOAD = {"verdict": "mismatch", "seen_value": "100", "confidence": 0.8}
+_STEP_UNSURE_PAYLOAD = {"verdict": "unsure", "seen_value": None, "confidence": 0.3}
+
+
+@pytest.mark.asyncio
+async def test_classify_step_photo_match() -> None:
+    """Фейковый клиент с verdict=match → StepClassification.verdict == 'match'."""
+    from core.llm_openai import StepClassification, classify_step_photo
+
+    fake_client = _make_fake_client(_STEP_MATCH_PAYLOAD)
+
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
+        result = await classify_step_photo(
+            image_bytes=_TINY_PNG,
+            content_type="image/png",
+            statement="Реши уравнение: x + 2 = 3",
+            instruction_ru="Раскрыть скобки",
+            expected_value="115",
+        )
+
+    assert isinstance(result, StepClassification)
+    assert result.verdict == "match"
+    assert result.seen_value == "115"
+    assert abs(result.confidence - 0.9) < 1e-9
+
+
+@pytest.mark.asyncio
+async def test_classify_step_photo_mismatch() -> None:
+    """Фейковый клиент с verdict=mismatch → эхо в результате."""
+    from core.llm_openai import classify_step_photo
+
+    fake_client = _make_fake_client(_STEP_MISMATCH_PAYLOAD)
+
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
+        result = await classify_step_photo(
+            image_bytes=_TINY_PNG,
+            content_type="image/png",
+            statement="Реши уравнение: x + 2 = 3",
+            instruction_ru="Раскрыть скобки",
+            expected_value="115",
+        )
+
+    assert result.verdict == "mismatch"
+    assert result.seen_value == "100"
+    assert abs(result.confidence - 0.8) < 1e-9
+
+
+@pytest.mark.asyncio
+async def test_classify_step_photo_unsure() -> None:
+    """Фейковый клиент с verdict=unsure и seen_value=None → эхо в результате."""
+    from core.llm_openai import classify_step_photo
+
+    fake_client = _make_fake_client(_STEP_UNSURE_PAYLOAD)
+
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
+        result = await classify_step_photo(
+            image_bytes=_TINY_PNG,
+            content_type="image/png",
+            statement="",
+            instruction_ru="Раскрыть скобки",
+            expected_value="115",
+        )
+
+    assert result.verdict == "unsure"
+    assert result.seen_value is None
+    assert abs(result.confidence - 0.3) < 1e-9
+
+
+@pytest.mark.asyncio
+async def test_classify_step_photo_strict_fallback() -> None:
+    """Gemini отвергает strict → повтор без strict, результат распарсен."""
+    from core.llm_openai import StepClassification, classify_step_photo
+
+    fake_client = MagicMock()
+    fake_client.chat = MagicMock()
+    fake_client.chat.completions = MagicMock()
+    fake_client.chat.completions.create = AsyncMock(
+        side_effect=[
+            Exception("strict not supported by this model"),
+            _make_fake_completion(_STEP_MATCH_PAYLOAD),
+        ]
+    )
+
+    with (
+        patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)),
+        patch("core.config.settings") as mock_settings,
+    ):
+        mock_settings.vision_provider = "gemini"
+        result = await classify_step_photo(
+            image_bytes=_TINY_PNG,
+            content_type="image/png",
+            statement="Задача",
+            instruction_ru="Раскрыть скобки",
+            expected_value="115",
+        )
+
+    assert fake_client.chat.completions.create.call_count == 2
+    assert isinstance(result, StepClassification)
+    assert result.verdict == "match"
+
+    second_call_kwargs = fake_client.chat.completions.create.call_args_list[1].kwargs
+    rf = second_call_kwargs.get("response_format", {})
+    schema_sent = rf.get("json_schema", {})
+    assert "strict" not in schema_sent, "повторный запрос не должен содержать strict в json_schema"
+
+
+@pytest.mark.asyncio
+async def test_classify_step_photo_llm_unavailable() -> None:
+    """Все модели в chain бросают исключение → LlmUnavailable."""
+    from core.llm_openai import LlmUnavailable, classify_step_photo
+
+    fake_client = MagicMock()
+    fake_client.chat = MagicMock()
+    fake_client.chat.completions = MagicMock()
+    fake_client.chat.completions.create = AsyncMock(side_effect=Exception("API error"))
+
+    with patch("core.llm_openai._get_active_client", return_value=(fake_client, _TEST_MODEL_CHAIN)):
+        with pytest.raises(LlmUnavailable):
+            await classify_step_photo(
+                image_bytes=_TINY_PNG,
+                content_type="image/png",
+                statement="Задача",
+                instruction_ru="Раскрыть скобки",
+                expected_value="115",
+            )

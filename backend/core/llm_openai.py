@@ -61,6 +61,14 @@ class LlmUnavailable(Exception):
     """Ключ API не задан или все модели из chain вернули ошибку."""
 
 
+@dataclass
+class StepClassification:
+    """Результат классификации фото одного шага лесенки."""
+    verdict: str          # "match" | "mismatch" | "unsure"
+    seen_value: str | None
+    confidence: float
+
+
 # ─── JSON Schema для structured output ────────────────────────────────────────
 
 # OpenAI требует strict=True + additionalProperties=false + все поля в required.
@@ -89,6 +97,22 @@ _DIAGNOSIS_JSON_SCHEMA = {
             "micro_skill": {
                 "anyOf": [{"type": "string"}, {"type": "null"}]
             },
+            "confidence": {"type": "number"},
+        },
+    },
+}
+
+# Схема для классификации одного шага (узкая, не транскрипция)
+_STEP_JSON_SCHEMA = {
+    "name": "step_classification",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["verdict", "seen_value", "confidence"],
+        "properties": {
+            "verdict": {"type": "string", "enum": ["match", "mismatch", "unsure"]},
+            "seen_value": {"anyOf": [{"type": "string"}, {"type": "null"}]},
             "confidence": {"type": "number"},
         },
     },
@@ -229,6 +253,23 @@ def _build_prompt(
     )
 
 
+def _build_step_prompt(*, statement: str, instruction_ru: str, expected_value: str) -> str:
+    """Короткий промпт классификации одного шага (не транскрипция)."""
+    stmt_part = f"ЗАДАЧА (контекст): {statement}\n\n" if statement else ""
+    return (
+        "Ты проверяешь фото ОДНОГО шага рукописного решения ученика.\n\n"
+        f"{stmt_part}"
+        f"ОЖИДАЕМЫЙ ШАГ: {instruction_ru}\n"
+        f"ОЖИДАЕМЫЙ РЕЗУЛЬТАТ ЭТОГО ШАГА: {expected_value}\n\n"
+        "Классифицируй, есть ли на фото этот шаг с ожидаемым результатом:\n"
+        "- \"match\": на фото виден шаг и его результат совпадает с ожидаемым.\n"
+        "- \"mismatch\": шаг виден, но результат отличается от ожидаемого.\n"
+        "- \"unsure\": не разобрать / на фото не этот шаг / вся страница целиком.\n\n"
+        "seen_value — что ты прочитал как результат шага (или null). "
+        "confidence — уверенность 0.0–1.0. Отвечай строго в JSON-схеме."
+    )
+
+
 # ─── основная функция ─────────────────────────────────────────────────────────
 
 async def diagnose_photo(
@@ -356,6 +397,140 @@ async def diagnose_photo(
                         cause_text=data["cause_text"],
                         level=int(data["level"]),
                         micro_skill=data.get("micro_skill"),
+                        confidence=float(data["confidence"]),
+                    )
+                except Exception as inner_exc:  # noqa: BLE001
+                    logger.warning(
+                        "%s fallback-no-strict error (model=%s): %s",
+                        provider, model, type(inner_exc).__name__,
+                    )
+                    last_exc = inner_exc
+            else:
+                last_exc = exc
+
+    # В сообщении — только тип, не тело (предотвращаем утечку ключа)
+    raise LlmUnavailable(
+        f"Все модели в {provider}_model_chain недоступны "
+        f"(последняя ошибка: {type(last_exc).__name__})"
+    )
+
+
+async def classify_step_photo(
+    *,
+    image_bytes: bytes,
+    content_type: str,
+    statement: str,
+    instruction_ru: str,
+    expected_value: str,
+) -> StepClassification:
+    """Классифицирует фото одного шага лесенки (match/mismatch/unsure).
+
+    Узкая vision-классификация — не транскрипция всей рукописи, а короткий
+    вердикт по конкретному ожидаемому шагу.
+
+    Args:
+        image_bytes:      Сырые байты изображения (PNG/JPEG/HEIC).
+        content_type:     MIME-тип ('image/png', 'image/jpeg', 'image/heic', ...).
+        statement:        Условие задачи (контекст, может быть пустой строкой).
+        instruction_ru:   Инструкция ожидаемого шага.
+        expected_value:   Ожидаемый результат этого шага.
+
+    Returns:
+        StepClassification с вердиктом, увиденным значением и уверенностью.
+
+    Raises:
+        LlmUnavailable: Если ключ не задан или все модели в chain недоступны.
+    """
+    # Получаем активный клиент и цепочку моделей (может бросить LlmUnavailable)
+    client, model_chain = _get_active_client()
+    if client is None:
+        raise LlmUnavailable(
+            "Vision клиент недоступен: пустой API-ключ или пакет openai не установлен."
+        )
+
+    from core.config import settings  # noqa: PLC0415
+
+    provider = settings.vision_provider
+
+    # HEIC → JPEG если нужно (ни OpenAI, ни Gemini не принимают HEIC)
+    actual_bytes = image_bytes
+    actual_mime = content_type
+    if _is_heic(image_bytes, content_type):
+        logger.info("Detected HEIC image, converting to JPEG")
+        actual_bytes = _convert_heic_to_jpeg(image_bytes)
+        actual_mime = "image/jpeg"
+
+    # Формируем base64 data URL
+    b64 = base64.b64encode(actual_bytes).decode("ascii")
+    data_url = f"data:{actual_mime};base64,{b64}"
+
+    prompt_text = _build_step_prompt(
+        statement=statement,
+        instruction_ru=instruction_ru,
+        expected_value=expected_value,
+    )
+
+    messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt_text},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": data_url, "detail": "high"},
+                },
+            ],
+        }
+    ]
+
+    last_exc: Exception | None = None
+    for model in model_chain:
+        try:
+            logger.debug("Attempting %s model: %s", provider, model)
+            response = await asyncio.wait_for(
+                client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    response_format={"type": "json_schema", "json_schema": _STEP_JSON_SCHEMA},
+                    max_tokens=256,
+                ),
+                timeout=_OPENAI_TIMEOUT,
+            )
+            content = response.choices[0].message.content
+            data = json.loads(content)
+            return StepClassification(
+                verdict=data["verdict"],
+                seen_value=data.get("seen_value"),
+                confidence=float(data["confidence"]),
+            )
+        except asyncio.TimeoutError as exc:
+            logger.warning("%s timeout (model=%s, %.1fs)", provider, model, _OPENAI_TIMEOUT)
+            last_exc = exc
+        except Exception as exc:  # noqa: BLE001
+            # Логируем только тип — тело может содержать фрагменты ключа API
+            exc_type = type(exc).__name__
+            logger.warning("%s error (model=%s): %s", provider, model, exc_type)
+            # Gemini может отвергнуть strict:true — пробуем без него
+            if provider == "gemini" and "strict" in str(exc).lower():
+                logger.info(
+                    "Gemini отверг strict json_schema, повтор без strict (model=%s)", model
+                )
+                schema_no_strict = {k: v for k, v in _STEP_JSON_SCHEMA.items() if k != "strict"}
+                try:
+                    response = await asyncio.wait_for(
+                        client.chat.completions.create(
+                            model=model,
+                            messages=messages,
+                            response_format={"type": "json_schema", "json_schema": schema_no_strict},
+                            max_tokens=256,
+                        ),
+                        timeout=_OPENAI_TIMEOUT,
+                    )
+                    content = response.choices[0].message.content
+                    data = json.loads(content)
+                    return StepClassification(
+                        verdict=data["verdict"],
+                        seen_value=data.get("seen_value"),
                         confidence=float(data["confidence"]),
                     )
                 except Exception as inner_exc:  # noqa: BLE001
