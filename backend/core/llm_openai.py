@@ -492,7 +492,9 @@ async def classify_step_photo(
                     model=model,
                     messages=messages,
                     response_format={"type": "json_schema", "json_schema": _STEP_JSON_SCHEMA},
-                    max_tokens=256,
+                    # 1024, не меньше: thinking-модель (gemini-2.5-flash) тратит reasoning-токены
+                    # из этого же бюджета — 256 обрезало JSON на реальных фото (E2E Task 7)
+                    max_tokens=1024,
                 ),
                 timeout=_OPENAI_TIMEOUT,
             )
@@ -522,7 +524,7 @@ async def classify_step_photo(
                             model=model,
                             messages=messages,
                             response_format={"type": "json_schema", "json_schema": schema_no_strict},
-                            max_tokens=256,
+                            max_tokens=1024,
                         ),
                         timeout=_OPENAI_TIMEOUT,
                     )
