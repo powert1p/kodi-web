@@ -56,7 +56,13 @@
 - [x] Verification API (closure с мока → сервер, resolved по node_id), GET /problem-topics (+hub-блок), GET /easier.
 - [x] Analytics контракт my_top BE↔FE. 77 pytest (реальный PG) + 43 vitest. E2E ALL PASS. Деплой aiplus + live-чат. Merge ff → main (15dea9f), push origin.
 
+### 2026-07-03 граф v02 — DONE (вердикт `docs/specs/2026-07-03-graph-v02-verdict.md`)
+- [x] Ручной проход Fable: 28 drop + 15 add рёбер, 7 retag тем, снос NM01-03/ALG01 (73 задачи → RN01/MD01/AL01, decomp-банк синхронно). 114 узлов/181 ребро/36 непустых тем.
+- [x] Семантический тест-гейт (test_graph_semantics.py), пересборка дев-БД, миграция прода (пост-ассерты OK), live-проверка, merge → main.
+- [ ] Бэклог графа: слить CB02≈CB04 (дубль «размещения без повторений»); cleanup 7 тем-сирот в прод-БД (нужно одобрение DELETE); косяки задач: FR05 (сравнение дробей требует десятичных), DA02 (пример с ускорением — физика), EQ06-пример дублирует EQ07.
+
 ### Бэклог тренажёра (после 2026-07-02)
+- [ ] Онбординг нового ученика: у свежего аккаунта тренажёр пуст («Всё разобрано») — нет источника ошибок внутри PWA. Нужен мини-срез в PWA или мост к диагностике Flutter (замечено владельцем 2026-07-02).
 - [ ] Продуктовое решение: скрывать ли закрытые ошибки из wrong-tasks (сейчас «Закрыто 0 из 2» при закрытой теме — счётчик от recurring_errors, список от attempts).
 - [ ] Подключить climb-down UI (GET /easier есть, фронт-консьюмера нет — fetchEasier без хука).
 - [ ] Мелочи: FinishedCard «46 ₽» (валютный формат на арифметике); seed_demo.py `.scalar()` дважды; dead code (resolve_decomp import F401 в роутере, analytics/mock.ts, stale docstring); in-flight guard useClosure.check.
