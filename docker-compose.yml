@@ -47,6 +47,9 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-}
       FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
       PORT: "8000"
+    # Фото-датасет (детские работы) должен переживать rebuild контейнера
+    volumes:
+      - ./error_photos:/app/data/error_photos
     # Публично на 0.0.0.0:8300 (прямой биндинг, как kodi-cabinet:8301) — без nginx/root.
     # ⚠️ FastAPI смотрит в интернет напрямую: личные данные защищены JWT, регистрация публична by design.
     # TODO: убрать наружу за host nginx + SSL, когда будет домен/root.
