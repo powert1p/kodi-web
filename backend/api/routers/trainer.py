@@ -22,6 +22,7 @@ from core.agent_context import build_agent_context
 from core.config import settings
 from core.grading import check_answer
 from core.llm_openai import LlmUnavailable, diagnose_photo
+from core.srez import pick_srez_problems
 from core.trainer import (
     StepDTO,
     WrongTask,
@@ -848,3 +849,76 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
         await session.close()
 
     return TutorChatOut(session_id=session_id, reply=reply, history=out_history)
+
+
+# ── Мини-срез: быстрый онбординг из 12 задач (Блок 1.0) ───────────────────────
+
+class SrezTaskOut(BaseModel):
+    problem_id: int
+    statement: str
+    answer_type: str | None
+    node_title: str
+    position: int
+    total: int
+
+
+class SrezStartOut(BaseModel):
+    tasks: list[SrezTaskOut]
+
+
+class SrezAnswerIn(BaseModel):
+    problem_id: int
+    answer: str
+    elapsed_ms: int | None = None
+
+
+class SrezAnswerOut(BaseModel):
+    is_correct: bool
+
+
+@router.post("/srez/start", response_model=SrezStartOut)
+async def post_srez_start(request: Request) -> SrezStartOut:
+    """Мини-срез: сервер выбирает 12 задач (разброс тем, лёгкие первыми). Стейт держит клиент.
+    Ответ НЕ содержит правильных ответов/решений."""
+    session, student = await _get_current_student(request)
+    try:
+        rows = await pick_srez_problems(session, student_id=student.id, count=12)
+    finally:
+        await session.close()
+    total = len(rows)
+    tasks = [
+        SrezTaskOut(
+            problem_id=r.id, statement=r.statement, answer_type=r.answer_type,
+            node_title=r.node_title, position=i + 1, total=total,
+        )
+        for i, r in enumerate(rows)
+    ]
+    return SrezStartOut(tasks=tasks)
+
+
+@router.post("/srez/answer", response_model=SrezAnswerOut)
+async def post_srez_answer(request: Request, payload: SrezAnswerIn) -> SrezAnswerOut:
+    """Проверяет ответ задачи среза и пишет attempt(source='diagnostic').
+    НЕ возвращает correct_answer/solution (задачи потом попадут в drill)."""
+    session, student = await _get_current_student(request)
+    try:
+        prob = (await session.execute(
+            text("SELECT node_id, answer, answer_type FROM problems WHERE id = :pid"),
+            {"pid": payload.problem_id},
+        )).fetchone()
+        if prob is None:
+            raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
+        is_correct = check_answer(payload.answer, prob.answer, prob.answer_type)
+        await session.execute(
+            text(
+                "INSERT INTO attempts "
+                "(student_id, problem_id, node_id, answer_given, is_correct, response_time_ms, source, created_at) "
+                "VALUES (:sid, :pid, :nid, :ans, :ok, :ms, 'diagnostic', NOW())"
+            ),
+            {"sid": student.id, "pid": payload.problem_id, "nid": prob.node_id,
+             "ans": payload.answer, "ok": is_correct, "ms": payload.elapsed_ms},
+        )
+        await session.commit()
+    finally:
+        await session.close()
+    return SrezAnswerOut(is_correct=is_correct)
