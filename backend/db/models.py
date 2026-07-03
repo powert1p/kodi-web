@@ -107,6 +107,10 @@ class Student(Base):
     paused_diagnostic: Mapped[dict | None] = mapped_column(
         JSONB().with_variant(JSON, "sqlite"), nullable=True
     )
+    # Согласие родителя на использование фото работ ребёнка (Блок 1.0).
+    # NULL = не спрашивали (мягкая карточка на hub); true/false = ответ дан.
+    photo_consent: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    photo_consent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class Mastery(Base):
@@ -379,6 +383,27 @@ class TutorMessage(Base):
     )
     role: Mapped[str] = mapped_column(String(16), nullable=False)  # 'user' | 'assistant'
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
+class Event(Base):
+    """Сырое событие телеметрии UX (Блок 1.0, пилот-аналитика)."""
+
+    __tablename__ = "events"
+    __table_args__ = (
+        Index("idx_events_student_created", "student_id", "created_at"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    event_type: Mapped[str] = mapped_column(Text, nullable=False)  # произвольная строка, не enum
+    payload: Mapped[dict | None] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
     )

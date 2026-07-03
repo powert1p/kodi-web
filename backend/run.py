@@ -34,6 +34,9 @@ async def on_startup():
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS problems_on_current_node INTEGER DEFAULT 0",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS pin_hash VARCHAR(128)",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS paused_diagnostic JSONB",
+            # ── consent на фото (Блок 1.0) ──
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN",
+            "ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_consent_at TIMESTAMPTZ",
             # ── problem_reports table ──
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'open'",
             # TIMESTAMPTZ (не TIMESTAMP): колонка tz-aware в модели; иначе naive-vs-aware DataError
@@ -154,6 +157,17 @@ async def on_startup():
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_tutor_messages_session ON tutor_messages (session_id)",
+            # ── телеметрия UX (Блок 1.0) ──
+            """
+            CREATE TABLE IF NOT EXISTS events (
+                id          BIGINT      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                student_id  BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                event_type  TEXT        NOT NULL,
+                payload     JSONB,
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_events_student_created ON events (student_id, created_at)",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")
