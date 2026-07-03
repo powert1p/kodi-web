@@ -23,7 +23,14 @@ frontend/packages/kodi_core/.dart_tool/
 # Build outputs
 backend/web_static/
 backend/static/
+backend/webapp_dist/
 
 # Local compose runtime
 pgdata/
 .superpowers/
+
+# Данные учеников (не в git)
+backend/data/error_photos/
+
+# Playwright MCP runtime
+.playwright-mcp/
