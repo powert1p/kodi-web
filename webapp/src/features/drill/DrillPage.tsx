@@ -1,10 +1,12 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useParams } from 'react-router-dom'
 import { track } from '../../lib/telemetry'
 import { DrillHeader } from './DrillHeader'
 import { LevelIntro } from './LevelIntro'
 import { ProblemCard } from './ProblemCard'
 import { Ladder } from './Ladder'
+import { StepModeToggle } from './StepModeToggle'
+import { StepSubmitPanel } from './StepSubmitPanel'
 import { PhotoCapture } from './PhotoCapture'
 import { DiagnosingState } from './DiagnosingState'
 import { DiagnosisCard } from './DiagnosisCard'
@@ -14,6 +16,7 @@ import { TutorPanel } from './TutorPanel'
 import { FinishedCard } from './FinishedCard'
 import { useDrill } from './useDrill'
 import { useDiagnoseFlow } from './useDiagnoseFlow'
+import { useStepSubmitFlow } from './useStepSubmitFlow'
 import { levelFromTask } from './levelConfig'
 import { useWrongTask } from '../../lib/api'
 
@@ -72,6 +75,43 @@ function DrillContent({ task }: { task: WrongTask }) {
   const drill = useDrill(task.steps, MOCK_EASIER_RUNG)
   const flow = useDiagnoseFlow()
 
+  // Режим сдачи активной ступени: «Ввод» (дефолт) / «По тетради» (фото шага).
+  // Фото-режим применим только к original-ступеням — на easier (климб-даун)
+  // всегда остаётся текстовый ввод.
+  const [mode, setMode] = useState<'input' | 'tetrad'>('input')
+  const stepFlow = useStepSubmitFlow()
+  const activeRung = drill.activeRung
+  const isOriginalActive = activeRung?.kind === 'original'
+  const photoMode = mode === 'tetrad' && isOriginalActive
+  const activeStepN =
+    activeRung && activeRung.kind === 'original' ? Number(activeRung.key.slice(1)) : null
+
+  // Мост вердикта фото-шага в машину лесенки: match/mismatch реюзают
+  // существующие пути ladder.submit (correct/wrong — climb-down и hint работают
+  // как обычно), unsure машину НЕ трогает — это не ошибка, а «не разглядел»,
+  // ждём повторного фото того же шага.
+  useEffect(() => {
+    if (stepFlow.status !== 'result' || !stepFlow.verdict || !activeRung) return
+    const v = stepFlow.verdict
+    void track('step_photo_verdict', {
+      verdict: v.verdict,
+      decomp_idx: task.decomp_idx,
+      step_n: v.step_n,
+    })
+    if (v.verdict === 'match') {
+      // Значение НЕ показываем юзеру — используется только для сравнения в ladder.submit.
+      drill.submit(activeRung.expected_value)
+      stepFlow.reset()
+    } else if (v.verdict === 'mismatch') {
+      // Сентинел не сопадёт ни с одним expected_value — гарантированный «wrong»,
+      // реюз climb-down/hint; сам сентинел юзеру нигде не показывается.
+      drill.submit('nomatch')
+    } else {
+      void track('step_retry_after_unsure')
+    }
+    // eslint-disable-next-line -- намеренно узкие deps: реагируем только на смену вердикта фото-шага
+  }, [stepFlow.status, stepFlow.verdict])
+
   // Прогресс шапки: решённые оригиналы +1 (текущий), но не больше всего.
   const current = Math.min(drill.solvedOriginals + 1, drill.totalOriginals)
 
@@ -100,7 +140,10 @@ function DrillContent({ task }: { task: WrongTask }) {
   // Опора для 503-fallback — reveal активного шага (не финальный ответ задачи).
   const fallbackHint = drill.activeRung?.reveal ?? null
 
-  const showPhotoPath = !drill.finished
+  // В режиме «По тетради» на активной original-ступени панель сдачи фото шага —
+  // единственный фото-CTA экрана; фото-путь целой задачи прячется, чтобы не
+  // спорить с ним за primary-действие (один primary-CTA на экран).
+  const showPhotoPath = !drill.finished && !photoMode
 
   // Есть ли ступени для лесенки
   const hasSteps = task.steps.length > 0
@@ -134,13 +177,42 @@ function DrillContent({ task }: { task: WrongTask }) {
             className="reveal flex flex-col gap-4"
             style={{ '--reveal-delay': '180ms' } as CSSProperties}
           >
+            <StepModeToggle
+              mode={mode}
+              onChange={(m) => {
+                setMode(m)
+                void track('step_mode_switched', { mode: m })
+              }}
+            />
             <Ladder
               rungs={drill.rungs}
               hint={drill.hint}
               showReveal={drill.showReveal}
               insertedKey={drill.insertedKey}
+              photoMode={photoMode}
               onSubmit={drill.submit}
             />
+            {photoMode && activeStepN !== null && (
+              stepFlow.needsConsent ? (
+                // 403 — сервер требует согласие родителя на фото шага (та же
+                // карточка, что и в diagnose-ветке ниже).
+                <ConsentCard onGranted={stepFlow.reset} onDismiss={stepFlow.reset} />
+              ) : (
+                <StepSubmitPanel
+                  stepN={activeStepN}
+                  status={stepFlow.status}
+                  verdict={stepFlow.verdict}
+                  onPhoto={(f) =>
+                    void stepFlow.start(f, {
+                      decomp_idx: task.decomp_idx!,
+                      step_n: activeStepN,
+                      problem_id: task.problem_id,
+                    })
+                  }
+                  onRetry={stepFlow.reset}
+                />
+              )
+            )}
           </div>
         )
       )}

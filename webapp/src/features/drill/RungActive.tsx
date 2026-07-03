@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { MathText } from '../../components/MathText'
 import { ApButton } from '../../components/ApButton'
@@ -7,6 +7,7 @@ import { HintBanner } from './HintBanner'
 import type { Rung } from '../../lib/ladder'
 import { STEP3_OPTIONS } from './mock'
 import { skillLabel } from './microSkillLabel'
+import { track } from '../../lib/telemetry'
 
 interface RungActiveProps {
   rung: Rung
@@ -18,6 +19,8 @@ interface RungActiveProps {
   showReveal: boolean
   /** Климб-даун только что вставил эту ступень (другой тон баннера). */
   justInserted: boolean
+  /** Режим «По тетради»: ввод замещён панелью сдачи фото ниже (только original-ступени). */
+  photoMode?: boolean
   /** Сабмит ответа — драйвит ladder.submit. */
   onSubmit: (value: string) => void
 }
@@ -31,12 +34,25 @@ export function RungActive({
   hint,
   showReveal,
   justInserted,
+  photoMode = false,
   onSubmit,
 }: RungActiveProps) {
   const [value, setValue] = useState('')
   const isChoose = rung.kind === 'original' && rung.expected_value === 'новая'
   const label = skillLabel(rung.microSkill)
   const stepWord = rung.kind === 'easier' ? 'Разминка' : `Шаг ${index}`
+
+  // Сократическая подсказка (не easier-баннер разогрева) — телеметрия hint_shown
+  // на переход false→true, не на каждый рендер. В photoMode эту подсказку НЕ
+  // показываем: mismatch/unsure уже приносят свою (специфичную для фото) HintBanner
+  // в StepSubmitPanel — два одинаково озаглавленных баннера подряд читались бы
+  // как дублирование, а не как две независимые подсказки.
+  const isSocraticHint = hint && !(rung.kind === 'easier' && justInserted) && !photoMode
+  const prevSocraticHintRef = useRef(false)
+  useEffect(() => {
+    if (isSocraticHint && !prevSocraticHintRef.current) void track('hint_shown')
+    prevSocraticHintRef.current = isSocraticHint
+  }, [isSocraticHint])
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -69,46 +85,47 @@ export function RungActive({
         <MathText text={rung.instruction} />
       </p>
 
-      {/* Ввод: число или варианты */}
-      {isChoose ? (
-        <div className="grid grid-cols-2 gap-3">
-          {STEP3_OPTIONS.map((opt) => (
-            <ApButton
-              key={opt}
-              variant="secondary"
-              size="m"
-              onClick={() => handleChoose(opt)}
-              className="capitalize"
-            >
-              {opt} цена
+      {/* Ввод: число или варианты. photoMode — ввод замещён панелью сдачи фото
+          ниже (StepSubmitPanel); инструкция шага выше остаётся видимой. */}
+      {!photoMode && (
+        isChoose ? (
+          <div className="grid grid-cols-2 gap-3">
+            {STEP3_OPTIONS.map((opt) => (
+              <ApButton
+                key={opt}
+                variant="secondary"
+                size="m"
+                onClick={() => handleChoose(opt)}
+                className="capitalize"
+              >
+                {opt} цена
+              </ApButton>
+            ))}
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
+            <input
+              inputMode="decimal"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="Твой ответ"
+              aria-label="Введите ответ"
+              autoComplete="off"
+              className="font-num min-w-0 flex-1 rounded-control border border-stroke bg-surface px-4 text-body tabular-nums text-text placeholder:text-muted outline-none focus:border-[1.5px] focus:border-brand"
+              style={{ fontSize: '16px' }}
+            />
+            <ApButton type="submit" variant="primary" size="m" disabled={!value.trim()}>
+              Проверить
             </ApButton>
-          ))}
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
-          <input
-            inputMode="decimal"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="Твой ответ"
-            aria-label="Введите ответ"
-            autoComplete="off"
-            className="font-num min-w-0 flex-1 rounded-control border border-stroke bg-surface px-4 text-body tabular-nums text-text placeholder:text-muted outline-none focus:border-[1.5px] focus:border-brand"
-            style={{ fontSize: '16px' }}
-          />
-          <ApButton type="submit" variant="primary" size="m" disabled={!value.trim()}>
-            Проверить
-          </ApButton>
-        </form>
+          </form>
+        )
       )}
 
       {/* Подсказка (наводящий вопрос, не ответ) */}
       {hint && rung.kind === 'easier' && justInserted && (
         <HintBanner text="Маленький разогрев перед основным шагом — у тебя получится!" variant="easier" />
       )}
-      {hint && !(rung.kind === 'easier' && justInserted) && (
-        <HintBanner text={socraticHint(rung)} variant="hint" />
-      )}
+      {isSocraticHint && <HintBanner text={socraticHint(rung)} variant="hint" />}
 
       {/* Reveal — разобранный шаг как последняя опора (НЕ финальный ответ задачи) */}
       {showReveal && rung.reveal && (

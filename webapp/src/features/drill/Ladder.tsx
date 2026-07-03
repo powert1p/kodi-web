@@ -8,6 +8,8 @@ interface LadderProps {
   showReveal: boolean
   /** Ключ ступени, вставленной последней (для тона баннера climb-down). */
   insertedKey: string | null
+  /** Режим «По тетради» — прокидывается только в активную RungActive. */
+  photoMode?: boolean
   onSubmit: (value: string) => void
 }
 
@@ -20,6 +22,7 @@ export function Ladder({
   hint,
   showReveal,
   insertedKey,
+  photoMode,
   onSubmit,
 }: LadderProps) {
   // Стабильный 1-based номер по ОРИГИНАЛЬНЫМ шагам (easier не нумеруем).
@@ -73,6 +76,7 @@ export function Ladder({
                   hint={hint}
                   showReveal={showReveal}
                   justInserted={rung.key === insertedKey}
+                  photoMode={photoMode}
                   onSubmit={onSubmit}
                 />
               )}
