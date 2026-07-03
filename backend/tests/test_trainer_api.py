@@ -365,6 +365,12 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
     await _seed_student_api(db_session, STUDENT_ID)
     await _seed_node_api(db_session, NODE, "Диагностика-тест")
 
+    # /diagnose гейтится согласием родителя (Блок 1.0) — для этих тестов согласие уже дано
+    await db_session.execute(
+        text("UPDATE students SET photo_consent = true WHERE id = :sid"),
+        {"sid": STUDENT_ID},
+    )
+
     pid = await _seed_problem_api(db_session, NODE, "Найди x: 2x = 8", "4")
 
     # Каталог micro_skills — нужен для label_ru в ответе /diagnose (DESIGN_SYSTEM §2.2)

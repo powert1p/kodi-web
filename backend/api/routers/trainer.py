@@ -276,6 +276,31 @@ async def get_problem_topics(request: Request) -> ProblemTopicsResponse:
     ])
 
 
+# ── Согласие родителя на использование фото (Блок 1.0) ───────────────────────
+
+class ConsentIn(BaseModel):
+    photo_consent: bool
+
+
+@router.post("/consent")
+async def post_consent(request: Request, payload: ConsentIn) -> dict:
+    """Проставляет согласие родителя на использование фото + timestamp."""
+    session, student = await _get_current_student(request)
+    try:
+        await session.execute(
+            text(
+                "UPDATE students SET photo_consent = :c, "
+                "photo_consent_at = CASE WHEN :c THEN NOW() ELSE photo_consent_at END "
+                "WHERE id = :sid"
+            ),
+            {"c": payload.photo_consent, "sid": student.id},
+        )
+        await session.commit()
+    finally:
+        await session.close()
+    return {"photo_consent": payload.photo_consent}
+
+
 # ── Pydantic-схема ответа /diagnose ──────────────────────────────────────────
 
 class DiagnosisOut(BaseModel):
@@ -321,6 +346,14 @@ async def post_diagnose(
     """
     session, student = await _get_current_student(request)
     try:
+        # Сбор фото гейтится согласием родителя (Блок 1.0). Проверяем ДО любой работы.
+        if student.photo_consent is not True:
+            raise HTTPException(
+                status_code=403,
+                detail={"code": "consent_required",
+                        "message": "Нужно согласие родителя на использование фото."},
+            )
+
         # ── 1. Загружаем задачу (404 если нет) ───────────────────────────────
         prob_row = await session.execute(
             text("SELECT id, node_id, text_ru, answer FROM problems WHERE id = :pid"),

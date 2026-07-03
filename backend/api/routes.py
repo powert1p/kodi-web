@@ -78,6 +78,7 @@ class PhoneRegisterBody(BaseModel):
     phone: str
     name: str
     pin: str
+    photo_consent: bool = False
 
 class PhoneLoginBody(BaseModel):
     phone: str
@@ -241,6 +242,8 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
             pin_hash=_hash_pin(body.pin),
             registered=True,
             lang="ru",
+            photo_consent=body.photo_consent,
+            photo_consent_at=(datetime.now(timezone.utc) if body.photo_consent else None),
         )
         session.add(student)
         await session.commit()
@@ -285,6 +288,7 @@ async def auth_me(request: Request):
             "registered": student.registered,
             "diagnostic_complete": student.diagnostic_complete,
             "has_paused_diagnostic": has_paused,
+            "photo_consent": student.photo_consent,
         }
     finally:
         await session.close()
