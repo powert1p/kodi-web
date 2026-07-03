@@ -7,6 +7,9 @@
 
 from __future__ import annotations
 
+import csv
+import io
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -14,6 +17,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Form, HTTPException, Query, Request, UploadFile
 from fastapi import File as FastApiFile
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy import text
 
@@ -924,3 +928,65 @@ async def post_srez_answer(request: Request, payload: SrezAnswerIn) -> SrezAnswe
     finally:
         await session.close()
     return SrezAnswerOut(is_correct=is_correct)
+
+
+# ── Телеметрия UX: batch-приём событий + owner-only CSV-экспорт (Блок 1.0) ────
+
+class EventIn(BaseModel):
+    event_type: str
+    payload: dict | None = None
+
+
+class EventsBatchIn(BaseModel):
+    events: list[EventIn]
+
+
+class EventsBatchOut(BaseModel):
+    inserted: int
+
+
+@router.post("/events", response_model=EventsBatchOut)
+@limiter.limit("60/minute")
+async def post_events(request: Request, payload: EventsBatchIn) -> EventsBatchOut:
+    """Пишет batch событий телеметрии (≤20). Неизвестные event_type НЕ отклоняем."""
+    session, student = await _get_current_student(request)
+    try:
+        events = payload.events[:20]  # cap 20 за запрос
+        for ev in events:
+            await session.execute(
+                text(
+                    "INSERT INTO events (student_id, event_type, payload, created_at) "
+                    "VALUES (:sid, :et, CAST(:pl AS JSONB), NOW())"
+                ),
+                {"sid": student.id, "et": ev.event_type,
+                 "pl": json.dumps(ev.payload) if ev.payload is not None else None},
+            )
+        await session.commit()
+    finally:
+        await session.close()
+    return EventsBatchOut(inserted=len(events))
+
+
+@router.get("/events/export")
+async def get_events_export(request: Request, format: str = Query("csv")) -> Response:
+    """CSV-выгрузка всех событий. Только владелец (settings.owner_student_id), иначе 403."""
+    session, student = await _get_current_student(request)
+    try:
+        is_owner = settings.owner_student_id != 0 and student.id == settings.owner_student_id
+        if not is_owner:
+            raise HTTPException(status_code=403, detail="Только для владельца")
+        rows = (await session.execute(
+            text("SELECT id, student_id, event_type, payload, created_at "
+                 "FROM events ORDER BY created_at")
+        )).fetchall()
+    finally:
+        await session.close()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["id", "student_id", "event_type", "payload", "created_at"])
+    for r in rows:
+        payload = r.payload if isinstance(r.payload, str) else json.dumps(r.payload) if r.payload else ""
+        writer.writerow([r.id, r.student_id, r.event_type, payload, r.created_at])
+    return Response(content=buf.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=events.csv"})
