@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { startVerification, answerVerification } from '../../lib/api'
 import { track } from '../../lib/telemetry'
@@ -27,6 +27,8 @@ export function useClosure(
   const [problem, setProblem] = useState<VerificationProblemDTO | null>(null)
   const [attempts, setAttempts] = useState(0)
   const queryClient = useQueryClient()
+  // Guard от двойного клика: запрос уже в полёте — повторный check игнорируем.
+  const checkInFlight = useRef(false)
 
   useEffect(() => {
     // Холодный кэш wrong-tasks: problem_id ещё 0 (useWrongTask не отдал данные) —
@@ -50,6 +52,9 @@ export function useClosure(
   const check = useCallback(
     (value: string) => {
       if (!problem) return
+      // Двойной клик по проверке — игнорируем повторный вызов, пока первый в полёте.
+      if (checkInFlight.current) return
+      checkInFlight.current = true
       answerVerification(problem.problem_id, value, microSkill)
         .then((res) => {
           if (res.correct) {
@@ -66,6 +71,9 @@ export function useClosure(
           setStatus('wrong')
         })
         .catch(() => setStatus('error'))
+        .finally(() => {
+          checkInFlight.current = false
+        })
     },
     [problem, microSkill, onClosed, queryClient],
   )

@@ -35,7 +35,6 @@ from core.trainer import (
     match_fingerprint,
     pick_easier_decomp,
     pick_verification_problem,
-    resolve_decomp,
 )
 from core.tutor import generate_tutor_reply
 
@@ -343,7 +342,7 @@ async def post_diagnose(
       2. Читаем байты фото; size-guard ≤8 МБ (413).
       3. Определяем wrong_answer: из попытки attempt_id или из последней неверной попытки.
       4. match_fingerprint → fingerprint_hint.
-      5. resolve_decomp → canonical_steps; correct_answer из задачи.
+      5. build_agent_context → canonical_steps; correct_answer из задачи.
       6. diagnose_photo (LlmUnavailable → 503).
       7. Сохраняем файл: settings.photo_dir/{student_id}/{uuid}.jpg.
       8. INSERT INTO error_captures.

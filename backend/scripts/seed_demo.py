@@ -92,8 +92,9 @@ async def seed() -> None:
                 ),
                 {"sid": student_id},
             )
-            if (cnt.scalar() or 0) >= DEMO_COUNT:
-                log.info("Попытки уже есть — пропускаем вставку (%d записей)", cnt.scalar())
+            existing_count = cnt.scalar() or 0
+            if existing_count >= DEMO_COUNT:
+                log.info("Попытки уже есть — пропускаем вставку (%d записей)", existing_count)
                 return
 
             # Берём decomposition с реальным problems_db_id + fingerprint (wrong_answer):
