@@ -32,6 +32,11 @@ pgdata/
 # Данные учеников (не в git)
 backend/data/error_photos/
 
+# Eval-стенд почерка (Блок 1.1): персональные фото + разметка + прогоны, не коммитим
+backend/data/eval/photos/
+backend/data/eval/labels.csv
+backend/data/eval/results*.csv
+
 # Бэкапы data-миграций (создаются скриптами fix_*.py, не коммитятся)
 backend/data/*.bak-*
 backend/data/backup_*.csv
