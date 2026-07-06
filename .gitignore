@@ -43,3 +43,11 @@ backend/data/backup_*.csv
 
 # Playwright MCP runtime
 .playwright-mcp/
+
+# Локальные артефакты агентов/тулов (не код)
+.claude/agent-memory/
+.playwright-cli/
+webapp/.design-notes/
+cabinet/dist/
+cabinet/node_modules/
+cabinet/engine/test-kit/node_modules/
