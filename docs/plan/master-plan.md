@@ -21,7 +21,7 @@
 - [x] Телеметрия: таблица events + `POST /api/trainer/events` (batch) + owner-only CSV `GET /api/trainer/events/export` (экран-выгрузку заменил CSV-эндпоинт — потребитель один). `OWNER_STUDENT_ID` на проде выставлен.
 
 ### Блок 1.1 — Eval-набор почерка (данные, 1 заход + ручной сбор)
-- [ ] Скрипт-стенд: загрузить фото → прогнать через текущий diagnose-пайплайн → сравнить с ручной разметкой → метрики (accuracy, false-reject отдельно!).
+- [x] Скрипт-стенд (2026-07-05): `backend/scripts/eval_stand.py` — фото+labels.csv → classify_step_photo → accuracy/false-reject/confusion; синтетический smoke 7/7. Инструкция сбора — `backend/data/eval/README.md`.
 - [ ] Владелец собирает 30-50 фото реальных тетрадей (кириллица, клетка, разные дети) с известными решениями. Разметка: какой шаг верен/неверен.
 - [ ] Прогнать Gemini (текущий) vs Mathpix vs Qwen-VL на наборе → зафиксировать выбор провайдера числами в спеке.
 
