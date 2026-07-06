@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -83,15 +84,38 @@ async def health_check():
 if PROBLEM_IMAGES_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(PROBLEM_IMAGES_DIR)), name="problem_images")
 
+
+class SPAStaticFiles(StaticFiles):
+    """StaticFiles с SPA-фоллбэком для клиентских роутов React PWA.
+
+    StaticFiles(html=True) сам по себе отдаёт index.html ТОЛЬКО для точных
+    directory-путей (например, корня /app/) — для произвольных клиентских
+    роутов вида /app/srez или /app/drill/5 Starlette не находит файла/каталога
+    и кидает честный 404. Из-за этого прямой переход по ссылке или refresh
+    (F5) внутри PWA ломался ({"detail":"Not Found"} вместо страницы).
+    Здесь на 404 для путей БЕЗ расширения (значит — не запрос ассета, а
+    клиентский роут) отдаём index.html, дальше маршрутизацией занимается
+    React Router на клиенте. Запросы к реальным файлам с расширением
+    (.js/.css/.png/...), которых нет на диске, остаются честным 404 — иначе
+    отсутствующий ассет молча подменялся бы HTML-страницей.
+    """
+
+    async def get_response(self, path, scope):
+        try:
+            return await super().get_response(path, scope)
+        except StarletteHTTPException as exc:
+            if exc.status_code == 404 and not os.path.splitext(path)[1]:
+                return await super().get_response("index.html", scope)
+            raise
+
+
 # ── PWA «Работа над ошибками» — смонтирована на /app/ ───────────────────────
-# StaticFiles(html=True) отдаёт index.html для любого /app/*, не найденного
-# среди файлов — SPA-фоллбэк работает «из коробки».
 # Порядок важен: /api и /health уже зарегистрированы через include_router
-# и @app.get ВЫШЕ — Starlette обходит смонтированный субприложение только
+# и @app.get ВЫШЕ — Starlette обходит смонтированное субприложение только
 # если маршрут не совпал с зарегистрированными эндпоинтами.
 if WEBAPP_DIST_DIR.exists():
     logger.info("Serving PWA from %s at /app", WEBAPP_DIST_DIR)
-    app.mount("/app", StaticFiles(directory=str(WEBAPP_DIST_DIR), html=True), name="pwa")
+    app.mount("/app", SPAStaticFiles(directory=str(WEBAPP_DIST_DIR), html=True), name="pwa")
 else:
     logger.info("No webapp_dist/ directory — /app not mounted")
 
