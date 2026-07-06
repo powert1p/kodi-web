@@ -27,3 +27,10 @@ workbox-*.js
 *.njsproj
 *.sln
 *.sw?
+
+# Локальные артефакты агентов/тулов (не код)
+.claude/agent-memory/
+.playwright-cli/
+webapp/.design-notes/
+cabinet/dist/
+cabinet/node_modules/
