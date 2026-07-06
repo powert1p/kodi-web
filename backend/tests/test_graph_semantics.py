@@ -1,4 +1,8 @@
-"""Семантический тест-гейт графа знаний v02 (docs/specs/2026-07-03-graph-v02-verdict.md).
+"""Семантический тест-гейт графа знаний v02+v03.
+
+v02: docs/specs/2026-07-03-graph-v02-verdict.md.
+v03: docs/specs/2026-07-06-graph-topic-audit-verdict.md (6 дропов + 3 добавления
+рёбер, 3 переименования тем, 5 переносов задач).
 
 Чистые проверки JSON-источников, БЕЗ БД (не требует TEST_DATABASE_URL, не скипается).
 Инварианты после чистки: ацикличность DAG, отсутствие dangling-ссылок, metadata
@@ -65,11 +69,11 @@ def test_no_dangling_prereqs():
 
 
 def test_metadata_counts_match_actual():
-    """metadata.total_nodes/total_edges графа == фактическим числам после v02."""
+    """metadata.total_nodes/total_edges графа == фактическим числам после v03 (178 = 181-6+3)."""
     g = _graph()
     assert g["metadata"]["total_nodes"] == len(g["nodes"]) == 114
     actual_edges = sum(len(n["prerequisites"]) for n in g["nodes"])
-    assert g["metadata"]["total_edges"] == actual_edges
+    assert g["metadata"]["total_edges"] == actual_edges == 178
 
 
 def test_every_node_has_topic():
@@ -121,3 +125,77 @@ def test_no_duplicate_node_names():
     names = [n["name_ru"] for n in g["nodes"]]
     dups = {name for name in names if names.count(name) > 1}
     assert not dups, f"дублирующиеся name_ru: {dups}"
+
+
+# ── v03: docs/specs/2026-07-06-graph-topic-audit-verdict.md ──────────────────
+
+_V03_DROP_EDGES = [
+    ("AR09", "CV04"), ("AR09", "CV05"), ("GE01", "GE12"),
+    ("EQ02", "WP03"), ("DV02", "LG04"), ("AL01", "EQ02"),
+]
+_V03_ADD_EDGES = [
+    ("AL02", "EQ02"), ("DC01", "AR07"), ("AR10", "LG04"),
+]
+_V03_EXPECTED_PREREQS = {
+    "AR07": {"AR06", "DC01"},
+    "LG04": {"AR06", "AR10"},
+    "GE12": {"CB01"},
+    "CV04": {"GE02"},
+    "CV05": {"CV04"},
+    "WP03": {"WP02"},
+    "EQ02": {"EQ01", "AL02"},
+}
+
+
+def test_v03_edge_patch_applied():
+    """6 дропнутых рёбер отсутствуют, 3 добавленных — присутствуют; входы
+    7 затронутых узлов точно совпадают с ожиданием вердикта v03."""
+    g = _graph()
+    by_id = {n["id"]: n for n in g["nodes"]}
+
+    for prereq, node in _V03_DROP_EDGES:
+        assert prereq not in by_id[node]["prerequisites"], (
+            f"дропнутое ребро {prereq}→{node} всё ещё в графе"
+        )
+
+    for prereq, node in _V03_ADD_EDGES:
+        assert prereq in by_id[node]["prerequisites"], (
+            f"добавленное ребро {prereq}→{node} отсутствует"
+        )
+
+    for node_id, expected in _V03_EXPECTED_PREREQS.items():
+        actual = set(by_id[node_id]["prerequisites"])
+        assert actual == expected, f"узел {node_id}: входы {actual}, ожидалось {expected}"
+
+
+def test_v03_topic_renames_applied():
+    """3 темы переименованы (name_ru) по вердикту v03."""
+    t = _topics()
+    by_id = {x["id"]: x for x in t["topics"]}
+    expected_names = {
+        "4.NF.B": "Смешанные числа и неправильные дроби",
+        "NIS.ALG": "Продвинутая алгебра (системы, модуль, неравенства)",
+        "4.MD.A": "Площадь прямоугольника и квадрата",
+    }
+    for topic_id, expected_name in expected_names.items():
+        assert by_id[topic_id]["name_ru"] == expected_name, (
+            f"тема {topic_id}: name_ru={by_id[topic_id]['name_ru']!r}, ожидалось {expected_name!r}"
+        )
+
+
+def test_v03_problem_transfers_applied():
+    """5 задач перенесены на новые узлы (текст-гарды из вердикта v03)."""
+    problems = _problems()
+    expected = [
+        ("У Пети и Васи вместе 14 яблок", "EQ07"),
+        ("У Тани 3 яблока, у Саши на 2 больше", "AR01"),
+        ("5 друзей пожали руки каждый с каждым", "CB01"),
+        ("Айдар и Болат покрасили забор", "WP05"),
+        ("Сколько мод есть в ряде чисел", "DA03"),
+    ]
+    for guard, expected_node in expected:
+        matches = [p for p in problems if guard in p["text_ru"]]
+        assert len(matches) == 1, f"гард {guard!r}: найдено {len(matches)}, ожидалась 1"
+        assert matches[0]["node_id"] == expected_node, (
+            f"гард {guard!r}: node_id={matches[0]['node_id']!r}, ожидался {expected_node!r}"
+        )

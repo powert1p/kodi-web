@@ -3,7 +3,7 @@
     "title": "НИШ Math Knowledge Graph v0.1",
     "description": "Flat DAG for NIS 7th grade math entrance exam preparation. Covers grades 3-6 prerequisite skills decomposed from 40 exam questions across 29 test variants.",
     "total_nodes": 114,
-    "total_edges": 181,
+    "total_edges": 178,
     "format": "Each node has prerequisite edges (list of node IDs that must be mastered before this node). Tags are for human filtering only - the algorithm traverses edges regardless of tags.",
     "difficulty_scale": "1=grade 3 basics, 2=grade 4, 3=grade 5, 4=grade 6, 5=olympiad/NIS-specific",
     "mastery_threshold": "BKT P(mastery) >= 0.95 with consistent performance across varied problems"
@@ -100,7 +100,8 @@
       "name_ru": "Округление чисел",
       "name_kz": "Сандарды дөңгелектеу",
       "prerequisites": [
-        "AR06"
+        "AR06",
+        "DC01"
       ],
       "tag": "arithmetic",
       "exam_questions": [
@@ -739,7 +740,7 @@
       "name_kz": "Сызықтық теңдеулер",
       "prerequisites": [
         "EQ01",
-        "AL01"
+        "AL02"
       ],
       "tag": "equations",
       "exam_questions": [
@@ -1163,7 +1164,6 @@
       "name_ru": "Количество фигур на чертеже",
       "name_kz": "Суреттегі фигуралар саны",
       "prerequisites": [
-        "GE01",
         "CB01"
       ],
       "tag": "geometry",
@@ -1223,8 +1223,7 @@
       "name_ru": "Конвертация единиц площади",
       "name_kz": "Аудан бірліктерін ауыстыру",
       "prerequisites": [
-        "GE02",
-        "AR09"
+        "GE02"
       ],
       "tag": "conversion",
       "exam_questions": [
@@ -1238,8 +1237,7 @@
       "name_ru": "Конвертация единиц объёма",
       "name_kz": "Көлем бірліктерін ауыстыру",
       "prerequisites": [
-        "CV04",
-        "AR09"
+        "CV04"
       ],
       "tag": "conversion",
       "exam_questions": [
@@ -1299,8 +1297,7 @@
       "name_ru": "Движение по воде (по/против течения)",
       "name_kz": "Судағы қозғалыс",
       "prerequisites": [
-        "WP02",
-        "EQ02"
+        "WP02"
       ],
       "tag": "word_problems",
       "exam_questions": [
@@ -1563,7 +1560,7 @@
       "name_kz": "Сандық ребустар (әріпті)",
       "prerequisites": [
         "AR06",
-        "DV02"
+        "AR10"
       ],
       "tag": "logic",
       "exam_questions": [
