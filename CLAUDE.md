@@ -14,7 +14,7 @@
 ## Стек (НЕ путать с CDP)
 - Backend: Python 3.11 + FastAPI + **SQLAlchemy 2.0 async + asyncpg** (НЕ psycopg3, НЕ sync). Драйвер — `backend/db/base.py`.
 - Frontend: **Flutter Web + BLoC** (НЕ React), Material 3, LaTeX через flutter_math_fork.
-- 8 таблиц, 118 узлов графа, 2525 задач. Backend ~11.4k LOC, frontend ~8.6k LOC.
+- 20 таблиц, 114 узлов графа (178 рёбер), 2525 задач. Backend ~11.4k LOC, frontend ~8.6k LOC.
 
 ## Пороги — НЕ ПУТАТЬ
 - **0.85** — `MASTERY_THRESHOLD` практики (`core/bkt.py`), алгоритмический.
