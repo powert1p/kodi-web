@@ -1,6 +1,6 @@
 # Текущий план — kodi-web
 
-**Обновлено:** 2026-07-03 · **Стратегия:** [docs/VISION.md](../VISION.md) · **Операционный план Opus-эпохи (иди по нему): [master-plan.md](master-plan.md)** — этап 0 закрыт, следующий = Этап 1 «Поэтапная сдача». Дизайн-канон: [webapp/DESIGN_SYSTEM.md](../../webapp/DESIGN_SYSTEM.md) (v5).
+**Обновлено:** 2026-07-10 · **Стратегия:** [docs/VISION.md](../VISION.md) · **Текущее ТЗ MVP: [docs/specs/2026-07-10-mvp-nish-path.md](../specs/2026-07-10-mvp-nish-path.md)** — Заход 1 закрыт, следующий = Заход 2 «Мой путь» (13 КТП-блоков + практика узла с mastery-гейтом). Дизайн-канон: [webapp/DESIGN_SYSTEM.md](../../webapp/DESIGN_SYSTEM.md) (v5).
 
 Контекст: воскрешение проекта из learning-эпохи. Полный разбор — [AUDIT-REPORT.md](../../AUDIT-REPORT.md), спека — [docs/specs/2026-06-22-kodi-web-audit-scaffold-revive.md](../specs/2026-06-22-kodi-web-audit-scaffold-revive.md).
 
@@ -61,8 +61,17 @@
 - [x] Семантический тест-гейт (test_graph_semantics.py), пересборка дев-БД, миграция прода (пост-ассерты OK), live-проверка, merge → main.
 - [ ] Бэклог графа: слить CB02≈CB04 (дубль «размещения без повторений»); cleanup 7 тем-сирот в прод-БД (нужно одобрение DELETE); косяки задач: FR05 (сравнение дробей требует десятичных), DA02 (пример с ускорением — физика), EQ06-пример дублирует EQ07.
 
+### 2026-07-10 MVP Заход 1 «поэтапная подготовка НИШ» — DONE (ТЗ `docs/specs/2026-07-10-mvp-nish-path.md`)
+- [x] Онбординг: has_activity в /wrong-tasks разводит новичка («Привет! Я Кёди» + CTA срез) и ветерана («Всё разобрано»).
+- [x] Класс при регистрации (grade 4-7, обязательный шаг UI) + срез v2: окно difficulty по классу (7→[3,5]) + 2 стретча; live «иду в 7» = 12/12 задач ≥3, 0 примитива.
+- [x] Теория «Как решать»: 114/114 карточек (Метод/Пример/Ловушка, 10 приняты владельцем контента) → nodes.theory_ru → в wrong-tasks payload → раскрывашка в drill. Доставка: seed_graph (свежая БД) + backfill_theory на старте (existing/прод) + scripts/seed_theory.py (перезаливка из cards-JSON).
+- [x] Тьютор-grounding: theory узла + step_n застревания в промпт, 6 жёстких правил; чат возвращён в drill («Спросить Кёди», step_n прокинут). Live e2e: метод+встречный вопрос, ответ под выпрашиванием не выдал.
+- [x] Один вход сдачи (нижний PhotoCapture удалён), фейковые стрик/очки удалены, фолбэк-ступень для задач без декомпозиции.
+- [x] Ревью-волна opus: READY_WITH_MINOR (step_n ge=1 починен). Деплой aiplus + live-протык. Merge ff → main (c9bdc6c).
+- Минорки из ревью в бэклог: мёртвый diagnose-путь (postDiagnose/useDiagnose + /trainer/diagnose без UI-консьюмера — возможно нужен для report-fix); срез 4 класса может дать <12 задач (by design); design-baseline drill.png устарел (нет харнесса регенерации).
+
 ### Бэклог тренажёра (после 2026-07-02)
-- [ ] Онбординг нового ученика: у свежего аккаунта тренажёр пуст («Всё разобрано») — нет источника ошибок внутри PWA. Нужен мини-срез в PWA или мост к диагностике Flutter (замечено владельцем 2026-07-02).
+- [x] ~~Онбординг нового ученика~~ — закрыто Заходом 1 (has_activity + HubOnboarding).
 - [ ] Продуктовое решение: скрывать ли закрытые ошибки из wrong-tasks (сейчас «Закрыто 0 из 2» при закрытой теме — счётчик от recurring_errors, список от attempts).
 - [ ] Подключить climb-down UI (GET /easier есть, фронт-консьюмера нет — fetchEasier без хука).
 - [ ] Мелочи: FinishedCard «46 ₽» (валютный формат на арифметике); seed_demo.py `.scalar()` дважды; dead code (resolve_decomp import F401 в роутере, analytics/mock.ts, stale docstring); in-flight guard useClosure.check.

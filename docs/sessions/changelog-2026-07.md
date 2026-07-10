@@ -90,3 +90,13 @@
 **Открытые вопросы:** wrong-tasks не скрывает закрытые ошибки («Закрыто 0 из 2» при закрытой теме) — продуктовое решение нужно; FinishedCard «46 ₽» (валютный формат на арифметике); seed_demo.py `.scalar()` дважды; dead code (resolve_decomp import F401, analytics/mock.ts, fetchEasier без консьюмера — climb-down UI не подключён); ru+kz parity; публичный vhost (root).
 **Файлы:** backend/core/{agent_context,tutor,trainer}.py, backend/api/routers/trainer.py, webapp/src/features/{hub/ProblemTopicsCard,drill/TutorPanel,closure/*}.tsx
 **Issue:** —
+
+## 2026-07-10 19:05
+**Тип:** plan (ТЗ MVP, Заход 1)
+**Зачем:** владелец протыкал прод и вынес вердикт «всё сыро»: срез примитивный, бота не спросишь, теории нет, две точки сдачи, фейковые плашки. MVP переопределён: «ребёнок начал учиться и было полезно».
+**Что сделано:** ТЗ `docs/specs/2026-07-10-mvp-nish-path.md`; Заход 1 целиком: онбординг новичка (has_activity), класс при регистрации + срез v2 по difficulty-окну класса, теория «Как решать» на 114/114 узлов (генерация батчами, 10 карточек принято лично) → nodes.theory_ru → drill, тьютор-grounding (метод узла + step_n + 6 жёстких правил), возврат чата Кёди в drill, один вход сдачи, фолбэк-ступень для задач без декомпозиции, backfill теории на старте контейнера.
+**Решение:** теорию на прод доставляем НЕ ручным скриптом, а идемпотентным backfill_theory в run.py из запечённого в образ graph-JSON (по образцу seed_topics) — ноль ручных шагов деплоя; карточки-исходники gitignored. Деплой-факап: tar-поверх не удаляет удалённые из git файлы → стейловый useDiagnoseFlow.ts валил tsc в Docker; правило «rm -rf webapp backend перед распаковкой» зафиксировано в .claude/rules/deploy.md.
+**Итог:** задеплоено и live-проверено на проде свежим аккаунтом «иду в 7»: срез 12/12 задач difficulty ≥3 (0 примитива), регистрация с обязательным классом, теория раскрывается в drill, чат e2e — метод+встречный вопрос, ответ под выпрашиванием не выдал; консоль чистая. Ревью opus: READY_WITH_MINOR (step_n ge=1 починен). Гейты: 153 pytest, 52 vitest, lint:design, build. Merge ff → main (c9bdc6c), push.
+**Открытые вопросы:** Заход 2 «Мой путь» (13 КТП-блоков + практика узла с mastery-гейтом); минорки ревью (мёртвый diagnose-путь, drill.png baseline); хвост банка: 57 steps-батчей (Codex CLI) + унифицированный фикс-скрипт (~17 ответов, ~17 broken, ~650 утечек).
+**Файлы:** docs/specs/2026-07-10-mvp-nish-path.md, backend/core/srez.py, backend/core/tutor.py, backend/db/seed.py, backend/scripts/seed_theory.py, webapp/src/features/drill/TheoryCard.tsx, webapp/src/features/auth/GradeSelect.tsx
+**Issue:** —

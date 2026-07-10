@@ -1,12 +1,12 @@
 # Data State
 
-> Обновлено: 2026-07-03 (граф v02). Качественный снимок схемы/контента. Точные счётчики — live-аудит из БД, не из этого файла.
+> Обновлено: 2026-07-10 (теория узлов). Качественный снимок схемы/контента. Точные счётчики — live-аудит из БД, не из этого файла.
 
 ## Контент (сидится из `backend/data/*.json`)
 
 | Что | Состояние |
 |---|---|
-| Граф знаний (`nis_knowledge_graph_v01.json`) | ✅ **v02 (2026-07-03): 114 узлов, 178 рёбер** — ручная чистка логики рёбер (вердикт `docs/specs/2026-07-03-graph-v02-verdict.md`), снесена дубль-ветка NM01-03/ALG01 (73 задачи перепривязаны). Гейт: `tests/test_graph_semantics.py` |
+| Граф знаний (`nis_knowledge_graph_v01.json`) | ✅ **v03 (2026-07-06): 114 узлов, 178 рёбер** — аудит тем 60 агентами (вердикт `docs/specs/2026-07-06-graph-topic-audit-verdict.md`). **+ theory_ru 114/114 (2026-07-10)** — карточки «Как решать» (Метод/Пример/Ловушка) запечены в JSON. Гейт: `tests/test_graph_semantics.py` |
 | Слой тем CC (`cc_topics_v01.json`) | ✅ **v02: 36 тем + 38 рёбер, ВСЕ непустые**, мост 114 узлов→тема. 7 перепривязок исправили ложные темы. В прод-БД остались 7 тем-сирот (скрыты фильтром, cleanup при следующем одобрении) |
 | Банк задач (`problems_v10.json`) | ✅ 2525 задач. 0 NULL в required-полях, image-пути в лимите |
 | Картинки задач RU (`static/questions/`) | ✅ 2525 (генерятся `generate_images.py --lang ru` на build-time) |
@@ -28,6 +28,7 @@
 - `seed.py` short-circuit'ит по row-count + gate по `problems_version`. Граф/задачи сидятся только при пустой `nodes`.
 - ⚠️ **`seed_topics` — ИНАЧЕ:** зовётся ВСЕГДА (вне `if nodes==0`), идемпотентно (upsert тем `ON CONFLICT DO UPDATE`, рёбра `DO NOTHING`, `UPDATE nodes.topic_id`). Так темы доезжают и на уже засеянную прод-БД при каждом деплое (проверено: лог `Seeded 43 topics, 61 topic edges` на existing-БД).
 - ⚠️ **SEED-1 (дормантный):** `_sync_problems` матчит DB↔JSON **позиционно** (`ORDER BY id` + zip). Insert/delete в середине `problems_v10.json` → хвост перезаписывается на чужие строки. Путь за guard'ом (не на обычном деплое), но **правило: `problems_v10.json` только APPEND, никогда reorder/delete** до фикса на natural key.
+- **`backfill_theory` (2026-07-10) — как seed_topics:** зовётся ВСЕГДА на старте, доливает `nodes.theory_ru` из graph-JSON **только где IS NULL** (правки поверх не перетирает). Это единственный путь теории на existing-прод-БД (`seed_graph` её не проходит). Ручная перезаливка/правки карточек — `scripts/seed_theory.py` из `.superpowers/theory/cards-*.json` (gitignored, в образ не попадают).
 
 ## Инварианты (DoD при работе с данными)
 
