@@ -7,23 +7,18 @@ import { ProblemCard } from './ProblemCard'
 import { Ladder } from './Ladder'
 import { StepModeToggle } from './StepModeToggle'
 import { StepSubmitPanel } from './StepSubmitPanel'
-import { PhotoCapture } from './PhotoCapture'
-import { DiagnosingState } from './DiagnosingState'
-import { DiagnosisCard } from './DiagnosisCard'
-import { DiagnosisError } from './DiagnosisError'
 import { ConsentCard } from '../hub/ConsentCard'
-import { TutorPanel } from './TutorPanel'
 import { FinishedCard } from './FinishedCard'
 import { useDrill } from './useDrill'
-import { useDiagnoseFlow } from './useDiagnoseFlow'
 import { useStepSubmitFlow } from './useStepSubmitFlow'
 import { levelFromTask } from './levelConfig'
 import { useWrongTask } from '../../lib/api'
 
-// Drill (headline-экран): разбор ОДНОЙ ошибки по шагам + фото→диагноз.
+// Drill (headline-экран): разбор ОДНОЙ ошибки по шагам лесенки.
 // taskId берётся из /drill/:taskId, задача находится через useWrongTask(id)
 // (переиспользует кэш Hub — не делает дополнительный запрос).
-// Лесенка драйвится createLadder() через useDrill; фото-путь — через useDiagnoseFlow.
+// Лесенка драйвится createLadder() через useDrill. Единственный вход сдачи —
+// активная ступень: текстовый ввод («Ввод») или фото шага («По тетради»).
 export function DrillPage() {
   // Читаем taskId из маршрута /drill/:taskId
   const { taskId } = useParams<{ taskId: string }>()
@@ -71,9 +66,9 @@ function DrillContent({ task }: { task: WrongTask }) {
   const level = levelFromTask(task)
 
   // Если шагов нет (задача не декомпозирована) — передаём пустой массив;
-  // лесенка не рендерится, но фото→диагноз всё равно доступен.
+  // лесенка не рендерится. Сдача идёт только через активную ступень лесенки
+  // (один вход — §1c ТЗ): у не-декомпозированной задачи хода в drill пока нет.
   const drill = useDrill(task.steps, MOCK_EASIER_RUNG)
-  const flow = useDiagnoseFlow()
 
   // Режим сдачи активной ступени: «Ввод» (дефолт) / «По тетради» (фото шага).
   // Фото-режим применим только к original-ступеням — на easier (климб-даун)
@@ -140,23 +135,6 @@ function DrillContent({ task }: { task: WrongTask }) {
       if (!finishedRef.current) void track('drill_left', { task_id: task.id })
     }
   }, [task.id])
-
-  // Подпись шага по номеру (для диагноза «нашёл на шаге N»). Только человеческий label — не код (§2.2).
-  const stepLabel = (n: number): string | null => {
-    const step = task.steps.find((s) => s.n === n)
-    if (!step?.micro_skill_label) return `шаг ${n}`
-    return `шаг ${n} — ${step.micro_skill_label.toLowerCase()}`
-  }
-
-  // Опора для 503-fallback — reveal активного шага (не финальный ответ задачи).
-  const fallbackHint = drill.activeRung?.reveal ?? null
-
-  // В режиме «По тетради» фото-путь целой задачи прячется целиком (не только
-  // когда сама панель шага активна) — иначе на easier-ступени (photoMode=false,
-  // но mode==='tetrad') рядом с текстовым вводом разминки всплывал бы отдельный
-  // «Сфотографировать решение», хотя пользователь явно выбрал режим фото-шага.
-  // Один primary-CTA на экран — держим по режиму, не по конкретной ступени.
-  const showPhotoPath = !drill.finished && mode === 'input'
 
   // Есть ли ступени для лесенки
   const hasSteps = task.steps.length > 0
@@ -231,47 +209,6 @@ function DrillContent({ task }: { task: WrongTask }) {
             )}
           </div>
         )
-      )}
-
-      {/* Фото-путь (headline) — пока лесенка не пройдена */}
-      {showPhotoPath && (
-        <section className="flex flex-col gap-3 pt-1">
-          {flow.status === 'idle' && (
-            <PhotoCapture
-              onPhoto={(file) => void flow.start(file, task.problem_id)}
-            />
-          )}
-
-          {(flow.status === 'uploading' || flow.status === 'diagnosing') && (
-            <DiagnosingState />
-          )}
-
-          {flow.status === 'result' && flow.diagnosis && (
-            <>
-              <DiagnosisCard
-                diagnosis={flow.diagnosis}
-                stepLabel={stepLabel}
-                onCorrect={flow.reset}
-              />
-              <TutorPanel problemId={task.problem_id} decompIdx={task.decomp_idx} />
-            </>
-          )}
-
-          {flow.status === 'error' && flow.needsConsent && (
-            // 403 — сервер требует согласие родителя: своя карточка вместо generic-ошибки.
-            // «Разрешаю» отправляет согласие и сразу возвращает к PhotoCapture (повторить фото);
-            // «Позже» — тоже возврат к PhotoCapture (без фото продолжаем по лесенке).
-            <ConsentCard onGranted={flow.reset} onDismiss={flow.reset} />
-          )}
-
-          {flow.status === 'error' && !flow.needsConsent && (
-            <DiagnosisError
-              fallbackHint={fallbackHint}
-              onRetry={flow.reset}
-              onDismiss={flow.reset}
-            />
-          )}
-        </section>
       )}
     </div>
   )

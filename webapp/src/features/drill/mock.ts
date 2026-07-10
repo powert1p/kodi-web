@@ -2,7 +2,7 @@
 // многошаговой лесенкой (проценты), ступень «попроще» для climb-down и
 // мок-диагноз по фото. Заменяется реальным API/vision позже.
 
-import type { WrongTask, Diagnosis, StepVerdict } from '../../lib/types'
+import type { WrongTask, StepVerdict } from '../../lib/types'
 import type { EasierRung } from '../../lib/ladder'
 
 // Задача: «Цена 1200 ₽ выросла на 15%, затем снизилась на 10%».
@@ -70,21 +70,6 @@ export const MOCK_EASIER_RUNG: EasierRung = {
   instruction: 'Разогреемся: сколько будет $10\\%$ от $200$?',
   microSkill: 'Процент от числа · попроще',
   expected: '20',
-}
-
-// Мок-диагноз: vision «прочитал» фото и нашёл, где сломалось решение.
-// failed_step указывает на шаг базы процента (считал −10% от старой цены).
-export const MOCK_DIAGNOSIS: Diagnosis = {
-  transcription:
-    '1200 + 15% = 1380. Потом 1380 − 10% = 1242... но записал 1200 − 120 = 1080, затем 1080 + 180 = 1230.',
-  failed_step: 3,
-  cause_text:
-    'Смотри: снижение на 10% ты посчитал от старой цены 1200, а не от новой 1380. После подорожания «база» меняется — от какой цены теперь считаем процент?',
-  level: 3,
-  micro_skill: 'База процента',
-  micro_skill_label: 'База процента',
-  confidence: 0.82,
-  image_ref: 'mock://solution-photo',
 }
 
 // Мок-вердикт поэтапной сдачи (Блок 1.2): демонстрирует happy-path без бэка.

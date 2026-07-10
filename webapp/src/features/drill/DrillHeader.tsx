@@ -21,7 +21,7 @@ export function DrillHeader({ topic, current, total }: DrillHeaderProps) {
           type="button"
           onClick={() => navigate('/')}
           aria-label="Назад к срезу"
-          className="flex size-11 shrink-0 items-center justify-center rounded-control text-text transition-colors hover:bg-surface"
+          className="flex size-12 shrink-0 items-center justify-center rounded-control text-text transition-colors hover:bg-surface"
         >
           <LeftIcon size={22} />
         </button>

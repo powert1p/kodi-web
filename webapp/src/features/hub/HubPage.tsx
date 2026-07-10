@@ -1,7 +1,6 @@
 import { useEffect, useRef, type CSSProperties } from 'react'
 import { useWrongTasks } from './useWrongTasks'
 import { track } from '../../lib/telemetry'
-import { StatusRow } from './StatusRow'
 import { HubHero } from './HubHero'
 import { ProblemTopicsCard } from './ProblemTopicsCard'
 import { TaskCard } from './TaskCard'
@@ -12,14 +11,10 @@ import { ConsentCard, isConsentDismissed } from './ConsentCard'
 import { useMe } from '../auth/useMe'
 import { STATE_PRIORITY } from './stateConfig'
 
-// Hub — «срез» ошибок. Главный экран: статус-строка геймификации (streak + XP),
-// hero с ЕДИНСТВЕННЫМ primary-CTA «Разобрать первую», затем плоские плитки-ошибки,
-// отсортированные по приоритету разбора (сами тапаются, без кнопки-дубля).
-//
-// Геймификация: streak/points — заглушка до соответствующего эндпоинта
-// (на сегодня показываем демо-значения; форму подключим позже).
-const STREAK = 5
-const POINTS = 1280
+// Hub — «срез» ошибок. Главный экран: hero с ЕДИНСТВЕННЫМ primary-CTA
+// «Разобрать первую», затем плоские плитки-ошибки, отсортированные по
+// приоритету разбора (сами тапаются, без кнопки-дубля). Стрик/очки не
+// показываем — реального источника в API пока нет (§1f ТЗ: реальные или ничего).
 
 export function HubPage() {
   const { data, isPending, isError, refetch } = useWrongTasks()
@@ -74,13 +69,6 @@ export function HubPage() {
           <div
             className="reveal"
             style={{ '--reveal-delay': '60ms' } as CSSProperties}
-          >
-            <StatusRow streak={STREAK} points={POINTS} />
-          </div>
-
-          <div
-            className="reveal"
-            style={{ '--reveal-delay': '120ms' } as CSSProperties}
           >
             <HubHero total={total} done={done} firstTaskId={tasks[0]?.id ?? null} />
           </div>
