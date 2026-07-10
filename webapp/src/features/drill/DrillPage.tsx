@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { useParams } from 'react-router-dom'
 import { track } from '../../lib/telemetry'
 import { DrillHeader } from './DrillHeader'
 import { LevelIntro } from './LevelIntro'
 import { ProblemCard } from './ProblemCard'
+import { TheoryCard } from './TheoryCard'
+import { AskKodiCard } from './AskKodiCard'
 import { Ladder } from './Ladder'
 import { StepModeToggle } from './StepModeToggle'
 import { StepSubmitPanel } from './StepSubmitPanel'
@@ -59,16 +61,37 @@ export function DrillPage() {
 
 // Вынесено отдельно чтобы хуки drill/flow вызывались только после того,
 // как task гарантированно существует (правило хуков — нельзя условно вызывать).
-import type { WrongTask } from '../../lib/types'
+import type { StepDTO, WrongTask } from '../../lib/types'
 import { MOCK_EASIER_RUNG } from './mock'
 
 function DrillContent({ task }: { task: WrongTask }) {
   const level = levelFromTask(task)
 
-  // Если шагов нет (задача не декомпозирована) — передаём пустой массив;
-  // лесенка не рендерится. Сдача идёт только через активную ступень лесенки
-  // (один вход — §1c ТЗ): у не-декомпозированной задачи хода в drill пока нет.
-  const drill = useDrill(task.steps, MOCK_EASIER_RUNG)
+  // Есть ли у задачи боевая декомпозиция (шаги лесенки).
+  const hasSteps = task.steps.length > 0
+
+  // Задача без декомпозиции — не тупик: строим СИНТЕТИЧЕСКУЮ одноступенчатую
+  // лесенку (один вход сдачи по ТЗ §1c). Ответ сверяется тем же createLadder,
+  // фото-путь недоступен (decomp_idx null) — StepModeToggle/фото не монтируем.
+  const steps = useMemo<StepDTO[]>(
+    () =>
+      hasSteps
+        ? task.steps
+        : [
+            {
+              n: 1,
+              instruction_ru: 'Реши задачу в тетради и введи ответ',
+              micro_skill: task.primary_micro_skill ?? '',
+              micro_skill_label: task.primary_micro_skill_label,
+              expected_value: task.answer,
+              kind: 'compute',
+              reveal: null,
+            },
+          ],
+    [hasSteps, task.steps, task.primary_micro_skill, task.primary_micro_skill_label, task.answer],
+  )
+
+  const drill = useDrill(steps, MOCK_EASIER_RUNG)
 
   // Режим сдачи активной ступени: «Ввод» (дефолт) / «По тетради» (фото шага).
   // Фото-режим применим только к original-ступеням — на easier (климб-даун)
@@ -136,9 +159,6 @@ function DrillContent({ task }: { task: WrongTask }) {
     }
   }, [task.id])
 
-  // Есть ли ступени для лесенки
-  const hasSteps = task.steps.length > 0
-
   return (
     <div className="flex flex-col gap-4">
       <div className="reveal" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
@@ -159,15 +179,24 @@ function DrillContent({ task }: { task: WrongTask }) {
         <ProblemCard statement={task.statement} wrongAnswer={task.wrong_answer} />
       </div>
 
-      {/* Лесенка: только если есть шаги */}
-      {hasSteps && (
-        drill.finished ? (
-          <FinishedCard taskId={task.id} answer={task.answer} />
-        ) : (
-          <div
-            className="reveal flex flex-col gap-4"
-            style={{ '--reveal-delay': '180ms' } as CSSProperties}
-          >
+      {/* «Как решать?» — метод узла под условием; null → кнопки нет (карточек 57/114). */}
+      {task.theory_ru && (
+        <div className="reveal" style={{ '--reveal-delay': '180ms' } as CSSProperties}>
+          <TheoryCard nodeId={task.node_id} theory={task.theory_ru} />
+        </div>
+      )}
+
+      {/* Лесенка: боевая декомпозиция или синтетическая одноступенчатая. */}
+      {drill.finished ? (
+        <FinishedCard taskId={task.id} answer={task.answer} />
+      ) : (
+        <div
+          className="reveal flex flex-col gap-4"
+          style={{ '--reveal-delay': '240ms' } as CSSProperties}
+        >
+          {/* Переключатель «Ввод»/«По тетради» и фото-путь — только для боевой
+              декомпозиции: у синтетической ступени decomp_idx нет. */}
+          {hasSteps && (
             <StepModeToggle
               mode={mode}
               onChange={(m) => {
@@ -178,37 +207,43 @@ function DrillContent({ task }: { task: WrongTask }) {
                 void track('step_mode_switched', { mode: m })
               }}
             />
-            <Ladder
-              rungs={drill.rungs}
-              hint={drill.hint}
-              showReveal={drill.showReveal}
-              insertedKey={drill.insertedKey}
-              photoMode={photoMode}
-              onSubmit={drill.submit}
-            />
-            {photoMode && activeStepN !== null && (
-              stepFlow.needsConsent ? (
-                // 403 — сервер требует согласие родителя на фото шага (та же
-                // карточка, что и в diagnose-ветке ниже).
-                <ConsentCard onGranted={stepFlow.reset} onDismiss={stepFlow.reset} />
-              ) : (
-                <StepSubmitPanel
-                  stepN={activeStepN}
-                  status={stepFlow.status}
-                  verdict={stepFlow.verdict}
-                  onPhoto={(f) =>
-                    void stepFlow.start(f, {
-                      decomp_idx: task.decomp_idx!,
-                      step_n: activeStepN,
-                      problem_id: task.problem_id,
-                    })
-                  }
-                  onRetry={stepFlow.reset}
-                />
-              )
-            )}
-          </div>
-        )
+          )}
+          <Ladder
+            rungs={drill.rungs}
+            hint={drill.hint}
+            showReveal={drill.showReveal}
+            insertedKey={drill.insertedKey}
+            photoMode={photoMode}
+            onSubmit={drill.submit}
+          />
+          {hasSteps && photoMode && activeStepN !== null && (
+            stepFlow.needsConsent ? (
+              // 403 — сервер требует согласие родителя на фото шага (та же
+              // карточка, что и в diagnose-ветке ниже).
+              <ConsentCard onGranted={stepFlow.reset} onDismiss={stepFlow.reset} />
+            ) : (
+              <StepSubmitPanel
+                stepN={activeStepN}
+                status={stepFlow.status}
+                verdict={stepFlow.verdict}
+                onPhoto={(f) =>
+                  void stepFlow.start(f, {
+                    decomp_idx: task.decomp_idx!,
+                    step_n: activeStepN,
+                    problem_id: task.problem_id,
+                  })
+                }
+                onRetry={stepFlow.reset}
+              />
+            )
+          )}
+          {/* Возврат чата Кёди: и для задач без ступеней тоже (при !finished). */}
+          <AskKodiCard
+            problemId={task.problem_id}
+            decompIdx={task.decomp_idx}
+            stepN={activeStepN}
+          />
+        </div>
       )}
     </div>
   )

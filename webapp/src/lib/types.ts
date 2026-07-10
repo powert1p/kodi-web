@@ -41,6 +41,8 @@ export interface WrongTask {
   wrong_answer: string
   /** Текущее владение узлом, 0..1. */
   mastery: number
+  /** Карточка метода узла «Как решать» (Метод/Пример/Ловушка); null — ещё не сгенерирована. */
+  theory_ru: string | null
 }
 
 /** Запись повторяющейся ошибки ученика (зеркало BE RecurringErrorOut). */

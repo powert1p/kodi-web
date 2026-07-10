@@ -34,6 +34,7 @@ const MOCK_TASK: WrongTask = {
   state: 'revisit',
   wrong_answer: '3',
   mastery: 0.3,
+  theory_ru: null,
 }
 
 afterEach(() => {

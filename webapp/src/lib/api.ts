@@ -288,11 +288,17 @@ export async function answerVerification(problemId: number, answer: string, micr
 }
 
 // ── Чат тьютора ──
-export async function sendTutorMessage(problemId: number, message: string, decompIdx?: number | null): Promise<TutorChatResponse> {
+// stepN — ступень лесенки, на которой застрял ученик (бэк фокусирует диалог на ней).
+export async function sendTutorMessage(
+  problemId: number,
+  message: string,
+  decompIdx?: number | null,
+  stepN?: number | null,
+): Promise<TutorChatResponse> {
   const res = await apiFetch(`${API_BASE}/trainer/tutor/chat`, {
     method: 'POST',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ problem_id: problemId, message, decomp_idx: decompIdx ?? null }),
+    body: JSON.stringify({ problem_id: problemId, message, decomp_idx: decompIdx ?? null, step_n: stepN ?? null }),
   })
   return res.json() as Promise<TutorChatResponse>
 }
