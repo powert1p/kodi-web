@@ -79,6 +79,7 @@ class PhoneRegisterBody(BaseModel):
     name: str
     pin: str
     photo_consent: bool = False
+    grade: int | None = None  # класс, в который идёт ученик (4–7); None = не указан
 
 class PhoneLoginBody(BaseModel):
     phone: str
@@ -226,6 +227,8 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
         raise HTTPException(status_code=400, detail="Некорректный номер телефона")
     if not body.pin or len(body.pin) < 4:
         raise HTTPException(status_code=400, detail="PIN должен быть минимум 4 символа")
+    if body.grade is not None and body.grade not in (4, 5, 6, 7):
+        raise HTTPException(status_code=400, detail="Класс должен быть от 4 до 7")
 
     async with async_session() as session:
         existing = await session.execute(
@@ -240,6 +243,7 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
             full_name=body.name,
             phone=phone,
             pin_hash=_hash_pin(body.pin),
+            grade=body.grade,
             registered=True,
             lang="ru",
             # Снятый чекбокс = «родитель ещё не ответил» (NULL), а НЕ отказ (False) —
@@ -287,6 +291,7 @@ async def auth_me(request: Request):
             "username": student.username,
             "full_name": student.full_name,
             "lang": student.lang,
+            "grade": student.grade,
             "registered": student.registered,
             "diagnostic_complete": student.diagnostic_complete,
             "has_paused_diagnostic": has_paused,

@@ -55,6 +55,7 @@ export interface StudentProfile {
   username: string | null
   full_name: string | null
   lang: string
+  grade: number | null
   registered: boolean
   diagnostic_complete: boolean
   has_paused_diagnostic: boolean
@@ -96,12 +97,18 @@ export async function loginWithPin(phone: string, pin: string): Promise<void> {
   setToken(data.access_token)
 }
 
-/** Регистрация нового студента. Сохраняет токен в localStorage. */
-export async function registerWithPin(phone: string, name: string, pin: string, photoConsent: boolean): Promise<void> {
+/** Регистрация нового студента. Сохраняет токен в localStorage. grade — класс (4–7) или null. */
+export async function registerWithPin(
+  phone: string,
+  name: string,
+  pin: string,
+  photoConsent: boolean,
+  grade: number | null = null,
+): Promise<void> {
   const res = await fetch(`${AUTH_BASE}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone, name, pin, photo_consent: photoConsent }),
+    body: JSON.stringify({ phone, name, pin, photo_consent: photoConsent, grade }),
   })
   if (!res.ok) {
     const detail = await res.json().then((d: { detail?: string }) => d.detail).catch(() => null)
@@ -119,6 +126,7 @@ const MOCK_PROFILE: StudentProfile = {
   username: null,
   full_name: 'Айдана',
   lang: 'ru',
+  grade: 7,
   registered: true,
   diagnostic_complete: true,
   has_paused_diagnostic: false,

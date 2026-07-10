@@ -1066,11 +1066,14 @@ class SrezAnswerOut(BaseModel):
 
 @router.post("/srez/start", response_model=SrezStartOut)
 async def post_srez_start(request: Request) -> SrezStartOut:
-    """Мини-срез: сервер выбирает 12 задач (разброс тем, лёгкие первыми). Стейт держит клиент.
-    Ответ НЕ содержит правильных ответов/решений."""
+    """Мини-срез: сервер выбирает 12 задач в окне difficulty КЛАССА ученика (разброс тем,
+    рост сложности, 2 стретча сверху). Стейт держит клиент. Ответ НЕ содержит ответов/решений."""
     session, student = await _get_current_student(request)
     try:
-        rows = await pick_srez_problems(session, student_id=student.id, count=12)
+        # grade тянем из профиля — окно difficulty среза подбирается под класс ученика.
+        rows = await pick_srez_problems(
+            session, student_id=student.id, count=12, grade=student.grade
+        )
     finally:
         await session.close()
     total = len(rows)

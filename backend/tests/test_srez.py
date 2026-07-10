@@ -40,6 +40,76 @@ async def _seed_graph(db_session):
     return ids
 
 
+async def _seed_graph_spread(db_session):
+    """Сид с РАЗБРОСОМ node.difficulty 1..5 (у каждого узла — своя тема, 1 задача).
+    Нужен, чтобы проверить окно среза по классу. Возвращает {node_id: (difficulty, problem_id)}.
+
+    Раскладка задумана так, чтобы окна классов имели ≥ бюджета кандидатов И не пустой
+    добор снизу/стретч сверху:
+      grade 7 [3,5] → в окне 15, ниже 8, стретча нет (верх шкалы);
+      grade 5 [2,3] → в окне 12, стретч (d4/d5) есть, ниже (d1) не добираем.
+    """
+    spread = {1: 2, 2: 6, 3: 6, 4: 6, 5: 3}
+    out: dict[str, tuple[int, int]] = {}
+    for diff, cnt in spread.items():
+        for i in range(cnt):
+            nid = f"S{diff}{i}"
+            tid = f"TS{diff}{i}"
+            await db_session.execute(text(
+                "INSERT INTO topics (id, strand, name_ru, name_kz, order_idx) "
+                "VALUES (:t, 'RP', :t_name, :t_name, 0) ON CONFLICT (id) DO NOTHING"
+            ), {"t": tid, "t_name": tid})
+            await db_session.execute(text(
+                "INSERT INTO nodes (id, name_ru, name_kz, difficulty, topic_id, bkt_p_t, bkt_p_g, bkt_p_s) "
+                "VALUES (:n, :n_name, :n_name, :d, :t, 0.3, 0.05, 0.1) ON CONFLICT (id) DO NOTHING"
+            ), {"n": nid, "n_name": nid, "d": diff, "t": tid})
+            pid = (await db_session.execute(text(
+                "INSERT INTO problems (node_id, text_ru, answer, answer_type) "
+                "VALUES (:n, 'задача '||:n_text, '5', 'number') RETURNING id"
+            ), {"n": nid, "n_text": nid})).scalar_one()
+            out[nid] = (diff, pid)
+    await db_session.commit()
+    return out
+
+
+@pytest.mark.asyncio
+async def test_pick_srez_grade7_no_easy(db_session):
+    """grade=7 → окно [3,5]: 0 задач difficulty 1 и ≥80% difficulty ≥3 (критерий приёмки 1b)."""
+    from core.srez import pick_srez_problems
+    await _seed_graph_spread(db_session)
+    rows = await pick_srez_problems(db_session, student_id=101, count=12, grade=7)
+    diffs = [r.node_difficulty for r in rows]
+    assert diffs, "срез не должен быть пустым"
+    assert 1 not in diffs                      # «23+45» новичку-семикласснику не показываем
+    assert 2 not in diffs                      # difficulty 2 тоже ниже окна [3,5]
+    share_hard = sum(1 for d in diffs if d >= 3) / len(diffs)
+    assert share_hard >= 0.8                   # ≥80% задач difficulty ≥3
+
+
+@pytest.mark.asyncio
+async def test_pick_srez_grade5_stretch(db_session):
+    """grade=5 → окно [2,3] + ровно 2 стретча (>3). Ниже окна не добираем, пока в окне есть кандидаты."""
+    from core.srez import pick_srez_problems
+    await _seed_graph_spread(db_session)
+    rows = await pick_srez_problems(db_session, student_id=102, count=12, grade=5)
+    diffs = [r.node_difficulty for r in rows]
+    assert 1 not in diffs                      # в окне достаточно кандидатов → лёгкое не добираем
+    stretch = [d for d in diffs if d > 3]
+    assert len(stretch) == 2                   # 2 стретч-задачи выше окна
+    assert all(d >= 4 for d in stretch)
+
+
+@pytest.mark.asyncio
+async def test_pick_srez_grade_null_ok(db_session):
+    """grade=None → окно по умолчанию [2,4]: старый вызов (без grade) не падает и даёт задачи."""
+    from core.srez import pick_srez_problems
+    await _seed_graph_spread(db_session)
+    rows = await pick_srez_problems(db_session, student_id=103, count=12)  # без grade
+    assert len(rows) > 0
+    diffs = [r.node_difficulty for r in rows]
+    assert 1 not in diffs                      # дефолт [2,4] — крайний низ не берём (в окне есть кандидаты)
+
+
 @pytest.mark.asyncio
 async def test_pick_srez_distinct_topics_and_difficulty(db_session):
     from core.srez import pick_srez_problems

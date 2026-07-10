@@ -10,12 +10,13 @@ import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApTextField } from '../../components/ApTextField'
 import { ConsentCheckbox } from './ConsentCheckbox'
+import { GradeSelect } from './GradeSelect'
 import { LeftIcon } from '../../icons'
 import { useAuth } from './AuthContext'
 import { checkPhone } from '../../lib/auth'
 
 // Этап формы.
-type Step = 'phone' | 'login' | 'register-name' | 'register-pin'
+type Step = 'phone' | 'login' | 'register-name' | 'register-grade' | 'register-pin'
 
 // Маскот-настроение по этапу (§5 Кёди-протокол: hi на входе).
 function mascotMood(step: Step, hasError: boolean) {
@@ -30,6 +31,7 @@ function stepTitle(step: Step): string {
   if (step === 'phone') return 'Привет! Введи номер'
   if (step === 'login') return 'Добро пожаловать!'
   if (step === 'register-name') return 'Как тебя зовут?'
+  if (step === 'register-grade') return 'В какой класс идёшь?'
   return 'Придумай PIN'
 }
 
@@ -38,6 +40,7 @@ function stepSub(step: Step, phone: string): string {
   if (step === 'phone') return 'Войдём через номер телефона'
   if (step === 'login') return `Введи PIN для ${formatPhoneDisplay(phone)}`
   if (step === 'register-name') return 'Имя видно только тебе'
+  if (step === 'register-grade') return 'Подберём задачи по твоему уровню'
   return 'Минимум 4 цифры — запомни его'
 }
 
@@ -61,6 +64,7 @@ export function LoginPage() {
   const [phone, setPhone] = useState('')
   const [pin, setPin] = useState('')
   const [name, setName] = useState('')
+  const [grade, setGrade] = useState<number | null>(null)
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -110,6 +114,14 @@ export function LoginPage() {
     e.preventDefault()
     if (!name.trim()) { setError('Введи своё имя'); return }
     setError(null)
+    setStep('register-grade')
+  }
+
+  // Обработчик шага «register-grade» (класс обязателен — кнопка заблокирована без выбора).
+  function handleRegisterGrade(e: FormEvent) {
+    e.preventDefault()
+    if (grade === null) { setError('Выбери класс'); return }
+    setError(null)
     setStep('register-pin')
   }
 
@@ -120,7 +132,7 @@ export function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await register(phone.trim(), name.trim(), pin.trim(), consent)
+      await register(phone.trim(), name.trim(), pin.trim(), consent, grade)
       navigate('/', { replace: true })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось зарегистрироваться')
@@ -208,6 +220,18 @@ export function LoginPage() {
       )
     }
 
+    if (step === 'register-grade') {
+      return (
+        <form onSubmit={handleRegisterGrade} className="flex flex-col gap-4">
+          <GradeSelect value={grade} onChange={(g) => { setGrade(g); clearError() }} disabled={loading} />
+          <ApButton type="submit" full size="m" disabled={grade === null}>
+            Далее
+          </ApButton>
+          <BackButton onClick={() => { setStep('register-name'); setError(null) }} label="Назад" />
+        </form>
+      )
+    }
+
     // step === 'register-pin'
     return (
       <form onSubmit={(e) => void handleRegisterPin(e)} className="flex flex-col gap-4">
@@ -228,7 +252,7 @@ export function LoginPage() {
         <ApButton type="submit" full size="m" loading={loading}>
           Создать аккаунт
         </ApButton>
-        <BackButton onClick={() => { setStep('register-name'); setPin(''); setError(null) }} label="Назад" />
+        <BackButton onClick={() => { setStep('register-grade'); setPin(''); setError(null) }} label="Назад" />
       </form>
     )
   }
