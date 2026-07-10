@@ -36,7 +36,7 @@ export function HubPage() {
 
   // Триаж: сначала «разберём», потом «почти», потом «готово».
   const tasks = data
-    ? [...data].sort(
+    ? [...data.tasks].sort(
         (a, b) =>
           STATE_PRIORITY.indexOf(a.state) - STATE_PRIORITY.indexOf(b.state),
       )
@@ -44,6 +44,8 @@ export function HubPage() {
 
   const total = tasks.length
   const done = tasks.filter((t) => t.state === 'got').length
+  // Новичок (has_activity=false) vs ветеран (true) — разводит пустой hub.
+  const hasActivity = data?.has_activity ?? false
 
   // Согласие ещё не спрошено (null — родитель пока не ответил) и не отложено в этой сессии.
   const showConsent = !!profile && profile.photo_consent === null && !isConsentDismissed()
@@ -54,12 +56,15 @@ export function HubPage() {
       {isError && <HubError onRetry={() => void refetch()} />}
 
       {!isPending && !isError && total === 0 && (
-        <>
+        // Пустой hub центрируем по вертикали в области над нижним баром — карточка-
+        // приглашение как единственный фокус, без мёртвой нижней половины (§2.8).
+        // min-h в dvh (не %) — надёжно резолвится от вьюпорта, не зависит от высоты main.
+        <div className="flex min-h-[72dvh] flex-col justify-center gap-4">
           {showConsent && <ConsentCard delay={0} variant="hub" />}
           <div className="reveal" style={{ '--reveal-delay': '60ms' } as CSSProperties}>
-            <HubEmpty />
+            <HubEmpty hasActivity={hasActivity} />
           </div>
-        </>
+        </div>
       )}
 
       {!isPending && !isError && total > 0 && (

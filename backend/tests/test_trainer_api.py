@@ -313,6 +313,89 @@ async def test_wrong_tasks_invalid_params(client_with_student):
     assert resp_limit.status_code == 422, f"limit=100 должен вернуть 422, получен {resp_limit.status_code}"
 
 
+# ── тест 6.1: has_activity разводит новичка и ветерана ───────────────────────
+
+
+@pytest_asyncio.fixture
+async def client_fresh_student(db_session):
+    """ASGI-клиент + СВЕЖИЙ студент БЕЗ единой попытки (для has_activity).
+
+    Отдельно от client_with_student (тот сеет попытки) — здесь нужен именно
+    ученик с чистой историей, чтобы поймать has_activity=false.
+    """
+    if not _TEST_URL:
+        pytest.skip("TEST_DATABASE_URL не задан — пропуск интеграционных тестов")
+
+    STUDENT_ID = 7010
+    await _seed_student_api(db_session, STUDENT_ID)
+    await db_session.commit()
+
+    from api.routes import _create_token
+    token = _create_token(STUDENT_ID)
+
+    import api.routes as routes_module
+    import db.base as db_base
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    test_engine = create_async_engine(_TEST_URL)
+    test_session_factory = async_sessionmaker(test_engine, expire_on_commit=False)
+
+    original_db_session = db_base.async_session
+    original_routes_session = routes_module.async_session
+    db_base.async_session = test_session_factory
+    routes_module.async_session = test_session_factory
+
+    from web import app
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as ac:
+        yield ac, STUDENT_ID, token
+
+    db_base.async_session = original_db_session
+    routes_module.async_session = original_routes_session
+    await test_engine.dispose()
+
+
+@pytest.mark.asyncio
+async def test_wrong_tasks_has_activity_flag(client_fresh_student, db_session):
+    """has_activity: свежий ученик → false; после первой попытки → true.
+
+    Ветеранский случай: даже ВЕРНАЯ попытка (открытых ошибок нет, список пуст)
+    даёт has_activity=true — это и есть «всё разобрано», а не новичок.
+    """
+    client, student_id, token = client_fresh_student
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Свежий ученик: ни одной попытки → has_activity=false, список пуст.
+    resp1 = await client.get("/api/trainer/wrong-tasks", headers=headers)
+    assert resp1.status_code == 200, resp1.text
+    body1 = resp1.json()
+    assert body1["has_activity"] is False
+    assert body1["tasks"] == []
+
+    # Появилась активность (верная попытка среза): ошибок нет, но has_activity=true.
+    await _seed_node_api(db_session, "TR01", "Тренажёр-тест")
+    pid = await _seed_problem_api(db_session, "TR01", "Задача для активности", "10")
+    await db_session.execute(
+        text(
+            "INSERT INTO attempts "
+            "(student_id, problem_id, node_id, answer_given, is_correct, source, created_at) "
+            "VALUES (:sid, :pid, :nid, '10', true, 'diagnostic', NOW())"
+        ),
+        {"sid": student_id, "pid": pid, "nid": "TR01"},
+    )
+    await db_session.commit()
+
+    resp2 = await client.get("/api/trainer/wrong-tasks", headers=headers)
+    assert resp2.status_code == 200, resp2.text
+    body2 = resp2.json()
+    assert body2["has_activity"] is True
+    # Ветеран: активность есть, но открытых ошибок нет (попытка была верной).
+    assert body2["tasks"] == []
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Task 10: POST /api/trainer/diagnose (фото → диагностика → память ошибок)
 # ═══════════════════════════════════════════════════════════════════════════════

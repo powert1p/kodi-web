@@ -75,13 +75,23 @@ async function apiFetch(url: string, init?: RequestInit): Promise<Response> {
 // ——————————————————————————————————
 
 /**
- * Получить список задач с ошибками.
- * В DEV: если API вернул пустой массив или упал — подставляем mock-фикстуру.
+ * Результат /wrong-tasks: список ошибок + флаг активности.
+ * has_activity разводит два пустых состояния hub: false → новичок (онбординг),
+ * true + пустой список → ветеран (всё разобрано). Зеркалит BE WrongTasksResponse.
+ */
+export interface WrongTasksResult {
+  tasks: WrongTask[]
+  has_activity: boolean
+}
+
+/**
+ * Получить список задач с ошибками + признак активности ученика.
+ * В DEV: если бэкенд недоступен/упал — подставляем mock-фикстуру.
  *
  * @param days — фильтр по дням (необязательно)
  * @param limit — лимит задач (необязательно)
  */
-export async function fetchWrongTasks(days?: number, limit?: number): Promise<WrongTask[]> {
+export async function fetchWrongTasks(days?: number, limit?: number): Promise<WrongTasksResult> {
   const params = new URLSearchParams()
   if (days !== undefined) params.set('days', String(days))
   if (limit !== undefined) params.set('limit', String(limit))
@@ -91,20 +101,28 @@ export async function fetchWrongTasks(days?: number, limit?: number): Promise<Wr
     const res = await apiFetch(`${API_BASE}/trainer/wrong-tasks${qs}`, {
       headers: authHeaders(),
     })
-    const data = (await res.json()) as { tasks: WrongTask[] }
+    const data = (await res.json()) as { tasks?: WrongTask[]; has_activity?: boolean }
     const tasks = data.tasks ?? []
 
-    // DEV mock-fallback (не в тестах): пустой ответ → показываем фикстуру
-    if (import.meta.env.DEV && import.meta.env.MODE !== 'test' && tasks.length === 0) {
-      return MOCK_WRONG_TASKS
+    // DEV mock-fallback (не в тестах): показываем демо-фикстуру ТОЛЬКО когда бэкенд
+    // НЕ сообщил has_activity — это старая форма ответа или замоканный {tasks:[]}
+    // (бэка нет). Новый ответ с has_activity — источник истины: пустой список у
+    // новичка (has_activity=false) честно ведёт в онбординг, мок его НЕ подменяет.
+    if (
+      import.meta.env.DEV &&
+      import.meta.env.MODE !== 'test' &&
+      tasks.length === 0 &&
+      data.has_activity === undefined
+    ) {
+      return { tasks: MOCK_WRONG_TASKS, has_activity: true }
     }
-    return tasks
+    return { tasks, has_activity: data.has_activity ?? false }
   } catch (err) {
     // В DEV (не в тестах) подставляем мок при ЛЮБОЙ ошибке — бэкенд недоступен,
     // 404 от vite-сервера или HTML вместо JSON. В тестах (MODE=test) всегда
     // пробрасываем, чтобы тест мог проверить поведение.
     if (import.meta.env.DEV && import.meta.env.MODE !== 'test') {
-      return MOCK_WRONG_TASKS
+      return { tasks: MOCK_WRONG_TASKS, has_activity: true }
     }
     throw err
   }
@@ -208,7 +226,7 @@ export function useWrongTask(id: string) {
     queryKey: ['wrong-tasks', undefined, undefined],
     queryFn: () => fetchWrongTasks(),
     staleTime: 60_000,
-    select: (tasks: WrongTask[]) => tasks.find((t) => t.id === id),
+    select: (result: WrongTasksResult) => result.tasks.find((t) => t.id === id),
   })
 }
 

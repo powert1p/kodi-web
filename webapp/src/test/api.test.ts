@@ -52,8 +52,29 @@ describe('fetchWrongTasks', () => {
     }))
 
     const result = await fetchWrongTasks()
-    expect(result).toHaveLength(1)
-    expect(result[0]?.id).toBe('wt-test-01')
+    expect(result.tasks).toHaveLength(1)
+    expect(result.tasks[0]?.id).toBe('wt-test-01')
+  })
+
+  it('прокидывает has_activity=false у новичка (пустой список)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ tasks: [], has_activity: false }),
+    }))
+
+    const result = await fetchWrongTasks()
+    expect(result.tasks).toHaveLength(0)
+    expect(result.has_activity).toBe(false)
+  })
+
+  it('прокидывает has_activity=true у ветерана', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ tasks: [], has_activity: true }),
+    }))
+
+    const result = await fetchWrongTasks()
+    expect(result.has_activity).toBe(true)
   })
 
   it('бросает ошибку при не-2xx ответе', async () => {

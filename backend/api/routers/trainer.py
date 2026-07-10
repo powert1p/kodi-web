@@ -83,6 +83,11 @@ class WrongTasksResponse(BaseModel):
     """Ответ эндпоинта /wrong-tasks."""
 
     tasks: list[WrongTaskOut]
+    # Была ли у ученика ХОТЬ ОДНА попытка (любой источник: срез/практика/экзамен).
+    # Разводит два пустых состояния hub: false → новичок (онбординг),
+    # true + пустой список → ветеран, все ошибки закрыты. Default False —
+    # обратная совместимость со старыми клиентами, читающими только tasks.
+    has_activity: bool = False
 
 
 class RecurringErrorOut(BaseModel):
@@ -186,10 +191,24 @@ async def get_wrong_tasks(
             days=days,
             limit=limit,
         )
+        # has_activity — был ли у ученика ХОТЬ ОДИН attempt (любой источник и
+        # результат). Разводит пустой hub: новичок (онбординг) vs ветеранка,
+        # у которой все ошибки закрыты. EXISTS не тянет строки — только факт.
+        has_activity = bool(
+            (
+                await session.execute(
+                    text("SELECT EXISTS (SELECT 1 FROM attempts WHERE student_id = :sid)"),
+                    {"sid": student.id},
+                )
+            ).scalar()
+        )
     finally:
         await session.close()
 
-    return WrongTasksResponse(tasks=[_task_to_out(t) for t in tasks])
+    return WrongTasksResponse(
+        tasks=[_task_to_out(t) for t in tasks],
+        has_activity=has_activity,
+    )
 
 
 @router.get("/analytics", response_model=AnalyticsResponse)
