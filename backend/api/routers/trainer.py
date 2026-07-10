@@ -18,7 +18,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Form, HTTPException, Query, Request, UploadFile
 from fastapi import File as FastApiFile
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 
 from api.routes import _get_current_student, limiter
@@ -925,8 +925,9 @@ class TutorChatIn(BaseModel):
     problem_id: int
     decomp_idx: int | None = None
     # Ступень лесенки, на которой застрял ученик (опционально) — тьютор фокусирует
-    # диалог именно на ней. None → общий диалог по задаче.
-    step_n: int | None = None
+    # диалог именно на ней. None → общий диалог по задаче. ge=1: мусорные значения
+    # (отрицательные/ноль) не должны попадать в текст промпта.
+    step_n: int | None = Field(default=None, ge=1)
     message: str
 
 
