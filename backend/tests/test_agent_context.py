@@ -67,6 +67,9 @@ async def test_build_agent_context_full(db_session):
     assert abs(ctx.node_mastery - 0.42) < 1e-9
     assert any(r["micro_skill"] == "percent_base" for r in ctx.recurring_errors)
     assert ctx.topic and ctx.topic["name_ru"] == "Проценты"
+    # theory_ru колонки ещё нет в схеме (добавит параллельная задача 1d) — soft-путь
+    # SELECT * + getattr не падает и даёт None
+    assert ctx.node_theory is None
 
 
 @pytest.mark.asyncio

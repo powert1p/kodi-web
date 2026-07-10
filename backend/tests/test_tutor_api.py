@@ -121,3 +121,66 @@ def test_build_system_prompt_hides_final_answer():
     prompt = build_system_prompt(ctx)
     assert "42" in prompt
     assert "НЕ называй ученику" in prompt
+
+
+def _ctx(*, node_theory: str | None = None, steps: list[dict] | None = None) -> AgentContext:
+    """Мини-фабрика AgentContext для юнит-тестов промпта (без БД)."""
+    return AgentContext(
+        problem_id=1,
+        node_id="TU01",
+        statement="Реши уравнение 2(x+3) = 10",
+        correct_answer="2",
+        canonical_steps=steps if steps is not None else [
+            {"n": 1, "instruction_ru": "раскрой скобки", "expected_value": "2x+6=10"},
+            {"n": 2, "instruction_ru": "перенеси 6 вправо", "expected_value": "2x=4"},
+        ],
+        fingerprints=[],
+        past_diagnoses=[],
+        recurring_errors=[],
+        node_mastery=0.5,
+        topic=None,
+        node_theory=node_theory,
+    )
+
+
+def test_build_system_prompt_hard_rules_present():
+    """Промпт-снапшот содержит жёсткие правила: метод, ≤3 предложения, встречный вопрос."""
+    prompt = build_system_prompt(_ctx())
+    # (а) запрет раскрывать ответ и результат ступени
+    assert "НИКОГДА не называй" in prompt
+    assert "expected_value" in prompt
+    # (б) формат: ≤3 предложения + один встречный вопрос
+    assert "3 коротких предложения" in prompt
+    assert "встречный вопрос" in prompt
+    # (в) подсказка по МЕТОДУ с примерами-приёмами, а не «подумай ещё»
+    assert "по МЕТОДУ" in prompt
+    assert "раскрой скобки" in prompt
+    assert "приведи к общему знаменателю" in prompt
+    # (г) возврат к задаче при нерелевантном сообщении
+    assert "верни его к задаче" in prompt
+    # (д) тон Кёди без канцелярита («Отличный вопрос» — в составе запрета)
+    assert "Кёди" in prompt
+    assert "Отличный вопрос" in prompt
+
+
+def test_build_system_prompt_injects_theory_when_present():
+    """node_theory → секция «МЕТОД УЗЛА»; без него секции нет."""
+    with_theory = build_system_prompt(_ctx(node_theory="Дистрибутивность: a(b+c)=ab+ac."))
+    assert "МЕТОД УЗЛА" in with_theory
+    assert "Дистрибутивность" in with_theory
+
+    assert "МЕТОД УЗЛА" not in build_system_prompt(_ctx(node_theory=None))
+
+
+def test_build_system_prompt_highlights_stuck_step():
+    """step_n подсвечивает ступень, на которой застрял ученик; без него — нет."""
+    prompt = build_system_prompt(_ctx(), step_n=1)
+    assert "ЗАСТРЯЛ НА ШАГЕ 1" in prompt
+    assert "ЗАСТРЯЛ НА ШАГЕ" not in build_system_prompt(_ctx())
+
+
+def test_build_system_prompt_stuck_step_unknown_number():
+    """Неизвестный step_n не роняет промпт — мягкий фолбэк по смыслу задачи."""
+    prompt = build_system_prompt(_ctx(), step_n=99)
+    assert "ЗАСТРЯЛ НА ШАГЕ 99" in prompt
+    assert "по смыслу задачи" in prompt

@@ -921,6 +921,9 @@ async def get_easier(
 class TutorChatIn(BaseModel):
     problem_id: int
     decomp_idx: int | None = None
+    # Ступень лесенки, на которой застрял ученик (опционально) — тьютор фокусирует
+    # диалог именно на ней. None → общий диалог по задаче.
+    step_n: int | None = None
     message: str
 
 
@@ -1003,6 +1006,7 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
                 student_id=student.id,
                 problem_id=payload.problem_id,
                 decomp_idx=payload.decomp_idx,
+                step_n=payload.step_n,
                 user_message=payload.message,
                 history=history,
             )

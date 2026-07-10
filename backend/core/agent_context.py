@@ -28,6 +28,10 @@ class AgentContext:
     recurring_errors: list[dict]
     node_mastery: float
     topic: dict | None
+    # Метод узла (nodes.theory_ru): «как решать» одним абзацем. Колонка появляется
+    # мягко (параллельная задача 1d ТЗ) — None пока её нет. Default для обратной
+    # совместимости с hand-constructed AgentContext (тесты).
+    node_theory: str | None = None
 
 
 async def build_agent_context(
@@ -134,6 +138,16 @@ async def build_agent_context(
     tr = topic_row.fetchone()
     topic = {"topic_id": tr.id, "strand": tr.strand, "name_ru": tr.name_ru} if tr else None
 
+    # ── метод узла (nodes.theory_ru) ──
+    # Колонку добавляет параллельная задача 1d ТЗ. SELECT * не падает на её
+    # отсутствии (выбирает только существующие столбцы), getattr → None. Так код
+    # не ломается на схеме без theory_ru и подхватит её, как только появится.
+    node_row = (await session.execute(
+        text("SELECT * FROM nodes WHERE id = :nid"),
+        {"nid": node_id},
+    )).fetchone()
+    node_theory = getattr(node_row, "theory_ru", None) if node_row is not None else None
+
     return AgentContext(
         problem_id=problem_id,
         node_id=node_id,
@@ -145,4 +159,5 @@ async def build_agent_context(
         recurring_errors=recurring_errors,
         node_mastery=node_mastery,
         topic=topic,
+        node_theory=node_theory,
     )
