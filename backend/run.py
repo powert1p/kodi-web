@@ -46,6 +46,8 @@ async def on_startup():
             "ALTER TABLE problem_reports ADD COLUMN IF NOT EXISTS comment TEXT DEFAULT ''",
             # ── topics layer ──
             "ALTER TABLE nodes ADD COLUMN IF NOT EXISTS topic_id VARCHAR(20)",
+            # ── карточка теории «Как решать» (метод узла, задача 1d) ──
+            "ALTER TABLE nodes ADD COLUMN IF NOT EXISTS theory_ru TEXT",
             # ── fix NULLs in existing rows ──
             "UPDATE students SET practice_count = 0 WHERE practice_count IS NULL",
             "UPDATE students SET problems_on_current_node = 0 WHERE problems_on_current_node IS NULL",

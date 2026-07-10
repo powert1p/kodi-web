@@ -77,6 +77,8 @@ class WrongTaskOut(BaseModel):
     state: str
     wrong_answer: str
     mastery: float
+    # Карточка метода узла «Как решать» (nodes.theory_ru); None пока не сгенерирована.
+    theory_ru: str | None
 
 
 class WrongTasksResponse(BaseModel):
@@ -166,6 +168,7 @@ def _task_to_out(task: WrongTask) -> WrongTaskOut:
         state=task.state,
         wrong_answer=task.wrong_answer,
         mastery=task.mastery,
+        theory_ru=task.theory_ru,
     )
 
 

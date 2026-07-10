@@ -209,8 +209,10 @@ async def test_wrong_tasks_returns_200(client_with_student):
 
     # Проверяем структуру первой задачи
     task = body["tasks"][0]
-    for field in ("id", "problem_id", "node_id", "topic_label", "statement", "answer", "state", "wrong_answer", "mastery", "steps", "primary_micro_skill_label"):
+    for field in ("id", "problem_id", "node_id", "topic_label", "statement", "answer", "state", "wrong_answer", "mastery", "steps", "primary_micro_skill_label", "theory_ru"):
         assert field in task, f"В задаче отсутствует поле '{field}'"
+    # theory_ru присутствует всегда; у сид-узла без карточки метода — null
+    assert task["theory_ru"] is None
 
 
 # ── тест 2: wrong-tasks без токена → 401 ─────────────────────────────────────

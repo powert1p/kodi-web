@@ -243,6 +243,8 @@ class WrongTask:
     # Человеческая подпись primary_micro_skill (micro_skills.label_ru); None если
     # умение не определено или код не найден в каталоге (§2.2 DESIGN_SYSTEM).
     primary_micro_skill_label: str | None = None
+    # Карточка метода узла «Как решать» (nodes.theory_ru); None пока не сгенерирована.
+    theory_ru: str | None = None
 
 
 def _coerce_answer_given(answer_given: str | None, problem_id: int) -> str:
@@ -365,12 +367,12 @@ async def build_wrong_tasks(
     # = ANY(:sources) — asyncpg-native синтаксис для text[] (нет f-строк).
     raw = await session.execute(
         text(
-            "SELECT attempt_id, problem_id, node_id, answer_given, created_at, statement, answer, topic_label "
+            "SELECT attempt_id, problem_id, node_id, answer_given, created_at, statement, answer, topic_label, theory_ru "
             "FROM ("
             "  SELECT DISTINCT ON (a.problem_id) "
             "    a.id AS attempt_id, a.problem_id, a.node_id, a.answer_given, a.created_at, "
             "    p.text_ru AS statement, p.answer, "
-            "    n.name_ru AS topic_label "
+            "    n.name_ru AS topic_label, n.theory_ru "
             "  FROM attempts a "
             "  JOIN problems p ON p.id = a.problem_id "
             "  JOIN nodes   n ON n.id = a.node_id "
@@ -469,6 +471,7 @@ async def build_wrong_tasks(
                 wrong_answer=_coerce_answer_given(row.answer_given, row.problem_id),
                 mastery=mastery_val,
                 primary_micro_skill_label=primary_micro_skill_label,
+                theory_ru=row.theory_ru,
             )
         )
 

@@ -41,6 +41,7 @@ async def seed_graph(session) -> int:
             tag=n.get("tag"),
             difficulty=n.get("difficulty"),
             description=n.get("description"),
+            theory_ru=n.get("theory_ru"),  # может отсутствовать в graph-JSON → NULL
         ))
     await session.flush()
 

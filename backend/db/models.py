@@ -38,6 +38,7 @@ class Node(Base):
     bkt_p_t: Mapped[float] = mapped_column(Float, default=0.3)
     bkt_p_g: Mapped[float] = mapped_column(Float, default=0.05)
     bkt_p_s: Mapped[float] = mapped_column(Float, default=0.1)
+    theory_ru: Mapped[str | None] = mapped_column(Text)  # карточка «Как решать» (Метод/Пример/Ловушка)
 
 
 class Edge(Base):
