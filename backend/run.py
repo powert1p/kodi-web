@@ -13,7 +13,7 @@ from sqlalchemy import text
 from web import app
 from core.config import settings
 from db.base import Base, async_session, engine
-from db.seed import seed_graph, seed_problems, seed_topics
+from db.seed import backfill_theory, seed_graph, seed_problems, seed_topics
 from db.seed_decomposition import seed_decomposition
 
 logging.basicConfig(
@@ -204,6 +204,11 @@ async def on_startup():
     # seed_topics вызывается всегда (и на свежей, и на уже засеянной БД) — идемпотентен
     async with async_session() as session:
         await seed_topics(session)
+
+    # Карточки теории: долить пустые theory_ru из graph-JSON. Идемпотентно;
+    # existing-БД (прод) не проходит seed_graph — это её единственный путь получить теорию.
+    async with async_session() as session:
+        await backfill_theory(session)
 
     # Сид декомпозиций: запускается только если таблица пуста (или FORCE_RESEED=1)
     async with async_session() as session:

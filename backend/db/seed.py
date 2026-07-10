@@ -171,6 +171,36 @@ async def seed_topics(session) -> int:
     return len(d["topics"])
 
 
+async def backfill_theory(session) -> int:
+    """Идемпотентно долить карточки теории (nodes.theory_ru) из graph-JSON.
+
+    Прод-путь: existing-БД не проходит seed_graph, а карточки нужны — берём
+    theory_ru из запечённого в образ nis_knowledge_graph_v01.json и заполняем
+    ТОЛЬКО пустые (IS NULL): значения, залитые scripts/seed_theory.py поверх,
+    не перетираются. Возвращает число долитых узлов.
+    """
+    graph_path = _DATA_DIR / "nis_knowledge_graph_v01.json"
+    if not graph_path.exists():
+        logger.warning("graph JSON not found: %s", graph_path)
+        return 0
+
+    data = json.loads(graph_path.read_text(encoding="utf-8"))
+    filled = 0
+    for n in data["nodes"]:
+        theory = n.get("theory_ru")
+        if not theory:
+            continue
+        res = await session.execute(
+            text("UPDATE nodes SET theory_ru = :t WHERE id = :nid AND theory_ru IS NULL"),
+            {"t": theory, "nid": n["id"]},
+        )
+        filled += res.rowcount or 0
+    await session.commit()
+    if filled:
+        logger.info("Теория узлов: долито %d карточек (theory_ru IS NULL).", filled)
+    return filled
+
+
 async def _sync_problems(session) -> int:
     """Обновить существующие задачи из JSON (по порядку id)."""
     problems_path = _find_problems_path()
