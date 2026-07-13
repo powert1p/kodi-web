@@ -16,8 +16,9 @@ interface ErrorBarProps {
 }
 
 // Чанковая горизонтальная полоса повторяемости ошибки (ranking = информация):
-// трек stroke + заливка brand (идиома прогресса, горизонтально). #1 — крупнее и
-// помечен тагом «в фокусе». Один визуал на строку. Right-aligned число (моно).
+// трек stroke + заливка route-line (идиома прогресса, горизонтально). #1 — крупнее и
+// помечен тагом «в фокусе». Ранг несёт отметка маршрута слева (RouteSpine), не строка.
+// Один визуал на строку. Right-aligned число (моно).
 export function ErrorBar({ item, ratio, max, rank, delay }: ErrorBarProps) {
   const isFocus = rank === 1
   const shown = Math.max(ratio, 0.08) * 100
@@ -26,14 +27,11 @@ export function ErrorBar({ item, ratio, max, rank, delay }: ErrorBarProps) {
     <ApCard
       as="article"
       padding="m"
-      className="reveal flex flex-col gap-2"
+      className={['reveal flex flex-col gap-2', isFocus ? 'lift-sm' : ''].join(' ')}
       style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}
     >
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="font-display shrink-0 text-mark tabular-nums text-label">
-            {rank}
-          </span>
           <span
             className={[
               'min-w-0 truncate text-ink',
@@ -70,7 +68,7 @@ export function ErrorBar({ item, ratio, max, rank, delay }: ErrorBarProps) {
 
       {/* Последняя причина — только у #1, тихо; остальные строки чисты */}
       {isFocus && item.last_cause && (
-        <p className="pl-5 text-caption2 text-muted">Последний раз: {item.last_cause}</p>
+        <p className="text-caption2 text-muted">Последний раз: {item.last_cause}</p>
       )}
     </ApCard>
   )
