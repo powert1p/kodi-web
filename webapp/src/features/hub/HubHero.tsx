@@ -134,11 +134,16 @@ export function HubHero({ total, done, firstTaskId }: HubHeroProps) {
         {allDone ? (
           <h1 className="text-h1 text-ink">Всё разобрано!</h1>
         ) : (
+          // «N из total» держит одну систему прочтения с прогресс-строкой ниже —
+          // «минус один» (разобранные) читается мгновенно, без сверки 4↔5 (R4 §5).
           <h1 className="flex items-end gap-3">
             <span ref={numRef} className="text-hero text-ink">
               {remaining}
             </span>
-            <span className="text-h1 pb-2 text-ink">{plural(remaining)}</span>
+            <span className="flex flex-col pb-2 text-ink">
+              <span className="text-h1 leading-none">из {total}</span>
+              <span className="text-title text-text">{waitVerb(remaining)} разбора</span>
+            </span>
           </h1>
         )}
 
@@ -166,11 +171,7 @@ export function HubHero({ total, done, firstTaskId }: HubHeroProps) {
   )
 }
 
-// Склонение «ошибка» для русского счётчика (с глаголом «ждёт/ждут»).
-function plural(n: number): string {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'ошибка ждёт'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'ошибки ждут'
-  return 'ошибок ждут'
+// Глагол «ждёт/ждут» согласован с числом оставшихся ошибок («N из total ждут разбора»).
+function waitVerb(n: number): string {
+  return n % 10 === 1 && n % 100 !== 11 ? 'ждёт' : 'ждут'
 }

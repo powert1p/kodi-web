@@ -41,12 +41,12 @@ export function ClosureCelebration({ xp }: ClosureCelebrationProps) {
           </p>
         </div>
 
-        {/* Награда: один XP-акцент */}
+        {/* Награда: один акцент, на родном языке (R4 §5: «XP» → «очков») */}
         <div className="flex items-center gap-2 rounded-full bg-paper-2 px-4 py-2">
           <span className="text-attn-ink">
             <StarFilledIcon size={18} />
           </span>
-          <span className="font-num text-title tabular-nums text-ink">+{xp} XP</span>
+          <span className="font-num text-title tabular-nums text-ink">+{xp} {pointsWord(xp)}</span>
         </div>
 
         <ApButton variant="primary" size="m" full onClick={() => navigate('/')}>
@@ -56,6 +56,15 @@ export function ClosureCelebration({ xp }: ClosureCelebrationProps) {
       </ApCard>
     </div>
   )
+}
+
+// Склонение «очко/очка/очков» для награды (родной язык вместо гейм-аббревиатуры «XP»).
+function pointsWord(n: number): string {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod10 === 1 && mod100 !== 11) return 'очко'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'очка'
+  return 'очков'
 }
 
 // Мини-маршрут к флажку-вершине: solid-кривая от подножия к флагу (сигнатура в финале).

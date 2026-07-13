@@ -15,13 +15,15 @@ const SIZE: Record<Size, string> = {
 
 // primary — заливка brand + ink-текст (AA 7:1, НЕ белый) + display-шрифт и «ключ»-тень
 // (единственная брендовая масса действия). secondary — outlined brand-ink (AA на светлом).
-// ghost — тихие/back-действия.
+// ghost — тихие/back-действия. disabled — per-variant: primary остаётся «живой» в brand-soft
+// с brand-ink текстом (честно-неактивна, не мёртво-серая — brand-ink на brand-soft = 4.95:1,
+// R4 §5); secondary/ghost гасятся тихо в paper-3/label.
 const VARIANT: Record<Variant, string> = {
   primary:
-    'bg-brand text-on-brand hover:bg-brand-deep font-display font-extrabold shadow-key active:translate-y-px',
+    'bg-brand text-on-brand hover:bg-brand-deep font-display font-extrabold shadow-key active:translate-y-px disabled:bg-brand-soft disabled:text-brand-ink',
   secondary:
-    'bg-surface text-brand-ink border border-brand/40 hover:bg-brand-soft',
-  ghost: 'bg-transparent text-text hover:bg-paper-2',
+    'bg-surface text-brand-ink border border-brand/40 hover:bg-brand-soft disabled:bg-paper-3 disabled:text-label',
+  ghost: 'bg-transparent text-text hover:bg-paper-2 disabled:bg-transparent disabled:text-label',
 }
 
 interface ApButtonProps
@@ -56,9 +58,10 @@ export function ApButton({
       disabled={isDisabled}
       className={[
         'inline-flex items-center justify-center gap-2 rounded-control text-title transition-colors',
-        // disabled — ink-пара на приглушённой заливке: text-label на paper-3 = 4.6:1 AA
-        // (было text-muted 2.98:1 — крупная кнопка «Проверить» почти нечитаема, R3 §3).
-        'disabled:cursor-not-allowed disabled:bg-paper-3 disabled:text-label disabled:border-transparent disabled:shadow-none',
+        // disabled — общая механика (курсор/бордер/тень снимаются); цвет заливки и текста
+        // задаёт КАЖДЫЙ вариант отдельно (VARIANT): primary «живая» в brand-soft, тихие — в
+        // paper-3/label. Оба ≥4.5:1 (R4 §5; было единое text-muted 2.98:1 → R3 → R4).
+        'disabled:cursor-not-allowed disabled:border-transparent disabled:shadow-none',
         SIZE[size],
         VARIANT[variant],
         full ? 'w-full' : '',

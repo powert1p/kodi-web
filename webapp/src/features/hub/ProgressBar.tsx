@@ -22,8 +22,9 @@ export function ProgressBar({ done, total }: ProgressBarProps) {
       />
       <div className="flex items-center justify-between">
         <span className="text-caption1 text-muted">Разобрано сегодня</span>
+        {/* «N из total» — та же система прочтения, что hero «N из total ждут разбора» (R4 §5) */}
         <span className="font-num text-caption1-medium tabular-nums text-text">
-          {done}/{total} · {pct}%
+          {done} из {total} · {pct}%
         </span>
       </div>
     </div>
