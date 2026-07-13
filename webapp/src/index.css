@@ -242,6 +242,20 @@
     }
   }
 
+  /* «Печатает» в чате Кёди — мягкий пульс прозрачности (bounce запрещён §11). */
+  .typing-dot {
+    animation: typingPulse 1.2s var(--ease-out-soft) infinite;
+  }
+  @keyframes typingPulse {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+
   /* Оркестрованный stagger-reveal при загрузке (только transform/opacity).
      Контент виден без JS — класс лишь анимирует появление. */
   .reveal {
@@ -383,7 +397,8 @@
     transform: none;
   }
   .shimmer::after,
-  .bob {
+  .bob,
+  .typing-dot {
     animation: none;
   }
   /* Штамп появляется без полёта; конфетти не запускается. */

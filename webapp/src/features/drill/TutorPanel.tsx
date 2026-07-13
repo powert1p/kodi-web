@@ -94,7 +94,7 @@ export function TutorPanel({ problemId, decompIdx, stepN }: TutorPanelProps) {
       </div>
 
       {status === 'error' && (
-        <ApInformer tone="attn" role="alert" leading={<span className="text-sm leading-none">🌱</span>}>
+        <ApInformer tone="attn" role="alert" leading={<Mascot mood="oops" size="s" />}>
           <div className="flex flex-col items-start gap-2">
             <span>{errorText}</span>
             <ApButton
@@ -121,14 +121,15 @@ export function TutorPanel({ problemId, decompIdx, stepN }: TutorPanelProps) {
           rows={1}
           disabled={status === 'sending'}
           placeholder="Например: с чего начать?"
-          className="min-h-11 flex-1 resize-none rounded-control border border-stroke bg-surface px-3 py-3 text-caption1 text-text outline-none transition-colors placeholder:text-muted focus:border-[1.5px] focus:border-brand disabled:bg-stroke disabled:text-muted"
+          // min-h-12 (48px тач, R3 §5) + text-body (16px — не зумит на iOS при фокусе).
+          className="min-h-12 flex-1 resize-none rounded-control border border-stroke bg-surface px-3 py-3 text-body text-text outline-none transition-colors placeholder:text-muted focus:border-brand disabled:bg-stroke disabled:text-muted"
         />
         <button
           type="button"
           aria-label="Отправить"
           disabled={status === 'sending' || input.trim().length === 0}
           onClick={submitInput}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-brand text-on-brand transition-colors hover:bg-brand-deep disabled:bg-stroke disabled:text-muted"
+          className="flex size-12 shrink-0 items-center justify-center rounded-control bg-brand text-on-brand transition-colors hover:bg-brand-deep disabled:bg-stroke disabled:text-muted"
         >
           <LongArrowRightIcon size={20} className={status === 'sending' ? 'animate-spin' : ''} />
         </button>
@@ -163,8 +164,8 @@ function TypingBubble() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted motion-reduce:animate-none"
-          style={{ animationDelay: `${i * 120}ms` }}
+          className="typing-dot size-2 rounded-full bg-muted"
+          style={{ animationDelay: `${i * 160}ms` }}
         />
       ))}
     </div>

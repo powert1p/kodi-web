@@ -36,8 +36,8 @@ export function TaskCard({ task, lead = false }: TaskCardProps) {
         {lead ? <StateChip state="revisit" label="Ты здесь" /> : <StateChip state={task.state} />}
       </div>
 
-      {/* Условие — KaTeX, не больше двух строк (сканируемость списка) */}
-      <p className="line-clamp-2 text-body text-text">
+      {/* Условие — учебный текст ≥18px (§5/R3 §6), KaTeX, не больше двух строк */}
+      <p className="line-clamp-2 text-study text-text">
         <MathText text={task.statement} />
       </p>
 

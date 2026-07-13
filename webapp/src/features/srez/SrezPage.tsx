@@ -67,48 +67,49 @@ export function SrezPage() {
   }
 
   return (
-    // Top-align: карточка задачи начинается сразу под шапкой с прогрессом
-    // (первый смысловой блок ≤96px от верха, canon §4) — без вертикального
-    // центрирования, которое утапливало задачу в середину экрана.
-    <div className="flex flex-col gap-4">
+    // Шапка-якорь (иллюстрация+альтиметр+маршрут) держит верх; форма-вопрос
+    // центрируется в оставшейся высоте — без мёртвой нижней трети (R3 §4).
+    <div className="flex min-h-[calc(100dvh-8rem)] flex-col gap-4">
       <div className="reveal" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
         <SrezHeader current={task.position} total={task.total} />
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="reveal flex flex-col gap-4"
-        style={{ '--reveal-delay': '80ms' } as CSSProperties}
-      >
-        <SrezQuestionCard
-          topic={task.node_title}
-          statement={task.statement}
-          value={value}
-          disabled={locked}
-          onChange={setValue}
-        />
-
-        {srez.answerError && (
-          <ApInformer tone="attn" leading={<Mascot mood="oops" size="s" />} role="alert">
-            <span className="text-study">Не получилось проверить — попробуй ещё раз.</span>
-          </ApInformer>
-        )}
-
-        <ApButton
-          type="submit"
-          variant="primary"
-          size="l"
-          full
-          loading={srez.submitting}
-          disabled={!value.trim() || locked}
+      <div className="flex flex-1 flex-col justify-center gap-4">
+        <form
+          onSubmit={handleSubmit}
+          className="reveal flex flex-col gap-4"
+          style={{ '--reveal-delay': '80ms' } as CSSProperties}
         >
-          Проверить
-        </ApButton>
-      </form>
+          <SrezQuestionCard
+            topic={task.node_title}
+            statement={task.statement}
+            value={value}
+            disabled={locked}
+            onChange={setValue}
+          />
 
-      {srez.phase === 'feedback' && srez.feedbackCorrect !== null && (
-        <SrezFeedback correct={srez.feedbackCorrect} />
-      )}
+          {srez.answerError && (
+            <ApInformer tone="attn" leading={<Mascot mood="oops" size="s" />} role="alert">
+              <span className="text-study">Не получилось проверить — попробуй ещё раз.</span>
+            </ApInformer>
+          )}
+
+          <ApButton
+            type="submit"
+            variant="primary"
+            size="l"
+            full
+            loading={srez.submitting}
+            disabled={!value.trim() || locked}
+          >
+            Проверить
+          </ApButton>
+        </form>
+
+        {srez.phase === 'feedback' && srez.feedbackCorrect !== null && (
+          <SrezFeedback correct={srez.feedbackCorrect} />
+        )}
+      </div>
     </div>
   )
 }
