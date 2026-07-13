@@ -25,20 +25,24 @@ export function SrezHeader({ current, total }: SrezHeaderProps) {
         />
         <div className="hero-scrim pointer-events-none absolute inset-0" />
 
-        <div className="relative flex items-start gap-3 p-4">
-          <Mascot mood="hi" size="s" className="mascot-shadow shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="font-display text-caption1-medium uppercase tracking-[0.12em] text-brand-ink">
-              Мини-срез
-            </p>
-            <p className="text-study text-text">
-              Двенадцать коротких вопросов — по одному за раз, спокойно.
-            </p>
+        {/* Число-альтиметр — СВОЙ ряд (эйбров+Кёди слева, «N/12» справа), реплика Кёди
+            ниже во ВСЮ ширину, а не сдавленной 5-строчной колонкой рядом с числом (R4 §3). */}
+        <div className="relative flex flex-col gap-3 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 pt-1">
+              <Mascot mood="hi" size="s" className="mascot-shadow shrink-0" />
+              <p className="font-display text-caption1-medium uppercase tracking-[0.12em] text-brand-ink">
+                Мини-срез
+              </p>
+            </div>
+            <span className="text-frac shrink-0 text-ink" aria-hidden>
+              {current}
+              <span className="den">/{total}</span>
+            </span>
           </div>
-          <span className="text-frac shrink-0 self-end text-ink" aria-hidden>
-            {current}
-            <span className="den">/{total}</span>
-          </span>
+          <p className="text-study text-text">
+            Двенадцать коротких вопросов — по одному за раз, спокойно.
+          </p>
         </div>
       </section>
 
