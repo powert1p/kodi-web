@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { WrongTask } from '../../lib/types'
 import { MathText } from '../../components/MathText'
@@ -8,32 +7,33 @@ import { StateChip } from './StateChip'
 
 interface TaskCardProps {
   task: WrongTask
-  /** Задержка stagger-reveal в мс. */
-  delay: number
+  /** Ведущая карточка маршрута (текущая) — крафт-lift + «Ты здесь». */
+  lead?: boolean
 }
 
-// Плитка-ошибка (ApCard as=button) — САМА тапается (hover → stroke-brand), без кнопки-дубля:
-// «one primary action per screen» держит hero. Тема + таг-статус сверху, условие (KaTeX)
-// в центре с клампом в 2 строки, снизу — что вышло в прошлый раз + тихий affordance «Разобрать ›».
-export function TaskCard({ task, delay }: TaskCardProps) {
+// Плитка-ошибка = остановка маршрута (ApCard as=button) — САМА тапается, без кнопки-дубля.
+// Ведущая (current) карточка получает крафт-lift и метку «Ты здесь». Тема — display
+// (Unbounded), условие (KaTeX) клампом в 2 строки, снизу — прошлый ответ + тихий переход.
+export function TaskCard({ task, lead = false }: TaskCardProps) {
   const navigate = useNavigate()
-  const style = { '--reveal-delay': `${delay}ms` } as CSSProperties
 
   return (
     <ApCard
       as="button"
       type="button"
-      style={style}
       onClick={() => navigate(`/drill/${task.id}`)}
       aria-label={`Разобрать: ${task.topic_label}`}
-      className="reveal flex w-full flex-col gap-3 text-left transition-colors hover:border-brand"
+      className={[
+        'flex w-full flex-col gap-3 text-left transition-shadow hover:border-brand',
+        lead ? 'lift border-brand/40' : '',
+      ].join(' ')}
     >
-      {/* Шапка: тема + таг состояния (тег прижат вправо) */}
-      <div className="flex items-center gap-2">
-        <span className="line-clamp-2 min-w-0 flex-1 text-title text-ink">
+      {/* Шапка: тема (display) + метка «Ты здесь»/статус */}
+      <div className="flex items-start gap-2">
+        <span className="font-display line-clamp-2 min-w-0 flex-1 pt-0.5 text-title font-extrabold text-ink">
           {task.topic_label}
         </span>
-        <StateChip state={task.state} />
+        {lead ? <StateChip state="revisit" label="Ты здесь" /> : <StateChip state={task.state} />}
       </div>
 
       {/* Условие — KaTeX, не больше двух строк (сканируемость списка) */}
@@ -46,7 +46,7 @@ export function TaskCard({ task, delay }: TaskCardProps) {
         <span className="text-caption1 text-muted">
           в прошлый раз: <span className="font-num text-text">{task.wrong_answer}</span>
         </span>
-        <span className="ml-auto inline-flex items-center gap-1 text-caption1-medium text-brand">
+        <span className="ml-auto inline-flex items-center gap-1 text-caption1-medium text-brand-ink">
           Разобрать
           <RightIcon size={16} />
         </span>

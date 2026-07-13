@@ -10,17 +10,15 @@ import { HubError } from './HubError'
 import { ConsentCard, isConsentDismissed } from './ConsentCard'
 import { useMe } from '../auth/useMe'
 import { STATE_PRIORITY } from './stateConfig'
+import { RouteSpine, type RouteStop } from '../../components/route/RouteSpine'
 
-// Hub — «срез» ошибок. Главный экран: hero с ЕДИНСТВЕННЫМ primary-CTA
-// «Разобрать первую», затем плоские плитки-ошибки, отсортированные по
-// приоритету разбора (сами тапаются, без кнопки-дубля). Стрик/очки не
-// показываем — реального источника в API пока нет (§1f ТЗ: реальные или ничего).
-
+// Hub — «срез» ошибок. Signature-маршрут ведёт от ЧИСЛА-ГЕРОЯ (hero-трейлхед стоит
+// НА кривой, §1) вниз через каждую ошибку честной отметкой до флажка-вершины (§2).
+// Ведущая ошибка — current (пульс), CTA «Разобрать первую» в hero без скролла.
 export function HubPage() {
   const { data, isPending, isError, refetch } = useWrongTasks()
   const { data: profile } = useMe()
 
-  // Телеметрия открытия hub — один раз за монтирование (ref-guard от повторов при ре-рендере).
   const openTrackedRef = useRef(false)
   useEffect(() => {
     if (!openTrackedRef.current) {
@@ -32,18 +30,45 @@ export function HubPage() {
   // Триаж: сначала «разберём», потом «почти», потом «готово».
   const tasks = data
     ? [...data.tasks].sort(
-        (a, b) =>
-          STATE_PRIORITY.indexOf(a.state) - STATE_PRIORITY.indexOf(b.state),
+        (a, b) => STATE_PRIORITY.indexOf(a.state) - STATE_PRIORITY.indexOf(b.state),
       )
     : []
 
   const total = tasks.length
   const done = tasks.filter((t) => t.state === 'got').length
-  // Новичок (has_activity=false) vs ветеран (true) — разводит пустой hub.
   const hasActivity = data?.has_activity ?? false
-
-  // Согласие ещё не спрошено (null — родитель пока не ответил) и не отложено в этой сессии.
   const showConsent = !!profile && profile.photo_consent === null && !isConsentDismissed()
+
+  // Стопы маршрута: hero-трейлхед (origin) → каждая ошибка (первая = current) → флажок.
+  const stops: RouteStop[] =
+    total > 0
+      ? [
+          {
+            key: 'trailhead',
+            state: 'done',
+            content: (
+              <HubHero total={total} done={done} firstTaskId={tasks[0]?.id ?? null} />
+            ),
+          },
+          ...tasks.map<RouteStop>((task, i) => ({
+            key: task.id,
+            state: i === 0 ? 'current' : 'todo',
+            label: String(i + 1),
+            content: <TaskCard task={task} lead={i === 0} />,
+          })),
+          {
+            key: 'summit',
+            state: 'flag',
+            content: (
+              <div className="flex min-h-8 items-center">
+                <span className="font-display text-caption1-medium text-brand-ink">
+                  Вершина дня: весь срез разобран
+                </span>
+              </div>
+            ),
+          },
+        ]
+      : []
 
   return (
     <div className="flex flex-col gap-4">
@@ -51,9 +76,6 @@ export function HubPage() {
       {isError && <HubError onRetry={() => void refetch()} />}
 
       {!isPending && !isError && total === 0 && (
-        // Пустой hub центрируем по вертикали в области над нижним баром — карточка-
-        // приглашение как единственный фокус, без мёртвой нижней половины (§2.8).
-        // min-h в dvh (не %) — надёжно резолвится от вьюпорта, не зависит от высоты main.
         <div className="flex min-h-[72dvh] flex-col justify-center gap-4">
           {showConsent && <ConsentCard delay={0} variant="hub" />}
           <div className="reveal" style={{ '--reveal-delay': '60ms' } as CSSProperties}>
@@ -64,35 +86,24 @@ export function HubPage() {
 
       {!isPending && !isError && total > 0 && (
         <>
+          <div
+            className="reveal flex items-center gap-2 px-0.5"
+            style={{ '--reveal-delay': '40ms' } as CSSProperties}
+          >
+            <h2 className="font-display text-caption1-medium uppercase tracking-[0.12em] text-label">
+              Сегодняшний маршрут
+            </h2>
+            <span className="ml-auto text-caption1 text-muted">сначала трудные</span>
+          </div>
+
+          <div className="reveal" style={{ '--reveal-delay': '80ms' } as CSSProperties}>
+            <RouteSpine stops={stops} currentIndex={1} ariaLabel={`Маршрут из ${total} ошибок`} />
+          </div>
+
+          {/* Согласие — мягкий нудж ПОСЛЕ маршрута: hero+CTA держат первый вьюпорт (§1). */}
           {showConsent && <ConsentCard delay={0} variant="hub" />}
 
-          <div
-            className="reveal"
-            style={{ '--reveal-delay': '60ms' } as CSSProperties}
-          >
-            <HubHero total={total} done={done} firstTaskId={tasks[0]?.id ?? null} />
-          </div>
-
           <ProblemTopicsCard delay={160} />
-
-          <div
-            className="reveal flex items-center gap-2 px-0.5 pt-1"
-            style={{ '--reveal-delay': '180ms' } as CSSProperties}
-          >
-            <h2 className="text-h3 text-ink">Твои ошибки</h2>
-            <span className="font-num inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-surface px-1 text-caption2-medium tabular-nums text-text">
-              {total}
-            </span>
-            <span className="ml-auto text-caption1 text-muted">сложные сверху</span>
-          </div>
-
-          <ul className="flex flex-col gap-3">
-            {tasks.map((task, i) => (
-              <li key={task.id}>
-                <TaskCard task={task} delay={230 + i * 60} />
-              </li>
-            ))}
-          </ul>
         </>
       )}
     </div>
