@@ -3,7 +3,7 @@
 @import './theme/tokens.css';
 @import 'katex/dist/katex.min.css';
 
-/* ---- База (v5: тёплая бумажная подложка, Golos Text) ---- */
+/* ---- База (v6: тёплая бумага в клетку, пара Unbounded/Golos Text) ---- */
 @layer base {
   :root {
     color-scheme: light;
@@ -42,23 +42,43 @@
   }
 }
 
-/* ---- Типографика v5 (DESIGN_SYSTEM §1) — 6 ролей: display/h1/h2/body/caption/label,
-   плюс учебный текст (условие/шаг/реплики Кёди) — отдельная роль ≥18px. Класс-имена
-   сохранены из v4 как словарь вёрстки (значения — единственный источник истины). ---- */
+/* ---- Типографика v6 — пара ролей:
+   DISPLAY (Unbounded) — числа-герои, заголовки экранов, номера ступеней (характер);
+   BODY (Golos Text) — учебный текст, инструкции, реплики Кёди (читаемость ≥18px).
+   Контраст уровней ≥3x, веса 400↔800/900. Класс-имена сохранены как словарь вёрстки. ---- */
 @layer components {
-  /* display — крупный счётчик/число (не используется пока, задел под будущий герой) */
+  /* число-герой — гигант альтиметра (hub «12»); tnum, плотный трекинг, короткий leading */
+  .text-hero {
+    font: 900 clamp(84px, 30vw, 116px) / 0.84 var(--font-display);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+  /* дробь-альтиметр «1/4» · «1/12» — display, крупно, знаменатель мельче/brand-ink */
+  .text-frac {
+    font: 900 clamp(52px, 18vw, 76px) / 0.9 var(--font-display);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+  .text-frac .den {
+    font-size: 0.5em;
+    font-weight: 800;
+    color: var(--brand-ink);
+  }
+  /* display h1 — заголовок героя/экрана (Unbounded 800) */
   .text-h1 {
-    font: 800 32px/38px var(--font-sans);
-    letter-spacing: -0.3px;
+    font: 800 clamp(28px, 8vw, 34px) / 1.05 var(--font-display);
+    letter-spacing: -0.01em;
   }
-  /* h1 (канон) — заголовок экрана/героя */
+  /* display h2 (канон) — заголовок экрана / крупная веха (Unbounded 800) */
   .text-h2 {
-    font: 800 24px/30px var(--font-sans);
-    letter-spacing: -0.2px;
+    font: 800 23px/1.1 var(--font-display);
+    letter-spacing: -0.01em;
   }
-  /* h2 (канон) — заголовок секции / крупная инструкция шага */
+  /* h3 (body-грот) — заголовок секции / КРУПНАЯ инструкция шага (Golos, читаемость) */
   .text-h3 {
-    font: 600 20px/26px var(--font-sans);
+    font: 700 20px/26px var(--font-sans);
   }
   /* control — семиболд-вариант body (заголовки плиток, лейблы кнопок) */
   .text-title {
@@ -68,11 +88,11 @@
   .text-body {
     font: 400 16px/24px var(--font-sans);
   }
-  /* учебный текст — условие задачи/реплика Кёди, минимум 18px (canon §1) */
+  /* учебный текст — условие/реплика Кёди/метод, минимум 18px (canon §1) */
   .text-study {
-    font: 400 18px/26px var(--font-sans);
+    font: 400 18px/27px var(--font-sans);
   }
-  /* caption (канон) — тяжёлый вариант для акцентных подписей */
+  /* caption — тяжёлый вариант для акцентных подписей */
   .text-caption1-medium {
     font: 600 13px/18px var(--font-sans);
   }
@@ -92,6 +112,11 @@
   .text-label-small {
     font: 600 11px/16px var(--font-sans);
   }
+  /* эйбров-метка display — номера ступеней/крамбы (Unbounded 800, разрядка) */
+  .text-mark {
+    font: 800 13px/1.2 var(--font-display);
+    letter-spacing: 0.06em;
+  }
 }
 
 /* ---- Обёртка для формул KaTeX ----
@@ -110,9 +135,8 @@
   white-space: nowrap;
 }
 
-/* ---- Плоская карточка (§1): surface + 1px stroke, радиус card, БЕЗ тени.
-   ApCard-компонент использует те же токены — эта утилита остаётся для скелетонов
-   (структурные плейсхолдеры, которым полный API компонента не нужен). ---- */
+/* ---- Карточка v6: surface + 1px stroke, радиус card. Скелетоны используют те же
+   токены. Глубина — светом бумаги, не серой тенью. ---- */
 @utility ap-card {
   background: var(--surface);
   border: 1px solid var(--stroke);
@@ -121,26 +145,129 @@
 
 /* ---- Утилиты ---- */
 @layer utilities {
-  /* Табличные цифры — Golos Text несёт функцию tnum (проверено: GSUB содержит
-     tnum/pnum), включаем явно поверх font-variant-numeric для полной поддержки. */
+  /* Табличные цифры — включаем tnum явно (Golos и Unbounded несут функцию). */
   .font-num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
     letter-spacing: 0;
+  }
+  /* Display-семейство точечно (номера ступеней, крамбы, метки маршрута). */
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  /* Тёплая мягкая тень-объём под маскотом Кёди (не серая — оранж-крафт). */
+  .mascot-shadow {
+    filter: drop-shadow(
+      0 6px 12px color-mix(in srgb, var(--brand-deep) 22%, transparent)
+    );
+  }
+
+  /* SIGNATURE-подложка: тетрадная клетка + тёплый paper-wash. Живая текстура
+     продукта (математика решается ручкой в тетради), НЕ плоский cream-color.
+     Клетка тонкой линией --grid; сверху мягкий свет из --surface. */
+  .bg-graph {
+    background-color: var(--paper);
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent 0 21px,
+        var(--grid) 21px 22px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 21px,
+        var(--grid) 21px 22px
+      ),
+      radial-gradient(130% 65% at 50% -12%, var(--surface) 0%, transparent 58%);
+  }
+
+  /* Hero-scrim: сплошной тёплый градиент под текстом поверх иллюстрации (AA-читаемость,
+     directive §10) — от полупрозрачного сверху к плотной бумаге снизу. */
+  .hero-scrim {
+    background: linear-gradient(
+      178deg,
+      color-mix(in srgb, var(--paper) 32%, transparent) 0%,
+      color-mix(in srgb, var(--paper) 74%, transparent) 46%,
+      var(--paper) 92%
+    );
+  }
+
+  /* Крафт-lift активной ступени/ведущей карточки — единственный стиль тёплой тени. */
+  .lift {
+    box-shadow: var(--shadow-lift);
+  }
+  .lift-sm {
+    box-shadow: var(--shadow-lift-sm);
+  }
+  /* «Физический ключ» primary-CTA: нижняя кромка brand-deep, уходит при :active. */
+  .shadow-key {
+    box-shadow: 0 1px 0 var(--brand-deep);
+  }
+  .shadow-key:active {
+    box-shadow: 0 0 0 var(--brand-deep);
+  }
+
+  /* Узел маршрута (отметка высоты) — фикс-геометрия без arbitrary-значений;
+     цвет/бордер варианта задаёт компонент RouteMarker Tailwind-утилитами. */
+  .route-node {
+    position: relative;
+    display: flex;
+    width: 26px;
+    height: 26px;
+    margin-top: 3px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-full);
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    z-index: 1;
+  }
+
+  /* Пульс текущего узла маршрута (кольцо расходится) — только на активной точке. */
+  .route-pulse {
+    animation: routePulse 2.1s var(--ease-out-soft) 0.9s infinite;
+  }
+  @keyframes routePulse {
+    0% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    70%,
+    100% {
+      opacity: 0;
+      transform: scale(1.8);
+    }
   }
 
   /* Оркестрованный stagger-reveal при загрузке (только transform/opacity).
      Контент виден без JS — класс лишь анимирует появление. */
   .reveal {
     opacity: 0;
-    transform: translateY(10px);
-    animation: reveal 420ms var(--ease-out-soft) forwards;
+    transform: translateY(12px);
+    animation: reveal 480ms var(--ease-out-soft) forwards;
     animation-delay: var(--reveal-delay, 0ms);
   }
   @keyframes reveal {
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  /* «Всплытие» узла-маркера маршрута при входе (pop из масштаба). */
+  .pop {
+    opacity: 0;
+    transform: scale(0.4);
+    animation: pop 420ms var(--ease-out-soft) forwards;
+    animation-delay: var(--pop-delay, 0ms);
+  }
+  @keyframes pop {
+    to {
+      opacity: 1;
+      transform: none;
     }
   }
 
@@ -157,7 +284,7 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(255, 255, 255, 0.7),
+      color-mix(in srgb, var(--surface) 80%, transparent),
       transparent
     );
     animation: shimmer 1.6s infinite;
@@ -178,21 +305,18 @@
     }
   }
 
-  /* SIGNATURE: переход активной вкладки нижнего бара.
-     Иконка лерпится к бренду + лёгкий scale ~1.15; outline→filled свап делает
-     компонент. Единственная оркестрованная брендовая микро-анимация — вся
-     «смелость» экрана здесь, остальное держим тихим и плоским. */
+  /* Таб-бар: активная вкладка — иконка лерпится к бренду + лёгкий scale.
+     Отметка-точка маршрута под активной вкладкой (часть сигнатуры, §9). */
   .ap-nav-icon {
     transition:
       transform 220ms var(--ease-out-soft),
       color 220ms var(--ease-out-soft);
   }
   .ap-nav-active .ap-nav-icon {
-    transform: scale(1.15);
+    transform: scale(1.12);
   }
 
-  /* Закрытие: мягкий «штамп ЗАКРЫТО» — прилетает чуть из масштаба и оседает
-     на easeOut. Только transform/opacity. */
+  /* Закрытие: мягкий «штамп ЗАКРЫТО» — прилетает чуть из масштаба и оседает. */
   .stamp {
     animation: stamp 480ms var(--ease-out-soft) both;
   }
@@ -211,9 +335,7 @@
     }
   }
 
-  /* Лёгкое конфетти: чипсы разлетаются вверх-в-стороны и оседают.
-     Дистанция/задержка задаются inline-переменными на каждом чипе.
-     Только transform/opacity — никаких layout-сдвигов. */
+  /* Лёгкое конфетти: чипсы разлетаются вверх-в-стороны и оседают. */
   .confetti-chip {
     animation: confetti 1100ms var(--ease-out-soft) both;
     animation-delay: var(--confetti-delay, 0ms);
@@ -232,13 +354,27 @@
         scale(1) rotate(var(--confetti-r, 180deg));
     }
   }
+
+  /* Формула-чип: инлайн-KaTeX внутри учебных карточек читается как «чип-формула»
+     (directive §5: формулы-чипы ≥18px) — мягкая бумажная подложка, tnum. */
+  .formula-body .katex {
+    font-size: 1.02em;
+    background: var(--paper-3);
+    border-radius: var(--radius-chip);
+    padding: 0.05em 0.4em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal {
+  .reveal,
+  .pop {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+  .route-pulse {
+    animation: none;
+    opacity: 0;
   }
   .ap-nav-icon {
     transition: none;

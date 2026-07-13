@@ -1,10 +1,22 @@
 /* Самостоятельный хостинг шрифтов — офлайн-готовность PWA, без обращения к Google.
-   v5-канон: Golos Text — единый гротеск для кириллицы И латиницы (см. DESIGN_SYSTEM.md §1),
-   замена пары DM Sans (латиница) + Onest (кириллица) из v4.
+   v6-канон «Тетрадь чемпиона»: ПАРА семейств —
+     • Display: Unbounded (характерный вариативный 200..900, спорт-геометрия) —
+       числа-герои, заголовки экранов, номера ступеней;
+     • Body: Golos Text (единый гротеск кириллица+латиница) — учебный текст, реплики Кёди.
+   Каскад в токенах: --font-display: 'Unbounded','Golos Text',sans-serif — Unbounded НЕ
+   содержит казах. Ң (U+04A2) и № (U+2116); эти глифы автоматически падают на Golos Text
+   (per-glyph font fallback), поэтому «ВЕРШИНА» рисуется Unbounded, а «ТҮҢЛІК» — смешанно
+   без «тофу». Сабсет вытащен из победившего концепта K-B (кириллица+латиница+цифры+₸+×). */
 
-   Файл на Google Fonts — variable woff2 (один файл на сабсет покрывает 400..800),
-   поэтому 4 файла (latin/latin-ext/cyrillic/cyrillic-ext) достаточно на все начертания.
-   unicode-range маршрутизирует глифы автоматически. */
+@font-face {
+  font-family: 'Unbounded';
+  font-style: normal;
+  /* block, а не swap: display-числа-герои не должны прыгать Golos→Unbounded при
+     первой отрисовке (макс 3 с блок, затем показ; файл 94 КБ — грузится мгновенно). */
+  font-display: block;
+  font-weight: 200 900;
+  src: url('./fonts/unbounded-subset.woff2') format('woff2');
+}
 
 @font-face {
   font-family: 'Golos Text';

@@ -30,8 +30,10 @@ export default defineConfig({
         display: 'standalone',
         orientation: 'portrait',
         lang: 'ru',
-        theme_color: '#ff8c00',
-        background_color: '#ffffff',
+        // v6 «Тетрадь чемпиона»: доминанта — тёплая бумага; статус-бар PWA
+        // сливается с фоном (--paper #FAF7F2), оранж бережём под действие/маршрут.
+        theme_color: '#faf7f2',
+        background_color: '#faf7f2',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
