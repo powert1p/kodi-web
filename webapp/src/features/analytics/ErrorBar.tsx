@@ -7,6 +7,8 @@ interface ErrorBarProps {
   item: ErrorType
   /** Доля от максимума (0..1) — длина полосы. */
   ratio: number
+  /** Максимум повторений в списке (#1) — aria-valuemax метра (R3 §7). */
+  max: number
   /** Ранг (1-based). #1 — «в фокусе», промотирован. */
   rank: number
   /** Задержка stagger-reveal, мс. */
@@ -16,7 +18,7 @@ interface ErrorBarProps {
 // Чанковая горизонтальная полоса повторяемости ошибки (ranking = информация):
 // трек stroke + заливка brand (идиома прогресса, горизонтально). #1 — крупнее и
 // помечен тагом «в фокусе». Один визуал на строку. Right-aligned число (моно).
-export function ErrorBar({ item, ratio, rank, delay }: ErrorBarProps) {
+export function ErrorBar({ item, ratio, max, rank, delay }: ErrorBarProps) {
   const isFocus = rank === 1
   const shown = Math.max(ratio, 0.08) * 100
 
@@ -57,10 +59,11 @@ export function ErrorBar({ item, ratio, rank, delay }: ErrorBarProps) {
         role="meter"
         aria-valuenow={item.count}
         aria-valuemin={0}
+        aria-valuemax={max}
         aria-label={`${item.label}: ${item.count} раз`}
       >
         <div
-          className="h-full rounded-full bg-brand transition-[width] duration-700 ease-out motion-reduce:transition-none"
+          className="h-full rounded-full bg-route-line transition-[width] duration-700 ease-out motion-reduce:transition-none"
           style={{ width: `${shown}%` }}
         />
       </div>

@@ -56,7 +56,9 @@ export function ApButton({
       disabled={isDisabled}
       className={[
         'inline-flex items-center justify-center gap-2 rounded-control text-title transition-colors',
-        'disabled:cursor-not-allowed disabled:bg-paper-3 disabled:text-muted disabled:border-transparent disabled:shadow-none',
+        // disabled — ink-пара на приглушённой заливке: text-label на paper-3 = 4.6:1 AA
+        // (было text-muted 2.98:1 — крупная кнопка «Проверить» почти нечитаема, R3 §3).
+        'disabled:cursor-not-allowed disabled:bg-paper-3 disabled:text-label disabled:border-transparent disabled:shadow-none',
         SIZE[size],
         VARIANT[variant],
         full ? 'w-full' : '',

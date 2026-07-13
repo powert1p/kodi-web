@@ -11,7 +11,8 @@ interface ApLinearProgressProps {
 }
 
 // ApLinearProgress (DESIGN_SYSTEM §3) — линейный прогресс. Высота 8, радиус full,
-// трек stroke, заливка brand/success. Анимация ширины 300ms.
+// трек paper-3, заливка route-line/success. Анимация ширины 300ms. Заливка — глубокий
+// амбер route-line (3.3:1 к треку, R3 §1): часть языка маршрута, а не bright-CTA-оранж.
 export function ApLinearProgress({
   value,
   ariaLabel,
@@ -34,7 +35,7 @@ export function ApLinearProgress({
       <div
         className={[
           'h-full rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none',
-          tone === 'success' ? 'bg-success' : 'bg-brand',
+          tone === 'success' ? 'bg-success' : 'bg-route-line',
         ].join(' ')}
         style={{ width: `${shown}%` }}
       />

@@ -49,6 +49,7 @@ export function AnalyticsPage() {
                 last_cause: item.last_cause_text,
               }}
               ratio={item.error_count / max}
+              max={max}
               rank={i + 1}
               delay={70 + i * 60}
             />
