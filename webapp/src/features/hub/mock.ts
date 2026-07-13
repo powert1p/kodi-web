@@ -9,7 +9,7 @@ export const MOCK_WRONG_TASKS: WrongTask[] = [
     node_id: 'PC02',
     topic_label: 'Проценты',
     statement:
-      'Цена товара $1200$ ₽ выросла на $15\\%$, а затем снизилась на $10\\%$. Найдите итоговую цену.',
+      'Цена товара $1200$ ₸ выросла на $15\\%$, а затем снизилась на $10\\%$. Найдите итоговую цену.',
     answer: '1242',
     primary_micro_skill: 'percent_of_change',
     primary_micro_skill_label: 'Изменение на процент',
@@ -20,12 +20,12 @@ export const MOCK_WRONG_TASKS: WrongTask[] = [
     steps: [
       {
         n: 1,
-        instruction_ru: 'Сколько рублей составляет рост на $15\\%$ от $1200$?',
+        instruction_ru: 'Сколько тенге составляет рост на $15\\%$ от $1200$?',
         micro_skill: 'Процент от числа',
         micro_skill_label: 'Процент от числа',
         expected_value: '180',
         kind: 'compute',
-        reveal: '$1200 \\cdot 0{,}15 = 180$ ₽ — это прибавка к цене.',
+        reveal: '$1200 \\cdot 0{,}15 = 180$ ₸ — это прибавка к цене.',
       },
       {
         n: 2,
@@ -34,7 +34,7 @@ export const MOCK_WRONG_TASKS: WrongTask[] = [
         micro_skill_label: 'Прибавить процент',
         expected_value: '1380',
         kind: 'compute',
-        reveal: '$1200 + 180 = 1380$ ₽ — цена после подорожания.',
+        reveal: '$1200 + 180 = 1380$ ₸ — цена после подорожания.',
       },
       {
         n: 3,
@@ -53,7 +53,7 @@ export const MOCK_WRONG_TASKS: WrongTask[] = [
         micro_skill_label: 'Вычесть процент',
         expected_value: '1242',
         kind: 'compute',
-        reveal: '$1380 - 1380 \\cdot 0{,}1 = 1380 - 138 = 1242$ ₽.',
+        reveal: '$1380 - 1380 \\cdot 0{,}1 = 1380 - 138 = 1242$ ₸.',
       },
     ],
     state: 'revisit',
