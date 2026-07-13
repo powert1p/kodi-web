@@ -44,7 +44,7 @@ export function ErrorBar({ item, ratio, max, rank, delay }: ErrorBarProps) {
         </div>
         <span className="font-display shrink-0 text-right text-h3 font-extrabold tabular-nums text-brand-ink">
           {item.count}
-          <span className="ml-0.5 font-sans text-caption2 text-muted">×</span>
+          <span className="ml-0.5 font-sans text-caption1 text-muted">×</span>
         </span>
       </div>
 
@@ -68,7 +68,7 @@ export function ErrorBar({ item, ratio, max, rank, delay }: ErrorBarProps) {
 
       {/* Последняя причина — только у #1, тихо; остальные строки чисты */}
       {isFocus && item.last_cause && (
-        <p className="text-caption2 text-muted">Последний раз: {item.last_cause}</p>
+        <p className="text-caption1 text-muted">Последний раз: {item.last_cause}</p>
       )}
     </ApCard>
   )
