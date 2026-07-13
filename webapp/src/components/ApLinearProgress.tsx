@@ -24,7 +24,7 @@ export function ApLinearProgress({
 
   return (
     <div
-      className={['h-2 w-full overflow-hidden rounded-full bg-stroke', className].join(' ')}
+      className={['h-2 w-full overflow-hidden rounded-full bg-paper-3', className].join(' ')}
       role="progressbar"
       aria-valuenow={Math.round(ratio * 100)}
       aria-valuemin={0}

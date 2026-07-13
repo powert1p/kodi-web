@@ -13,11 +13,15 @@ const SIZE: Record<Size, string> = {
   l: 'h-14 px-6', // 56
 }
 
+// primary — заливка brand + ink-текст (AA 7:1, НЕ белый) + display-шрифт и «ключ»-тень
+// (единственная брендовая масса действия). secondary — outlined brand-ink (AA на светлом).
+// ghost — тихие/back-действия.
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-brand text-on-brand hover:bg-brand-deep',
+  primary:
+    'bg-brand text-on-brand hover:bg-brand-deep font-display font-extrabold shadow-key active:translate-y-px',
   secondary:
-    'bg-transparent text-brand border border-brand hover:bg-brand-soft',
-  ghost: 'bg-transparent text-text hover:bg-surface',
+    'bg-surface text-brand-ink border border-brand/40 hover:bg-brand-soft',
+  ghost: 'bg-transparent text-text hover:bg-paper-2',
 }
 
 interface ApButtonProps
@@ -52,7 +56,7 @@ export function ApButton({
       disabled={isDisabled}
       className={[
         'inline-flex items-center justify-center gap-2 rounded-control text-title transition-colors',
-        'disabled:cursor-not-allowed disabled:bg-stroke disabled:text-muted disabled:border-transparent',
+        'disabled:cursor-not-allowed disabled:bg-paper-3 disabled:text-muted disabled:border-transparent disabled:shadow-none',
         SIZE[size],
         VARIANT[variant],
         full ? 'w-full' : '',

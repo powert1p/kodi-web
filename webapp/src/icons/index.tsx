@@ -90,6 +90,50 @@ export function TaskActiveIcon({ size = 24, ...rest }: IconProps) {
   )
 }
 
+// ===== Таб-бар v6: язык маршрута (не генерик home/list) =====
+
+/** Восходящий маршрут с отметками — вкладка «Срез» (отметка высоты пути). */
+export function RouteTabIcon({ size = 22, ...rest }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...rest}
+    >
+      <path d="M6 20 L10 9 L14 15 L18 4" />
+      <circle cx="6" cy="20" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="18" cy="4" r="1.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+/** Столбцы прогресса — вкладка «Прогресс». */
+export function BarsTabIcon({ size = 22, ...rest }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      {...rest}
+    >
+      <path d="M5 20V10M12 20V5M19 20v-7" />
+    </svg>
+  )
+}
+
 // ===== Стрелки / навигация по экранам =====
 
 /** left.svg — стрелка влево (назад). */

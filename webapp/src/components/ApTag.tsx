@@ -6,11 +6,13 @@ import type { ReactNode } from 'react'
 
 export type TagStatus = 'neutral' | 'brand' | 'success' | 'attn'
 
+// Бейджи — soft-подложка + ink-пара текста (дисциплина акцента §8: пилюли/бейджи
+// НЕ несут сильный оранж; ink-пары держат AA на светлом).
 const TONE: Record<TagStatus, string> = {
-  neutral: 'bg-paper text-text',
-  brand: 'bg-brand-soft text-brand',
-  success: 'bg-success-soft text-success',
-  attn: 'bg-attn-soft text-attn',
+  neutral: 'bg-paper-2 text-label',
+  brand: 'bg-brand-soft text-brand-ink',
+  success: 'bg-success-soft text-success-ink',
+  attn: 'bg-attn-soft text-attn-ink',
 }
 
 interface ApTagProps {

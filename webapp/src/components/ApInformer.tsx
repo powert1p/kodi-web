@@ -1,17 +1,16 @@
 import type { ReactNode } from 'react'
 
-// ApInformer (DESIGN_SYSTEM §3 — контракт закрыт: tone neutral/attn/success).
-// Синий tone упразднён — четвёртому акценту взяться неоткуда (§1). neutral —
-// спокойная поддерживающая реплика Кёди/факт (бумажная подложка, без бренда —
-// брендовый акцент живёт ТОЛЬКО в реальном CTA). attn — «не сошлось» (амбер,
-// НИКОГДА красный). success — закрытие/веха.
-
-export type InformerTone = 'neutral' | 'attn' | 'success'
+// ApInformer (v6 — tone neutral/brand/attn/success). brand — тёплая реплика Кёди
+// (brand-soft подложка = «голос Кёди», мягкий тинт, НЕ сильный оранж действия §8).
+// neutral — нейтральный факт (бумага). attn — «не сошлось» (амбер, НИКОГДА красный).
+// success — закрытие/веха. Синий упразднён. Ink-пары акцента держат AA на светлом.
+export type InformerTone = 'neutral' | 'brand' | 'attn' | 'success'
 
 const TONE: Record<InformerTone, { box: string; accent: string }> = {
-  neutral: { box: 'bg-paper border-stroke', accent: 'text-text' },
-  attn: { box: 'bg-attn-soft border-attn/30', accent: 'text-attn' },
-  success: { box: 'bg-success-soft border-success/30', accent: 'text-success' },
+  neutral: { box: 'bg-paper-2 border-stroke', accent: 'text-text' },
+  brand: { box: 'bg-brand-soft border-brand/30', accent: 'text-brand-ink' },
+  attn: { box: 'bg-attn-soft border-attn/30', accent: 'text-attn-ink' },
+  success: { box: 'bg-success-soft border-success/30', accent: 'text-success-ink' },
 }
 
 interface ApInformerProps {
