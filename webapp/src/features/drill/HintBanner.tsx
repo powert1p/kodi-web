@@ -21,7 +21,7 @@ export function HintBanner({ text, variant = 'hint' }: HintBannerProps) {
         leading={<Mascot mood={isEasier ? 'hi' : 'thinking'} size="s" className="shrink-0" />}
         title={isEasier ? 'Спустимся на ступень ниже' : 'Подсказка Кёди'}
       >
-        {text}
+        <span className="text-study">{text}</span>
       </ApInformer>
     </div>
   )

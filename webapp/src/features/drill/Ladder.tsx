@@ -1,6 +1,7 @@
 import type { Rung } from '../../lib/ladder'
 import { RungActive } from './RungActive'
 import { RungSolved, RungLocked } from './RungQuiet'
+import { RouteSpine, type RouteStop } from '../../components/route/RouteSpine'
 
 interface LadderProps {
   rungs: readonly Rung[]
@@ -13,18 +14,11 @@ interface LadderProps {
   onSubmit: (value: string) => void
 }
 
-// SIGNATURE: вертикальная лесенка с непрерывным «канатом»-хребтом.
-// Каждая ступень нанизана на спайн; цвет сегмента отражает статус
-// (зелёный за решёнными, оранжевый у активной, тусклый за запертыми).
-// Активная ступень — единственная тактильная карточка; остальные тихие.
-export function Ladder({
-  rungs,
-  hint,
-  showReveal,
-  insertedKey,
-  photoMode,
-  onSubmit,
-}: LadderProps) {
+// SIGNATURE (§2/§3): лесенка ступеней КАК вертикальный участок маршрута — 4 ступени =
+// 4 отметки высоты на рукописной кривой. Активная ступень «защёлкивается» верным
+// ответом и линия дорисовывается вверх (redrawKey = ключ активной ступени). Активная
+// ступень — самая тяжёлая масса; запертые — призраки; финиш — флажок «вершины».
+export function Ladder({ rungs, hint, showReveal, insertedKey, photoMode, onSubmit }: LadderProps) {
   // Стабильный 1-based номер по ОРИГИНАЛЬНЫМ шагам (easier не нумеруем).
   let originalCounter = 0
   const numbered = rungs.map((r) => {
@@ -32,60 +26,52 @@ export function Ladder({
     return { rung: r, num: originalCounter }
   })
 
+  const activeIndex = numbered.findIndex((n) => n.rung.status === 'active')
+  const activeKey = numbered[activeIndex]?.rung.key ?? 'done'
+
+  const stops: RouteStop[] = numbered.map(({ rung, num }) => ({
+    key: rung.key,
+    state:
+      rung.status === 'solved' ? 'done' : rung.status === 'active' ? 'current' : 'todo',
+    // easier-ступень (разминка) — без номера (пустой узел); оригинал — номер.
+    label: rung.kind === 'easier' ? undefined : String(num),
+    content:
+      rung.status === 'active' ? (
+        <RungActive
+          rung={rung}
+          index={num}
+          hint={hint}
+          showReveal={showReveal}
+          justInserted={rung.key === insertedKey}
+          photoMode={photoMode}
+          onSubmit={onSubmit}
+        />
+      ) : rung.status === 'solved' ? (
+        <RungSolved rung={rung} index={num} />
+      ) : (
+        <RungLocked rung={rung} index={num} />
+      ),
+  }))
+
+  // Флажок «вершина: ошибка побеждена» — линия доходит до финиша.
+  stops.push({
+    key: 'summit',
+    state: 'flag',
+    content: (
+      <div className="flex min-h-8 items-center">
+        <span className="font-display text-caption1-medium text-brand-ink">
+          Вершина: ошибка побеждена
+        </span>
+      </div>
+    ),
+  })
+
   return (
-    <ol className="flex flex-col">
-      {numbered.map(({ rung, num }, i) => {
-        const isLast = i === numbered.length - 1
-        // Цвет хребта НИЖЕ этого узла = статус следующего перехода (токены AiPlus).
-        const spineVar =
-          rung.status === 'solved'
-            ? 'var(--success)'
-            : rung.status === 'active'
-              ? 'var(--brand)'
-              : 'var(--stroke)'
-
-        return (
-          <li key={rung.key} className="relative flex gap-3 pb-3 last:pb-0">
-            {/* Хребет-канат + узел-маркер */}
-            <div className="relative flex w-6 shrink-0 flex-col items-center">
-              <span
-                aria-hidden
-                className={`mt-3 size-3 rounded-full ${
-                  rung.status === 'solved'
-                    ? 'bg-success'
-                    : rung.status === 'active'
-                      ? 'bg-brand ring-4 ring-brand/15'
-                      : 'bg-stroke'
-                }`}
-              />
-              {!isLast && (
-                <span
-                  aria-hidden
-                  className="mt-1 w-1 flex-1 rounded-full"
-                  style={{ backgroundColor: spineVar }}
-                />
-              )}
-            </div>
-
-            {/* Тело ступени */}
-            <div className="min-w-0 flex-1">
-              {rung.status === 'active' && (
-                <RungActive
-                  rung={rung}
-                  index={num}
-                  hint={hint}
-                  showReveal={showReveal}
-                  justInserted={rung.key === insertedKey}
-                  photoMode={photoMode}
-                  onSubmit={onSubmit}
-                />
-              )}
-              {rung.status === 'solved' && <RungSolved rung={rung} index={num} />}
-              {rung.status === 'locked' && <RungLocked rung={rung} index={num} />}
-            </div>
-          </li>
-        )
-      })}
-    </ol>
+    <RouteSpine
+      stops={stops}
+      currentIndex={activeIndex < 0 ? stops.length - 1 : activeIndex}
+      redrawKey={activeKey}
+      ariaLabel="Ступени решения"
+    />
   )
 }

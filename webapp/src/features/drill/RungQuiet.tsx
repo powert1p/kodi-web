@@ -31,7 +31,7 @@ export function RungSolved({ rung, index }: RungQuietProps) {
       </span>
       <span
         className={[
-          'min-w-0 flex-1 text-caption1-medium text-success',
+          'min-w-0 flex-1 text-caption1-medium text-success-ink',
           open ? '' : 'line-clamp-2',
         ].join(' ')}
       >
@@ -49,19 +49,20 @@ export function RungSolved({ rung, index }: RungQuietProps) {
   )
 }
 
-// Запертая ступень — затемнённая, без интерактива (виден маршрут впереди).
+// Запертая ступень — «призрак» (§3): компактная, низкий контраст, штрих-бордер.
+// Виден маршрут впереди, но без веса активной ступени.
 export function RungLocked({ rung, index }: RungQuietProps) {
   return (
-    <div className="flex items-center gap-3 rounded-control border border-stroke bg-paper px-3 py-3 opacity-60">
+    <div className="flex items-center gap-3 rounded-control border border-dashed border-grid-strong bg-paper-2 px-3 py-3 opacity-70">
       <span
         aria-hidden
-        className="flex size-6 shrink-0 items-center justify-center rounded-full border border-stroke text-muted"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full border border-grid-strong text-muted"
       >
         <svg viewBox="0 0 24 24" className="size-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M6 10V8a6 6 0 1 1 12 0v2M5 10h14v9H5z" />
         </svg>
       </span>
-      <span className="line-clamp-2 min-w-0 flex-1 text-caption1 text-muted">
+      <span className="line-clamp-1 min-w-0 flex-1 text-caption1 text-muted">
         {skillLabel(rung.microSkill) ?? 'Этот шаг'}
       </span>
       <span className="font-num shrink-0 text-caption2 tabular-nums text-muted">

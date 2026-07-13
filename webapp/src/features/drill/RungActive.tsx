@@ -67,10 +67,10 @@ export function RungActive({
   }
 
   return (
-    <ApCard tone="brand-soft" padding="m" className="flex flex-col gap-3">
+    <ApCard tone="brand-soft" padding="m" className="lift flex flex-col gap-3 border-brand/40">
       {/* Эйбров: читаемый label шага (никогда код) + позиция */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-caption2-medium uppercase tracking-[0.1em] text-brand">
+        <span className="font-display text-caption2-medium uppercase tracking-[0.1em] text-brand-ink">
           {label ?? stepWord}
         </span>
         {label && (
@@ -80,8 +80,8 @@ export function RungActive({
         )}
       </div>
 
-      {/* Инструкция шага — учебный текст (canon §1: минимум 18px) */}
-      <p className="text-h3 text-ink">
+      {/* Инструкция шага — учебный текст (canon §1: минимум 18px), формулы-чипами */}
+      <p className="formula-body text-study text-ink">
         <MathText text={rung.instruction} />
       </p>
 
@@ -105,7 +105,7 @@ export function RungActive({
         ) : (
           <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
             <input
-              inputMode="decimal"
+              inputMode={inputModeFor(rung.expected_value)}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="Твой ответ"
@@ -129,17 +129,25 @@ export function RungActive({
 
       {/* Reveal — разобранный шаг как последняя опора (НЕ финальный ответ задачи) */}
       {showReveal && rung.reveal && (
-        <details className="rounded-control bg-surface p-3" open>
-          <summary className="cursor-pointer text-caption1-medium text-brand">
+        <details className="rounded-control border border-stroke bg-surface p-3" open>
+          <summary className="cursor-pointer text-caption1-medium text-brand-ink">
             Покажу, как делается этот шаг
           </summary>
-          <p className="mt-2 text-caption1 text-text">
+          <p className="formula-body mt-2 text-study text-text">
             <MathText text={rung.reveal} />
           </p>
         </details>
       )}
     </ApCard>
   )
+}
+
+// inputmode по ТИПУ ответа (directive §4), НЕ по значению-утечке: целое → numeric,
+// десятичное → decimal, дробь/выражение/слово → text (клавиатура с «/», «−»).
+function inputModeFor(expected: string): 'numeric' | 'decimal' | 'text' {
+  if (/^-?\d+$/.test(expected)) return 'numeric'
+  if (/^-?\d*[.,]\d+$/.test(expected)) return 'decimal'
+  return 'text'
 }
 
 // Сократическая подсказка по микро-навыку: наводит, но НЕ даёт ответ.

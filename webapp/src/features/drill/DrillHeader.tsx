@@ -9,44 +9,47 @@ interface DrillHeaderProps {
   total: number
 }
 
-// Шапка разбора: back-кнопка (прозрачная, иконка text), заголовок + эйбров,
-// тонкая полоса прогресса. Тема — line-clamp-2 (не режем смысл посреди слова).
+// Шапка разбора + якорь первого вьюпорта (§3): топбар (back + крамб) → тема (display) →
+// ДРОБЬ-АЛЬТИМЕТР «1/4» (Unbounded-гигант) с полосой подъёма. Дробь — сильная масса
+// сверху; активная ступень ниже её продолжает якорь.
 export function DrillHeader({ topic, current, total }: DrillHeaderProps) {
   const navigate = useNavigate()
 
   return (
-    <header className="flex flex-col gap-3 pt-1">
+    <header className="flex flex-col gap-4 pt-1">
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => navigate('/')}
           aria-label="Назад к срезу"
-          className="flex size-12 shrink-0 items-center justify-center rounded-control text-text transition-colors hover:bg-surface"
+          className="flex size-12 shrink-0 items-center justify-center rounded-control border border-stroke bg-surface text-ink transition-colors hover:bg-paper-2"
         >
-          <LeftIcon size={22} />
+          <LeftIcon size={20} />
         </button>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="text-caption2-medium uppercase tracking-[0.12em] text-brand">
-            Работа над ошибкой
-          </span>
-          <span className="line-clamp-2 text-title text-ink">{topic}</span>
-        </div>
-
-        {/* Счётчик/прогресс лесенки — только когда есть ступени (иначе «0/0» выглядит сломанным) */}
-        {total > 0 && (
-          <span className="font-num shrink-0 self-start rounded-chip bg-surface px-3 py-1 text-caption2-medium tabular-nums text-text">
-            {current}/{total}
-          </span>
-        )}
+        <span className="font-display text-caption1-medium uppercase tracking-[0.1em] text-label">
+          Работа над ошибкой
+        </span>
       </div>
 
+      <h1 className="text-h1 text-ink">{topic}</h1>
+
       {total > 0 && (
-        <ApLinearProgress
-          value={total > 0 ? current / total : 0}
-          minShown={0.04}
-          ariaLabel={`Шаг ${current} из ${total}`}
-        />
+        <div className="flex items-center gap-4">
+          <span className="text-frac text-ink" aria-hidden>
+            {current}
+            <span className="den">/{total}</span>
+          </span>
+          <div className="flex flex-1 flex-col gap-2">
+            <ApLinearProgress
+              value={current / total}
+              minShown={0.06}
+              ariaLabel={`Ступень ${current} из ${total}`}
+            />
+            <span className="font-display text-caption1-medium text-ink">
+              Ступень <span className="text-brand-ink">{current}</span> из {total} · подъём начат
+            </span>
+          </div>
+        </div>
       )}
     </header>
   )

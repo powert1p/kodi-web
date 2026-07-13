@@ -120,7 +120,7 @@ export function TutorPanel({ problemId, decompIdx, stepN }: TutorPanelProps) {
           }}
           rows={1}
           disabled={status === 'sending'}
-          placeholder="Например: почему тут не 20?"
+          placeholder="Например: с чего начать?"
           className="min-h-11 flex-1 resize-none rounded-control border border-stroke bg-surface px-3 py-3 text-caption1 text-text outline-none transition-colors placeholder:text-muted focus:border-[1.5px] focus:border-brand disabled:bg-stroke disabled:text-muted"
         />
         <button
@@ -137,17 +137,18 @@ export function TutorPanel({ problemId, decompIdx, stepN }: TutorPanelProps) {
   )
 }
 
-// Пузырь реплики: ученик справа (тёплая бренд-подложка — «это моё»),
-// тьютор слева (белый приподнятый чип с бордером — «это ответили мне»).
+// Пузырь реплики: ученик справа (тёплая brand-soft подложка — «это моё», §6),
+// Кёди слева (белый приподнятый чип — «это ответили мне»). Реплики Кёди — учебный
+// текст ≥18px (§5); реплика ученика — body 16px.
 function Bubble({ role, children }: { role: 'user' | 'assistant'; children: string }) {
   const isUser = role === 'user'
   return (
     <p
       className={[
-        'max-w-[85%] text-caption1 text-text',
+        'max-w-[85%]',
         isUser
-          ? 'self-end rounded-card rounded-br-chip bg-brand-soft px-3 py-2'
-          : 'self-start rounded-card rounded-bl-chip border border-stroke bg-surface px-3 py-2',
+          ? 'self-end rounded-card rounded-br-chip bg-brand-soft px-3 py-2 text-body text-text'
+          : 'self-start rounded-card rounded-bl-chip border border-stroke bg-surface px-3 py-2 text-study text-text',
       ].join(' ')}
     >
       {children}

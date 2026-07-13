@@ -9,15 +9,14 @@ const SEGMENTS: { key: 'input' | 'tetrad'; label: string }[] = [
 ]
 
 // Сегмент-контрол «Ввод / По тетради»: переключает форму сдачи активной
-// original-ступени между текстовым полем и фото страницы тетради (DrillPage
-// решает photoMode). Бренд-заливка — только активный сегмент (дисциплина
-// акцента §1): переключатель сам по себе не «действие», действие — внутри.
+// original-ступени. Активный сегмент — БЕЛЫЙ приподнятый чип (не оранж: сам
+// переключатель не «действие», §8 дисциплина акцента — оранж бережём под CTA).
 export function StepModeToggle({ mode, onChange }: StepModeToggleProps) {
   return (
     <div
       role="tablist"
       aria-label="Способ сдачи шага"
-      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-surface p-1"
+      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-paper-3 p-1"
     >
       {SEGMENTS.map((seg) => {
         const active = mode === seg.key
@@ -31,8 +30,8 @@ export function StepModeToggle({ mode, onChange }: StepModeToggleProps) {
             className={[
               'h-12 flex-1 rounded-chip text-caption1-medium transition-colors',
               active
-                ? 'bg-brand text-on-brand'
-                : 'text-muted hover:bg-paper hover:text-text',
+                ? 'lift-sm bg-surface text-ink'
+                : 'bg-transparent text-muted hover:text-text',
             ].join(' ')}
           >
             {seg.label}
