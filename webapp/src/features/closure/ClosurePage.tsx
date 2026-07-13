@@ -71,19 +71,22 @@ export function ClosurePage() {
           <ClosureCelebration xp={problem?.xp ?? 30} />
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <>
           {/* Финальный подъём — участок маршрута к вершине (§1 сигнатура сквозная +
-              §4 якорь первого вьюпорта): пройденные ступени лесенки → флажок-вершина. */}
+              §4 якорь первого вьюпорта): держит ВЕРХ экрана. */}
           <div
             className="reveal flex flex-col gap-2"
             style={{ '--reveal-delay': '40ms' } as CSSProperties}
           >
-              <p className="font-display text-caption1-medium uppercase tracking-[0.12em] text-brand-ink">
-                Финальный подъём — вершина близко
-              </p>
-              <RouteMeter current={climb} total={climb} ariaLabel="Финальный подъём к вершине" />
-            </div>
+            <p className="font-display text-caption1-medium uppercase tracking-[0.12em] text-brand-ink">
+              Финальный подъём — вершина близко
+            </p>
+            <RouteMeter current={climb} total={climb} ariaLabel="Финальный подъём к вершине" />
+          </div>
 
+          {/* Интро + контрольная центрируются в ОСТАВШЕЙСЯ высоте — низ не оседает
+              мёртвой третью (R4 §2), маршрут выше держит верх. */}
+          <div className="flex flex-1 flex-col justify-center gap-4">
             {/* Интро: почти финал. Подводка к ЕДИНСТВЕННОЙ активной карточке (контрольная). */}
             <section
               className="reveal flex items-start gap-3"
@@ -123,7 +126,8 @@ export function ClosurePage() {
                 />
               )}
             </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   )
