@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApTextField } from '../../components/ApTextField'
+import { RouteMeter } from '../../components/route/RouteMeter'
 import { ConsentCheckbox } from './ConsentCheckbox'
 import { GradeSelect } from './GradeSelect'
 import { LeftIcon } from '../../icons'
@@ -17,6 +18,9 @@ import { checkPhone } from '../../lib/auth'
 
 // Этап формы.
 type Step = 'phone' | 'login' | 'register-name' | 'register-grade' | 'register-pin'
+
+// Шаги регистрации как отметки маршрута (тот же язык, что hub/drill/srez).
+const REGISTER_STEPS: Step[] = ['register-name', 'register-grade', 'register-pin']
 
 // Маскот-настроение по этапу (§5 Кёди-протокол: hi на входе).
 function mascotMood(step: Step, hasError: boolean) {
@@ -257,22 +261,39 @@ export function LoginPage() {
     )
   }
 
+  const regIdx = REGISTER_STEPS.indexOf(step)
+
   return (
-    <div className="relative flex min-h-dvh flex-col bg-paper">
+    <div className="bg-graph relative flex min-h-dvh flex-col">
       <div className="mx-auto flex w-full max-w-[30rem] flex-1 flex-col justify-center px-6 py-8">
         {/* Герой формы — центрирован как ОДНА группа (мascot+форма+низ):
             пустота делится пополам сверху/снизу, а не копится единым мёртвым блоком (canon §2.8) */}
         <div
-          className="reveal flex w-full flex-col items-center gap-8"
+          className="reveal flex w-full flex-col items-center gap-6"
           style={{ '--reveal-delay': '0ms' } as CSSProperties}
         >
           <div className="flex flex-col items-center gap-3 text-center">
-            <Mascot mood={mood} size="m" className={mood === 'celebrate' ? 'bob' : ''} />
+            <Mascot
+              mood={mood}
+              size="m"
+              className={['mascot-shadow', mood === 'celebrate' ? 'bob' : ''].join(' ')}
+            />
             <div className="flex flex-col gap-1">
-              <h1 className="text-h2 text-ink">{stepTitle(step)}</h1>
+              <h1 className="text-h1 text-ink">{stepTitle(step)}</h1>
               <p className="text-study text-muted">{stepSub(step, phone)}</p>
             </div>
           </div>
+
+          {/* Шаги регистрации как отметки маршрута (§Signature-язык на всех экранах) */}
+          {regIdx >= 0 && (
+            <div className="w-full">
+              <RouteMeter
+                current={regIdx + 1}
+                total={REGISTER_STEPS.length}
+                ariaLabel={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}
+              />
+            </div>
+          )}
 
           <div className="w-full">{renderForm()}</div>
 

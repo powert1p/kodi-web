@@ -29,7 +29,7 @@ export function ErrorBar({ item, ratio, rank, delay }: ErrorBarProps) {
     >
       <div className="flex items-baseline justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="font-num shrink-0 text-caption2-medium tabular-nums text-muted">
+          <span className="font-display shrink-0 text-mark tabular-nums text-label">
             {rank}
           </span>
           <span
@@ -42,9 +42,9 @@ export function ErrorBar({ item, ratio, rank, delay }: ErrorBarProps) {
           </span>
           {isFocus && <ApTag status="brand">в фокусе</ApTag>}
         </div>
-        <span className="font-num shrink-0 text-right text-title tabular-nums text-brand">
+        <span className="font-display shrink-0 text-right text-h3 font-extrabold tabular-nums text-brand-ink">
           {item.count}
-          <span className="ml-0.5 text-caption2 text-muted">×</span>
+          <span className="ml-0.5 font-sans text-caption2 text-muted">×</span>
         </span>
       </div>
 

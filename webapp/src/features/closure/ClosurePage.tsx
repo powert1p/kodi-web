@@ -65,9 +65,9 @@ export function ClosurePage() {
             className="reveal flex items-start gap-3"
             style={{ '--reveal-delay': '60ms' } as CSSProperties}
           >
-            <Mascot mood="hi" size="m" className="-mt-1 shrink-0" />
+            <Mascot mood="hi" size="m" className="mascot-shadow -mt-1 shrink-0" />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="text-caption1-medium uppercase tracking-[0.12em] text-brand">
+              <span className="font-display text-caption1-medium uppercase tracking-[0.12em] text-brand-ink">
                 Закрепление · {problem?.topic_label ?? task?.topic_label ?? ''}
               </span>
               <h1 className="text-h2 text-ink">Последний шаг</h1>

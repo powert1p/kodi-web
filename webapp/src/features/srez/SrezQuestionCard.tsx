@@ -11,19 +11,21 @@ interface SrezQuestionCardProps {
   onChange: (value: string) => void
 }
 
-// Условие задачи среза: тема (muted caption) → учебный текст (≥18px) → поле
-// ответа (ApTextField l=56, canon §1 — поле шага). Без CTA внутри карточки —
-// «Проверить» общий для формы и живёт под карточкой (единственный primary экрана).
+// Условие задачи среза (ведущая карточка, крафт-lift-sm): тема (display-эйбров) →
+// учебный текст ≥18px + формулы-чипы → поле ответа (l=56, canon §1). Плейсхолдер
+// формат-нейтральный «Твой ответ» (§4: без чисел/единиц/утечек); ответ на клиент не
+// приходит (§2.5). CTA «Проверить» — под карточкой (единственный primary экрана).
 export function SrezQuestionCard({ topic, statement, value, disabled, onChange }: SrezQuestionCardProps) {
   return (
-    <ApCard padding="m" className="flex flex-col gap-3">
-      <span className="text-caption1 text-muted">Тема: {topic}</span>
-      <p className="text-study text-ink">
+    <ApCard padding="m" className="lift-sm flex flex-col gap-3">
+      <span className="font-display text-caption2-medium uppercase tracking-[0.12em] text-brand-ink">
+        Тема · {topic}
+      </span>
+      <p className="formula-body text-study text-ink">
         <MathText text={statement} />
       </p>
-      {/* text, не decimal: в банке есть дроби «1/2» и отрицательные ответы —
-          iOS decimal-клавиатура не содержит «/» и «−», text покрывает всё
-          (корректность важнее эргономики для пилота). */}
+      {/* text (не decimal): в банке есть дроби «1/2» и отрицательные — iOS decimal
+          не содержит «/» и «−»; text покрывает всё (§4: тип ответа → text). */}
       <ApTextField
         fieldSize="l"
         inputMode="text"

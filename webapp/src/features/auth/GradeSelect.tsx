@@ -16,7 +16,7 @@ export function GradeSelect({ value, onChange, disabled }: GradeSelectProps) {
     <div
       role="radiogroup"
       aria-label="Класс"
-      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-surface p-1"
+      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-paper-3 p-1"
     >
       {GRADES.map((g) => {
         const active = value === g
@@ -29,10 +29,10 @@ export function GradeSelect({ value, onChange, disabled }: GradeSelectProps) {
             disabled={disabled}
             onClick={() => onChange(g)}
             className={[
-              'h-12 flex-1 rounded-chip text-caption1-medium transition-colors',
+              'font-display h-12 flex-1 rounded-chip text-title transition-colors',
               active
-                ? 'bg-brand text-on-brand'
-                : 'text-muted hover:bg-paper hover:text-text',
+                ? 'lift-sm bg-surface text-ink'
+                : 'bg-transparent text-muted hover:text-text',
             ].join(' ')}
           >
             {g}

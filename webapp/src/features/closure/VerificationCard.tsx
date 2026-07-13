@@ -45,15 +45,15 @@ export function VerificationCard({
   }
 
   return (
-    <ApCard as="article" tone="brand-soft" padding="m" className="flex flex-col gap-3">
+    <ApCard as="article" tone="brand-soft" padding="m" className="lift flex flex-col gap-3 border-brand/40">
       <div className="flex items-center gap-2">
-        <span className="min-w-0 flex-1 truncate text-caption2-medium uppercase tracking-[0.1em] text-brand">
+        <span className="font-display min-w-0 flex-1 truncate text-caption2-medium uppercase tracking-[0.1em] text-brand-ink">
           Контрольная
         </span>
         <ApTag status="neutral">без подсказок</ApTag>
       </div>
 
-      <p className="text-h3 text-ink">
+      <p className="formula-body text-study text-ink">
         <MathText text={statement} />
       </p>
 
