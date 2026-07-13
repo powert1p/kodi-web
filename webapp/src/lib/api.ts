@@ -5,6 +5,10 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO, SrezTask, StepVerdict } from './types'
 import { MOCK_WRONG_TASKS } from '../features/hub/mock'
+import { MOCK_SREZ_TASKS, MOCK_ANALYTICS, MOCK_PROBLEM_TOPICS, MOCK_VERIFICATION } from './devMocks'
+
+/** true — локальная разработка без бэка: подставляем DEV-фикстуры (НЕ в тестах). */
+const USE_DEV_MOCK = import.meta.env.DEV && import.meta.env.MODE !== 'test'
 
 /** Ключ хранилища JWT-токена. */
 const STORAGE_KEY = 'kodi.jwt'
@@ -133,8 +137,13 @@ export async function fetchWrongTasks(days?: number, limit?: number): Promise<Wr
  * Возвращает сырой JSON — нормализация в типизированный AnalyticsData через asAnalyticsData.
  */
 export async function fetchAnalytics(): Promise<unknown> {
-  const res = await apiFetch(`${API_BASE}/trainer/analytics`, { headers: authHeaders() })
-  return res.json()
+  try {
+    const res = await apiFetch(`${API_BASE}/trainer/analytics`, { headers: authHeaders() })
+    return await res.json()
+  } catch (err) {
+    if (USE_DEV_MOCK) return MOCK_ANALYTICS
+    throw err
+  }
 }
 
 /** Нормализует unknown-ответ аналитики в AnalyticsData (или null). */
@@ -255,9 +264,14 @@ export function useStepSubmit() {
 
 // ── Проблемные темы ──
 export async function fetchProblemTopics(): Promise<ProblemTopic[]> {
-  const res = await apiFetch(`${API_BASE}/trainer/problem-topics`, { headers: authHeaders() })
-  const data = (await res.json()) as { topics?: ProblemTopic[] }
-  return data.topics ?? []
+  try {
+    const res = await apiFetch(`${API_BASE}/trainer/problem-topics`, { headers: authHeaders() })
+    const data = (await res.json()) as { topics?: ProblemTopic[] }
+    return data.topics ?? []
+  } catch (err) {
+    if (USE_DEV_MOCK) return MOCK_PROBLEM_TOPICS
+    throw err
+  }
 }
 
 export function useProblemTopics() {
@@ -270,12 +284,17 @@ export function useProblemTopics() {
 
 // ── Verification (closure) ──
 export async function startVerification(problemId: number, microSkill?: string | null): Promise<VerificationProblemDTO> {
-  const res = await apiFetch(`${API_BASE}/trainer/verification/start`, {
-    method: 'POST',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ problem_id: problemId, micro_skill: microSkill ?? null }),
-  })
-  return res.json() as Promise<VerificationProblemDTO>
+  try {
+    const res = await apiFetch(`${API_BASE}/trainer/verification/start`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ problem_id: problemId, micro_skill: microSkill ?? null }),
+    })
+    return await (res.json() as Promise<VerificationProblemDTO>)
+  } catch (err) {
+    if (USE_DEV_MOCK) return MOCK_VERIFICATION
+    throw err
+  }
 }
 
 export async function answerVerification(problemId: number, answer: string, microSkill?: string | null): Promise<{ correct: boolean }> {
@@ -313,13 +332,20 @@ export async function fetchEasier(microSkill: string, excludeIdx?: number | null
 
 // ── Мини-срез (Блок 1.0) ──
 export async function startSrez(): Promise<SrezTask[]> {
-  const res = await apiFetch(`${API_BASE}/trainer/srez/start`, {
-    method: 'POST',
-    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
-  })
-  const data = (await res.json()) as { tasks?: SrezTask[] }
-  return data.tasks ?? []
+  try {
+    const res = await apiFetch(`${API_BASE}/trainer/srez/start`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    const data = (await res.json()) as { tasks?: SrezTask[] }
+    const tasks = data.tasks ?? []
+    if (tasks.length === 0 && USE_DEV_MOCK) return MOCK_SREZ_TASKS
+    return tasks
+  } catch (err) {
+    if (USE_DEV_MOCK) return MOCK_SREZ_TASKS
+    throw err
+  }
 }
 
 export async function answerSrez(problemId: number, answer: string, elapsedMs?: number): Promise<{ is_correct: boolean }> {
