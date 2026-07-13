@@ -39,17 +39,12 @@ export function HubPage() {
   const hasActivity = data?.has_activity ?? false
   const showConsent = !!profile && profile.photo_consent === null && !isConsentDismissed()
 
-  // Стопы маршрута: hero-трейлхед (origin) → каждая ошибка (первая = current) → флажок.
+  // Стопы маршрута списка: каждая ошибка честной отметкой (первая = current, ты здесь) →
+  // флажок-вершина. Трейлхед-число живёт в HubHero выше и запускает штрих, который
+  // стыкуется с рельсом списка (тот же x=22) — маршрут читается как единая линия (R3 §1).
   const stops: RouteStop[] =
     total > 0
       ? [
-          {
-            key: 'trailhead',
-            state: 'done',
-            content: (
-              <HubHero total={total} done={done} firstTaskId={tasks[0]?.id ?? null} />
-            ),
-          },
           ...tasks.map<RouteStop>((task, i) => ({
             key: task.id,
             state: i === 0 ? 'current' : 'todo',
@@ -86,9 +81,14 @@ export function HubPage() {
 
       {!isPending && !isError && total > 0 && (
         <>
+          {/* Трейлхед: число-герой запускает штрих маршрута (первый вьюпорт, §1) */}
+          <div className="reveal" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
+            <HubHero total={total} done={done} firstTaskId={tasks[0]?.id ?? null} />
+          </div>
+
           <div
             className="reveal flex items-center gap-2 px-0.5"
-            style={{ '--reveal-delay': '40ms' } as CSSProperties}
+            style={{ '--reveal-delay': '60ms' } as CSSProperties}
           >
             <h2 className="font-display text-caption1-medium uppercase tracking-[0.12em] text-label">
               Сегодняшний маршрут
@@ -96,8 +96,8 @@ export function HubPage() {
             <span className="ml-auto text-caption1 text-muted">сначала трудные</span>
           </div>
 
-          <div className="reveal" style={{ '--reveal-delay': '80ms' } as CSSProperties}>
-            <RouteSpine stops={stops} currentIndex={1} ariaLabel={`Маршрут из ${total} ошибок`} />
+          <div className="reveal" style={{ '--reveal-delay': '100ms' } as CSSProperties}>
+            <RouteSpine stops={stops} currentIndex={0} ariaLabel={`Маршрут из ${total} ошибок`} />
           </div>
 
           {/* Согласие — мягкий нудж ПОСЛЕ маршрута: hero+CTA держат первый вьюпорт (§1). */}
