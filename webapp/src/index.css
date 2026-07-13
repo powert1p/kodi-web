@@ -135,6 +135,20 @@
   white-space: nowrap;
 }
 
+/* ---- KaTeX в sans-системе приложения (R4 §4) ----
+   Числа/проценты/дроби задач рендерились Computer-Modern SERIF внутри sans-приложения —
+   видимый шов почти на каждом экране. Переопределяем ТОЛЬКО font-family (глифы) на Golos:
+   позиционирование дробей/степеней KaTeX держит в inline-стилях по СВОИМ метрикам, поэтому
+   кегль/вертикаль (font-size 1.21em) НЕ трогаем — иначе дроби разъедутся. Правило un-layered
+   и после @import katex → выигрывает каскад у KaTeX_Main. Математика простая (числа/%/дроби);
+   визуальный гейт R4: drill/srez/hub/closure — дроби и индексы на месте. */
+.katex,
+.katex .mathnormal,
+.katex .mathdefault,
+.katex .mainrm {
+  font-family: var(--font-sans);
+}
+
 /* ---- Карточка v6: surface + 1px stroke, радиус card. Скелетоны используют те же
    токены. Глубина — светом бумаги, не серой тенью. ---- */
 @utility ap-card {
