@@ -15,6 +15,7 @@ import { GradeSelect } from './GradeSelect'
 import { LeftIcon } from '../../icons'
 import { useAuth } from './AuthContext'
 import { checkPhone } from '../../lib/auth'
+import heroDesk from '../../assets/hero-desk.jpg'
 
 // Этап формы.
 type Step = 'phone' | 'login' | 'register-name' | 'register-grade' | 'register-pin'
@@ -262,20 +263,22 @@ export function LoginPage() {
   }
 
   const regIdx = REGISTER_STEPS.indexOf(step)
+  const isPhone = step === 'phone'
 
   return (
-    <div className="bg-graph relative flex min-h-dvh flex-col">
-      <div className="mx-auto flex w-full max-w-[30rem] flex-1 flex-col justify-center px-6 py-8">
-        {/* Герой формы — центрирован как ОДНА группа (мascot+форма+низ):
-            пустота делится пополам сверху/снизу, а не копится единым мёртвым блоком (canon §2.8) */}
+    <div className="bg-graph relative flex min-h-dvh flex-col overflow-hidden">
+      <div className="relative z-10 mx-auto flex w-full max-w-[30rem] flex-1 flex-col justify-center px-6 py-8">
+        {/* Герой формы — центрирован как ОДНА группа; тёплая desk-полоса ниже
+            закрывает прежде пустую нижнюю клетку (R4 §1). */}
         <div
           className="reveal flex w-full flex-col items-center gap-6"
           style={{ '--reveal-delay': '0ms' } as CSSProperties}
         >
           <div className="flex flex-col items-center gap-3 text-center">
+            {/* Входной экран — первый контакт ребёнка: Кёди крупнее (R4 §1). */}
             <Mascot
               mood={mood}
-              size="m"
+              size={isPhone ? 'l' : 'm'}
               className={['mascot-shadow', mood === 'celebrate' ? 'bob' : ''].join(' ')}
             />
             <div className="flex flex-col gap-1">
@@ -284,8 +287,15 @@ export function LoginPage() {
             </div>
           </div>
 
-          {/* Шаги регистрации как отметки маршрута (§Signature-язык на всех экранах) */}
-          {regIdx >= 0 && (
+          {/* Маршрут-подпись (§Signature-язык на всех экранах): на ВХОДНОМ шаге —
+              трейлхед «начало пути» (одна отметка «ты здесь» → флажок-цель, без
+              ложного счётчика — ветка и длина пути ещё неизвестны); на шагах
+              регистрации — честный прогресс N из 3 (R4 §1). */}
+          {isPhone ? (
+            <div className="w-full">
+              <RouteMeter current={1} total={1} ariaLabel="Вход — ты в начале пути" />
+            </div>
+          ) : regIdx >= 0 ? (
             <div className="w-full">
               <RouteMeter
                 current={regIdx + 1}
@@ -293,15 +303,31 @@ export function LoginPage() {
                 ariaLabel={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}
               />
             </div>
-          )}
+          ) : null}
 
           <div className="w-full">{renderForm()}</div>
 
-          {/* Тихий низ — сразу под формой, не в отдельной пустой половине экрана */}
+          {/* Тихий низ — сразу под формой. */}
           <p className="text-center text-caption1 text-muted">
             Кёди рядом на каждом шаге — разберём ошибки вместе.
           </p>
         </div>
+      </div>
+
+      {/* Тёплый desk-натюрморт заполняет нижнюю клетку (R4 §1): фейдит из бумаги
+          сверху в иллюстрацию снизу — «уголок подготовки, где тебя ждут». Чистый
+          декор: aria-hidden, pointer-events-none, за контентом — текст лежит на
+          сплошной бумаге сверху полосы, читаемость сохранена. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[34dvh] overflow-hidden"
+      >
+        <img
+          src={heroDesk}
+          alt=""
+          className="h-full w-full object-cover object-center opacity-90"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-paper via-paper/70 to-transparent" />
       </div>
     </div>
   )
