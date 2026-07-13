@@ -24,10 +24,12 @@ interface RouteSpineProps {
   className?: string
 }
 
-// SIGNATURE «Маршрут маркером по клетке»: живая оранжевая кривая, прочерченная как
-// будто маркером по клетчатой странице, ведёт через список честными отметками.
-// Кривая строится по РЕАЛЬНЫМ центрам узлов (useRoutePath), рисуется stroke-dashoffset
-// при входе; пройденное — solid, впереди — пунктир. reduced-motion → мгновенно.
+// SIGNATURE «Маршрут маркером по клетке»: живая линия, прочерченная как будто маркером
+// по клетчатой странице, ведёт через список честными отметками. Кривая строится по
+// РЕАЛЬНЫМ центрам узлов (useRoutePath). Три слоя (R3 §1): (1) карандашный след-подложка
+// всей траектории — виден статично с 0с; (2) плотный пунктир плана; (3) прочерченный штрих
+// пройденного — draw stroke-dashoffset ПОВЕРХ подложки как усиление, не как условие
+// видимости. Маршрут читается на скриншоте в любой момент. reduced-motion → мгновенно.
 export function RouteSpine({
   stops,
   currentIndex,
@@ -39,7 +41,6 @@ export function RouteSpine({
   const containerRef = useRef<HTMLDivElement>(null)
   const markersRef = useRef<(HTMLElement | null)[]>([])
   const doneRef = useRef<SVGPathElement>(null)
-  const todoRef = useRef<SVGPathElement>(null)
 
   const curIdx = useMemo(() => {
     if (typeof currentIndex === 'number') return currentIndex
@@ -50,10 +51,11 @@ export function RouteSpine({
   const drawKey = redrawKey ?? stops.map((s) => s.key + s.state).join('|')
   const path = useRoutePath(containerRef, () => markersRef.current, curIdx, drawKey)
 
-  // Draw-анимация (императивно — надёжнее, чем React-стейт для dashoffset).
+  // Draw-анимация пройденного (императивно — надёжнее React-стейта для dashoffset).
+  // Подложка-след и пунктир видны СТАТИЧНО (в разметке ниже), draw лишь «дорисовывает»
+  // штрих поверх. При reduced-motion штрих появляется мгновенно.
   useEffect(() => {
     const done = doneRef.current
-    const todo = todoRef.current
     if (!done || !path) return
     const reduce =
       typeof matchMedia !== 'undefined' &&
@@ -63,10 +65,6 @@ export function RouteSpine({
       done.style.transition = 'none'
       done.style.strokeDasharray = ''
       done.style.strokeDashoffset = '0'
-      if (todo) {
-        todo.style.transition = 'none'
-        todo.style.opacity = '0.5'
-      }
       return
     }
 
@@ -74,16 +72,8 @@ export function RouteSpine({
     done.style.strokeDasharray = String(path.doneLen)
     done.style.strokeDashoffset = String(path.doneLen)
     void done.getBoundingClientRect() // reflow
-    done.style.transition = 'stroke-dashoffset 1s var(--ease-out-soft) 0.35s'
+    done.style.transition = 'stroke-dashoffset 0.9s var(--ease-out-soft) 0.2s'
     done.style.strokeDashoffset = '0'
-
-    if (todo) {
-      todo.style.transition = 'none'
-      todo.style.opacity = '0'
-      void todo.getBoundingClientRect()
-      todo.style.transition = 'opacity 0.6s ease 1s'
-      todo.style.opacity = '0.5'
-    }
   }, [path])
 
   return (
@@ -96,22 +86,32 @@ export function RouteSpine({
           viewBox={`0 0 ${path.viewW} ${path.viewH}`}
           aria-hidden
         >
+          {/* (1) карандашный след-подложка всей траектории — статично, виден с 0с */}
           <path
-            ref={todoRef}
+            d={path.trace}
+            fill="none"
+            stroke="var(--route-trace)"
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* (2) плотный пунктир плана впереди — статично (opacity 0.7) */}
+          <path
             d={path.todo}
             fill="none"
-            stroke="var(--brand)"
-            strokeWidth={3.5}
+            stroke="var(--route-line)"
+            strokeWidth={4}
             strokeLinecap="round"
-            strokeDasharray="1 11"
-            style={{ opacity: 0 }}
+            strokeDasharray="5 8"
+            style={{ opacity: 0.7 }}
           />
+          {/* (3) прочерченный штрих пройденного — draw поверх подложки */}
           <path
             ref={doneRef}
             d={path.done}
             fill="none"
-            stroke="var(--brand)"
-            strokeWidth={5}
+            stroke="var(--route-line)"
+            strokeWidth={5.5}
             strokeLinecap="round"
             strokeLinejoin="round"
           />

@@ -15,7 +15,6 @@ interface RouteMeterProps {
 export function RouteMeter({ current, total, ariaLabel }: RouteMeterProps) {
   const boxRef = useRef<HTMLDivElement>(null)
   const doneRef = useRef<SVGPathElement>(null)
-  const todoRef = useRef<SVGPathElement>(null)
   const [w, setW] = useState(0)
 
   useEffect(() => {
@@ -46,13 +45,15 @@ export function RouteMeter({ current, total, ariaLabel }: RouteMeterProps) {
   }))
   const flagX = padX + total * step
 
+  const withFlag = [...pts, { x: flagX, y: cy }]
+  const tracePath = pathThrough(withFlag, 0, total) // вся траектория — след-подложка
   const donePath = pathThrough(pts, 0, cur)
-  const todoPath = pathThrough([...pts, { x: flagX, y: cy }], cur, total)
+  const todoPath = pathThrough(withFlag, cur, total)
 
-  // Draw при входе (императивно, как RouteSpine).
+  // Draw пройденного при входе (императивно). След-подложка и пунктир статичны —
+  // draw лишь дорисовывает штрих поверх. reduced-motion → мгновенно.
   useEffect(() => {
     const done = doneRef.current
-    const todo = todoRef.current
     if (!done || w === 0) return
     const reduce =
       typeof matchMedia !== 'undefined' &&
@@ -60,7 +61,6 @@ export function RouteMeter({ current, total, ariaLabel }: RouteMeterProps) {
     if (reduce) {
       done.style.strokeDasharray = ''
       done.style.strokeDashoffset = '0'
-      if (todo) todo.style.opacity = '0.5'
       return
     }
     let len = 0
@@ -73,14 +73,8 @@ export function RouteMeter({ current, total, ariaLabel }: RouteMeterProps) {
     done.style.strokeDasharray = String(len)
     done.style.strokeDashoffset = String(len)
     void done.getBoundingClientRect()
-    done.style.transition = 'stroke-dashoffset 0.9s var(--ease-out-soft) 0.25s'
+    done.style.transition = 'stroke-dashoffset 0.9s var(--ease-out-soft) 0.2s'
     done.style.strokeDashoffset = '0'
-    if (todo) {
-      todo.style.opacity = '0'
-      void todo.getBoundingClientRect()
-      todo.style.transition = 'opacity 0.6s ease 0.8s'
-      todo.style.opacity = '0.5'
-    }
   }, [w, cur, usable])
 
   return (
@@ -91,22 +85,31 @@ export function RouteMeter({ current, total, ariaLabel }: RouteMeterProps) {
       aria-label={ariaLabel ?? `Маршрут: отметка ${current} из ${total}`}
     >
       <svg width="100%" height={H} viewBox={`0 0 ${Math.max(w, 1)} ${H}`} aria-hidden>
+        {/* (1) карандашный след-подложка всей траектории — статично */}
         <path
-          ref={todoRef}
+          d={tracePath}
+          fill="none"
+          stroke="var(--route-trace)"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+        />
+        {/* (2) плотный пунктир плана — статично */}
+        <path
           d={todoPath}
           fill="none"
-          stroke="var(--brand)"
-          strokeWidth={3}
+          stroke="var(--route-line)"
+          strokeWidth={3.5}
           strokeLinecap="round"
-          strokeDasharray="1 9"
-          style={{ opacity: 0 }}
+          strokeDasharray="5 8"
+          style={{ opacity: 0.7 }}
         />
+        {/* (3) прочерченный штрих пройденного — draw поверх */}
         <path
           ref={doneRef}
           d={donePath}
           fill="none"
-          stroke="var(--brand)"
-          strokeWidth={4.5}
+          stroke="var(--route-line)"
+          strokeWidth={5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />

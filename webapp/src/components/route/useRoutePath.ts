@@ -6,11 +6,13 @@ import { useCallback, useEffect, useState, type RefObject } from 'react'
 export interface RoutePath {
   viewW: number
   viewH: number
-  /** Пройдено: от старта до текущего узла (solid brand). */
+  /** Вся траектория (старт→финиш) — карандашный след-подложка, виден статично с 0с. */
+  trace: string
+  /** Пройдено: от старта до текущего узла (плотный штрих route-line). */
   done: string
-  /** Впереди: от текущего до финиша (пунктир). */
+  /** Впереди: от текущего до финиша (плотный пунктир). */
   todo: string
-  /** Длина done-пути — для draw-анимации (dashoffset). */
+  /** Длина done-пути — для draw-анимации (dashoffset) поверх подложки. */
   doneLen: number
 }
 
@@ -77,6 +79,9 @@ export function useRoutePath(
     // Старт-«хвостик» чуть выше первого узла — линия входит в маршрут сверху.
     const stub = Math.min(22, pts[0]!.y)
     const startStub = `M ${pts[0]!.x.toFixed(1)} ${(pts[0]!.y - stub).toFixed(1)} L ${pts[0]!.x.toFixed(1)} ${pts[0]!.y.toFixed(1)} `
+    // Вся траектория одним path — карандашный след-подложка (виден статично, не зависит
+    // от draw): гарантирует, что маршрут читается на скриншоте в ЛЮБОЙ момент (R3 §1).
+    const trace = startStub + buildPath(pts, 0, last, amp)
     const done = startStub + buildPath(pts, 0, cur, amp)
     const todo = buildPath(pts, cur, last, amp)
 
@@ -91,7 +96,7 @@ export function useRoutePath(
       doneLen = viewH
     }
 
-    setPath({ viewW, viewH, done, todo, doneLen })
+    setPath({ viewW, viewH, trace, done, todo, doneLen })
   }, [containerRef, getMarkers, currentIndex, redrawKey])
 
   useEffect(() => {
