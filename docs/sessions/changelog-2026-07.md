@@ -100,3 +100,13 @@
 **Открытые вопросы:** Заход 2 «Мой путь» (13 КТП-блоков + практика узла с mastery-гейтом); минорки ревью (мёртвый diagnose-путь, drill.png baseline); хвост банка: 57 steps-батчей (Codex CLI) + унифицированный фикс-скрипт (~17 ответов, ~17 broken, ~650 утечек).
 **Файлы:** docs/specs/2026-07-10-mvp-nish-path.md, backend/core/srez.py, backend/core/tutor.py, backend/db/seed.py, backend/scripts/seed_theory.py, webapp/src/features/drill/TheoryCard.tsx, webapp/src/features/auth/GradeSelect.tsx
 **Issue:** —
+
+## 2026-07-14 18:02
+**Тип:** plan (закрытие redesign-run 2026-07-13-webapp-v6)
+**Зачем:** «сделай очень красивый дизайн топового уровня» — редизайн мобильного тренажёра (webapp/) по новому дизайн-флоу владельца (design-lab FLOW v3) режимом «цикл до планки».
+**Что сделано:** 4 раунда benchmark-loop (3 концепта → порт → 2 фикс-раунда, 19 fix/feat-коммитов); v6 «Тетрадь чемпиона»: токены слоёв бумаги+клетка, два оранжа (brand/route-line), Unbounded+Golos self-hosted, сквозная сигнатура «маршрут маркером» (3 статических слоя), KaTeX в sans. Канон запечён в webapp/DESIGN_SYSTEM.md, baselines пересняты, RESULT.md + FLOW-CHANGELOG (8 докруток генератора). Деплой на aiplus, live-проверка прод-скринами.
+**Решение:** бюджет 4 раундов выбит → стоп по контракту с честной фиксацией: планка СУПЕР формально не взята (R3 полная панель avg 8.21, wow 2/3, один SUPER; R4-партиал J1 7.88 wow / J2 8.38 wow, J3 убит лимитом сессии), остаточные дельты → бэклог в RESULT.md. Канон-гравитация нейтрализована ДО имплементации (фидбек владельца: стейл DESIGN_SYSTEM/память тянули агентов в старый вид).
+**Итог:** задеплоено — http://195.49.215.96:8300/app/ (health 200, сид идемпотентен; login-трейлхед и hub «12 из 12» с маршрутом проверены глазами на проде). main = fff4e3d, запушено.
+**Открытые вопросы:** 7 остаточных дизайн-дельт (RESULT.md §бэклог); Заход 2 «Мой путь»; хвост аудита банка; мёртвый diagnose-путь.
+**Файлы:** webapp/src/theme/tokens.css, webapp/src/components/route/*, webapp/DESIGN_SYSTEM.md, docs/loops/runs/2026-07-13-webapp-v6/RESULT.md
+**Issue:** —
