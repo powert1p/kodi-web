@@ -1,0 +1,32 @@
+{
+  "judge": 3,
+  "lens": "craft+ux+honesty",
+  "app": {
+    "scores": {
+      "typography": 9,
+      "color": 9,
+      "composition": 8,
+      "motion": 9,
+      "signature": 9,
+      "craft": 8,
+      "brief_fit": 9,
+      "punch": 8
+    },
+    "avg": 8.63,
+    "wow": true,
+    "top_deltas": [
+      "CLOSURE working-state (pre-submit) — единственный слабый первый вьюпорт: тонкая полоса маршрута → Кёди → карточка КОНТРОЛЬНАЯ, ниже ~35% мёртвой клетки. Директива R2 №4 «дать якорь / сжать пустоту» применена к srez (полоса camp-start.jpg), но на рабочем экране closure НЕ применена (получена только вторая половина — celebrate достижим). Момент «Финальный подъём — вершина близко» должен быть кульминационным. Fix: та же иллюстрация-полоса ИЛИ min-h/justify чтобы контент заполнял высоту, а не оседал вверх.",
+      "«+30 XP» (ClosureCelebration) — англо-геймерская аббревиатура в RU-продукте для 10-13 лет; регистр-морщина + число 30 = произвольный декор. Лучше «+30 очков»/«опыта» на родном языке.",
+      "Мелкая полировка контраста: карандашный след-подложка маршрута --route-trace #ad9f82 ≈ 2.4:1 на бумаге — ниже графич. порога 3:1 (функционально не фейл — несущую линию держит --route-line 3.75:1, но всегда-видимая подложка сама <3:1, чуть затемнить). Плюс analytics last_cause «Последний раз: …» и «×» рендерятся text-caption2 11px muted — пограничный размер для осмысленного текста."
+    ],
+    "verdict": "SUPER",
+    "evidence": [
+      "ФАКТ-ЧЕК ВСЕХ 7 ФИКСОВ R2→R3 (код, не только скрин): (1) --muted #71695d = 5.06:1 на paper / ~5.15 на surface — плейсхолдеры ApTextField placeholder:text-muted, login-сабтайтл text-study text-muted. ✅ (2) disabled-CTA ApButton disabled:bg-paper-3 disabled:text-label = #6b665c на #efe7d8 = 4.6:1 (было 2.98). ✅ (3) валюта: grep ₽/рубль = 0 совпадений, все моки (hub/drill/devMocks) — ₸/тенге. ✅ (4) чат: TutorPanel textarea min-h-12 (48px) + text-body 16px (нет iOS-зума), send-кнопка size-12, error = <Mascot mood=oops>, НЕ 🌱 (эмодзи в src нет вовсе). ✅ (5) учебный текст ≥18px: TaskCard/SrezQuestionCard/SrezHeader/KodiBubble/TutorPanel-Bubble = text-study 18px. ✅ (6) ErrorBar role=meter + aria-valuenow/min/max + aria-label. ✅ (7) --route-line #b37000 = 3.75:1 на paper (графика ≥3:1). ✅",
+      "SIGNATURE (главный провал R2) реально закрыт: RouteSpine/useRoutePath строят кривую по РЕАЛЬНЫМ центрам DOM-узлов (marks = число задач: hub 5 стопов=5 карт, srez 12 точек=12 вопросов, drill 4=4 ступени, closure climb=steps.length, analytics 5=5 паттернов — честно). Три слоя: trace-подложка + пунктир-план видны СТАТИЧНО с 0с, done-штрих draw'ится stroke-dashoffset ПОВЕРХ. reduced-motion → мгновенно (RouteSpine и HubHero оба). Hub hero: launch-кривая ныряет из узла под числом-героем в рельс (заходит В hero). Closure celebrate: SummitFlag + линия к флажку.",
+      "КОНТРАСТ (мой R2-блокер): grep подтверждает — весь оранжевый ТЕКСТ = text-brand-ink #9a5b00 = 5.08:1; НИ ОДНОГО text-brand (#ff8c00 2.2:1) как текст. Бейджи ApTag = ink-пары на soft (success-ink/attn-ink/label/brand-ink) все ≥4.5, красного/синего нет. focus-visible кольцо в index.css. Тач ≥48 везде (ApButton m48/l56, поля h-12/h-14, send size-12, textarea min-h-12).",
+      "Craft auto-потолки (рубрика §craft) ВСЕ чисты: нет snake_case id в UI (StateChip→«Ты здесь/Разберём/Почти/Готово»), нет красного (ошибка=амбер), учебный текст ≥18px, тач ≥48, один primary-CTA/экран (ghost back + secondary — не primary), нет фейковых чисел в декоре (полосы ErrorBar/ProgressBar от честных count). Состояния полны: skeleton/error/empty/disabled/hover/focus во всех фичах.",
+      "Типографика: Unbounded (геометрич. display, родная кириллица) × Golos Text body; hero clamp 84-116px vs body 16-18px = контраст уровней »3x; tabular-nums; веса 400↔900. НЕ Inter/Roboto. Motion оркестрован (reveal-stagger/route-draw/pop/pulse/typing/stamp/confetti/bob) с полным reduced-motion блоком.",
+      "Не смог независимо прогнать в этой сессии: impeccable detect, tsc/vitest/build, console-clean — полагаюсь на self-render скрины maker'а (рендерятся чисто, без error-оверлеев) и DoD-гейт. Голос = баллы осей + wow; тех-гейт финалит оркестратор."
+    ]
+  }
+}

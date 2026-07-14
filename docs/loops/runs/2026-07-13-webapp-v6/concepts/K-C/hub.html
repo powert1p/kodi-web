@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Мастерская Кёди · Срез на сегодня</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800;900&family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    /* — тёплая бумага (доминанта) — */
+    --paper-1:#FAF7F2; --paper-2:#F4EDE0; --paper-3:#EFE6D6; --sheet-edge:#E7DCC8;
+    --ink:#201D17; --text:#3D3A34; --muted:#8A857C; --muted-ink:#6E675C;
+    /* — один акцент: kodi-оранж — */
+    --brand:#FF8C00; --brand-deep:#E67E00; --brand-soft:#FFF3E2; --brand-ink:#8A4B00;
+    --success:#2E9E5B; --success-soft:#E9F6EE; --attn:#B7791F; --attn-soft:#FBF3E4;
+    --grid:rgba(176,150,104,.13); --stroke:#E8E2D8; --surface:#FFFFFF;
+    --r-chip:9px; --r-ctrl:13px; --r-card:18px; --r-pill:999px;
+    --display:'Rubik',system-ui,sans-serif; --body:'Golos Text',system-ui,sans-serif;
+    --shadow-sheet:0 1px 0 var(--sheet-edge), 0 10px 24px -14px rgba(74,54,20,.30);
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{background:linear-gradient(180deg,#FCF9F4,#EFE6D6)}
+  body{
+    font-family:var(--body); color:var(--text); min-height:100vh;
+    /* тетрадная клетка + тёплый paper-wash — фон-градиентами, НЕ плоский cream-color */
+    background:
+      repeating-linear-gradient(0deg,transparent 0 23px,var(--grid) 23px 24px),
+      repeating-linear-gradient(90deg,transparent 0 23px,var(--grid) 23px 24px),
+      radial-gradient(135% 75% at 50% -12%,#FCFAF5 0%,#F5EEE1 52%,#EFE6D6 100%);
+    background-attachment:fixed;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .app{max-width:480px;margin:0 auto;position:relative;display:flex;flex-direction:column;min-height:100vh}
+  @media(min-width:768px){ .app{margin-top:24px;margin-bottom:24px;border-radius:26px;overflow:clip;
+    box-shadow:0 30px 80px -40px rgba(74,54,20,.5),0 0 0 1px var(--stroke)} }
+
+  /* ————— App bar ————— */
+  .appbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:13px 20px 12px;
+    background:linear-gradient(180deg,rgba(250,247,242,.94),rgba(250,247,242,.72));
+    backdrop-filter:blur(8px);border-bottom:1px solid rgba(232,226,216,.8)}
+  .appbar .title{font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.01em;color:var(--ink)}
+  .appbar .title b{color:var(--brand-deep)}
+  .appbar .date{font-size:13px;font-weight:600;color:var(--muted-ink);display:flex;align-items:center;gap:7px}
+  .appbar .date .dot{width:6px;height:6px;border-radius:50%;background:var(--brand)}
+
+  /* ————— Hero сцена ————— */
+  .hero{position:relative;padding:20px 20px 22px;overflow:hidden}
+  .hero-scene{position:absolute;inset:0;z-index:0}
+  .hero-scene img{width:100%;height:100%;object-fit:cover;object-position:60% 18%;opacity:.95}
+  .hero-scene::after{content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(183deg,rgba(250,247,242,.12) 0%,rgba(250,247,242,.5) 46%,rgba(247,240,229,.92) 80%,#F3EBDD 100%),
+      radial-gradient(90% 55% at 84% 20%,rgba(255,140,0,.12),transparent 60%)}
+  .hero-in{position:relative;z-index:1}
+
+  .host{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+  .host .bubble{background:var(--surface);border:1px solid var(--stroke);border-radius:16px 16px 16px 5px;
+    padding:11px 14px;font-size:15px;line-height:1.42;color:var(--text);box-shadow:0 6px 16px -12px rgba(74,54,20,.4);max-width:255px}
+  .host .bubble b{color:var(--ink);font-weight:700}
+  .mascot{flex:none;filter:drop-shadow(0 8px 14px rgba(74,54,20,.22))}
+
+  .headline{margin:6px 0 4px;display:flex;align-items:baseline;gap:14px}
+  .bignum{font-family:var(--display);font-weight:900;font-size:88px;line-height:.86;color:var(--ink);
+    letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .headline .say{font-family:var(--display);font-weight:700;font-size:23px;line-height:1.05;color:var(--ink);
+    letter-spacing:-.01em}
+  .headline .say small{display:block;font-family:var(--body);font-weight:500;font-size:14.5px;color:var(--muted-ink);
+    letter-spacing:0;margin-top:3px}
+  h1.headline{font-size:inherit}
+
+  /* marker progress — честный 0/12, 0% */
+  .progress{margin:16px 0 18px}
+  .progress .row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+  .progress .lbl{font-size:14px;font-weight:600;color:var(--muted-ink)}
+  .progress .val{font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .progress .val i{color:var(--muted-ink);font-style:normal}
+  .track{position:relative;height:11px;border-radius:var(--r-pill);background:rgba(233,223,205,.85);
+    box-shadow:inset 0 1px 2px rgba(74,54,20,.12);overflow:hidden}
+  .track .fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:var(--r-pill);
+    background:linear-gradient(90deg,var(--brand),var(--brand-deep))}
+
+  .cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:58px;border:none;
+    border-radius:var(--r-ctrl);background:var(--brand);color:var(--ink);font-family:var(--display);
+    font-weight:800;font-size:18px;letter-spacing:-.005em;cursor:pointer;position:relative;
+    box-shadow:0 12px 24px -10px rgba(230,126,0,.7),inset 0 -2px 0 rgba(122,74,0,.22);
+    transition:transform .16s var(--ease),box-shadow .16s var(--ease),background .16s}
+  .cta:hover{background:var(--brand-deep);transform:translateY(-1px);box-shadow:0 16px 30px -10px rgba(230,126,0,.8),inset 0 -2px 0 rgba(122,74,0,.28)}
+  .cta:active{transform:translateY(1px)}
+  .cta:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .cta svg{width:20px;height:20px}
+
+  /* ————— Секция «маршрут» ————— */
+  .route{position:relative;padding:22px 20px 8px}
+  .route-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .route-head h2{font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);letter-spacing:-.01em}
+  .route-head .count{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--muted-ink);
+    background:var(--paper-2);border:1px solid var(--sheet-edge);border-radius:var(--r-pill);padding:3px 10px}
+  .route-sub{font-size:13.5px;color:var(--muted-ink);margin-bottom:16px}
+
+  .stops{position:relative;list-style:none}
+  #spine{position:absolute;top:0;left:0;width:44px;height:100%;z-index:1;pointer-events:none;overflow:visible}
+  .stop{position:relative;display:grid;grid-template-columns:44px 1fr;gap:12px;padding-bottom:14px;z-index:2}
+  .rail{position:relative;display:flex;justify-content:center}
+  .node{position:absolute;top:22px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--display);font-weight:800;font-size:12px;font-variant-numeric:tabular-nums;
+    background:var(--paper-1);border:2.5px solid var(--sheet-edge);color:var(--muted-ink);z-index:3}
+  .stop.is-current .node{border-color:var(--brand);color:var(--ink);background:var(--brand-soft);
+    box-shadow:0 0 0 5px rgba(255,140,0,.16)}
+  .wet{position:absolute;top:22px;width:26px;height:26px;border-radius:50%;z-index:2;pointer-events:none}
+  .stop.is-current .wet{animation:pulse 2.1s var(--ease) infinite}
+
+  .sheet{position:relative;background:var(--surface);border:1px solid var(--stroke);border-radius:var(--r-card);
+    padding:15px 16px 15px;box-shadow:var(--shadow-sheet)}
+  /* «полка» — краешек второго листа выглядывает из-под карточки (без вложенных карточек) */
+  .sheet::before{content:"";position:absolute;right:9px;top:-6px;left:16px;height:12px;border-radius:12px 12px 0 0;
+    background:var(--paper-2);border:1px solid var(--sheet-edge);border-bottom:none;z-index:-1}
+  .stop.is-current .sheet{border-color:#F1D9AE;box-shadow:0 1px 0 var(--sheet-edge),0 16px 30px -16px rgba(230,126,0,.4)}
+
+  .sheet .top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .sheet .topic{font-family:var(--display);font-weight:700;font-size:16.5px;line-height:1.2;color:var(--ink);letter-spacing:-.01em}
+  .sheet .task{font-size:18px;line-height:1.5;color:var(--text)}
+  .sheet .task .m{font-family:var(--display);font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .sheet .foot{display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:11px;border-top:1px dashed var(--sheet-edge)}
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;border-radius:var(--r-pill);
+    padding:4px 10px;letter-spacing:.01em}
+  .tag.start{background:var(--brand-soft);color:var(--brand-ink)}
+  .tag.hard{background:var(--attn-soft);color:var(--attn)}
+  .last{margin-left:auto;font-size:12.5px;font-weight:500;color:var(--muted-ink);display:inline-flex;align-items:center;gap:6px}
+  .last b{font-family:var(--display);font-weight:800;color:var(--text);font-size:13.5px}
+  .go{margin-left:auto;width:34px;height:34px;flex:none}
+
+  /* свёрнутый хвост маршрута 5→12 + флажок (тоже остановки — линия доходит до финиша) */
+  .node.rng{font-size:12.5px;border-style:dashed;color:var(--muted-ink)}
+  .node.flagnode{border:none;background:none;top:16px}
+  .restcard{background:var(--paper-2);border:1px dashed var(--sheet-edge);border-radius:var(--r-card);padding:12px 14px}
+  .restcard .rt{font-family:var(--display);font-weight:700;font-size:14px;color:var(--text)}
+  .restcard .rs{font-size:13px;color:var(--muted-ink);margin-top:1px}
+  .restcard .dots{display:flex;gap:9px;margin-top:10px}
+  .restcard .dots i{width:11px;height:11px;border-radius:50%;background:var(--paper-1);border:1.5px solid #E4B583}
+  .flagcard{display:flex;align-items:center;gap:11px;padding:4px 0 2px}
+  .flagcard .fnum{font-family:var(--display);font-weight:900;font-size:26px;color:var(--brand-deep);font-variant-numeric:tabular-nums;line-height:1}
+  .flagcard .flabel{font-size:13.5px;font-weight:600;color:var(--muted-ink)}
+  .flagcard .flabel b{font-family:var(--display);color:var(--ink);font-weight:800;display:block;font-size:14.5px}
+
+  /* ————— Tab bar ————— */
+  .tabbar{z-index:50;margin-top:auto}
+  .tabbar .inner{display:flex;gap:6px;padding:9px 16px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,#F7F0E4,#FAF7F2 45%);border-top:1px solid var(--sheet-edge);
+    box-shadow:0 -8px 22px -18px rgba(74,54,20,.5)}
+  .tab{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    border:none;background:none;cursor:pointer;border-radius:var(--r-ctrl);color:var(--muted-ink);
+    font-family:var(--display);font-weight:700;font-size:12.5px;transition:color .15s,background .15s}
+  .tab svg{width:23px;height:23px}
+  .tab.active{color:var(--brand-deep);background:var(--brand-soft)}
+  .tab:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+
+  /* ————— entrance ————— */
+  .reveal{opacity:0;transform:translateY(14px)}
+  .revealed .reveal{opacity:1;transform:none;transition:opacity .5s var(--ease),transform .55s var(--ease)}
+  .revealed .reveal{transition-delay:var(--d,0ms)}
+
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,140,0,.5)}70%{box-shadow:0 0 0 15px rgba(255,140,0,0)}100%{box-shadow:0 0 0 0 rgba(255,140,0,0)}}
+  @media(prefers-reduced-motion:reduce){
+    .reveal{opacity:1!important;transform:none!important;transition:none!important}
+    .stop.is-current .wet{animation:none!important}
+    #spine path{stroke-dashoffset:0!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="appbar">
+    <div class="title">Мастерская <b>Кёди</b></div>
+    <div class="date"><span class="dot"></span>Срез · 13 июля</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-scene"><img src="assets/workshop-desk.png" alt="Рабочий уголок: клетчатая бумага, оранжевые маркеры, линейка и мандарины в тёплом свете" /></div>
+    <div class="hero-in">
+      <div class="host reveal" style="--d:60ms">
+        <span class="mascot" aria-hidden="true"><svg viewBox="0 0 120 120" width="66" height="66" role="img" aria-label="Кёди улыбается">
+          <path d="M60 30 C 50 8, 28 8, 30 30 C 44 32, 56 30, 60 30 Z" fill="var(--success)"/>
+          <path d="M60 30 C 70 8, 92 8, 90 30 C 76 32, 64 30, 60 30 Z" fill="var(--success)" opacity=".82"/>
+          <rect x="57" y="26" width="6" height="14" rx="3" fill="var(--success)"/>
+          <path d="M60 36 C 90 36, 102 60, 102 78 C 102 100, 84 112, 60 112 C 36 112, 18 100, 18 78 C 18 60, 30 36, 60 36 Z" fill="var(--brand)"/>
+          <ellipse cx="46" cy="50" rx="22" ry="14" fill="var(--surface)" opacity=".16"/>
+          <circle cx="34" cy="68" r="6" fill="var(--brand-deep)" opacity=".45"/>
+          <circle cx="86" cy="68" r="6" fill="var(--brand-deep)" opacity=".45"/>
+          <circle cx="46" cy="54" r="5" fill="var(--ink)"/><circle cx="74" cy="54" r="5" fill="var(--ink)"/>
+          <circle cx="48" cy="52" r="1.6" fill="var(--surface)"/><circle cx="76" cy="52" r="1.6" fill="var(--surface)"/>
+          <path d="M50 65 q10 9 20 0" fill="none" stroke="var(--brand-deep)" stroke-width="3.6" stroke-linecap="round"/>
+        </svg></span>
+        <div class="bubble">Разложил ошибки по полкам: <b>сложные сверху</b>. Начнём с самой каверзной?</div>
+      </div>
+
+      <h1 class="headline reveal" style="--d:140ms">
+        <span class="bignum" data-count="12">12</span>
+        <span class="say">ошибок ждут<small>их видит только Кёди и ты</small></span>
+      </h1>
+
+      <div class="progress reveal" style="--d:220ms">
+        <div class="row">
+          <span class="lbl">Разобрано сегодня</span>
+          <span class="val">0<i>/12</i> · 0%</span>
+        </div>
+        <div class="track"><span class="fill" data-fill="0"></span></div>
+      </div>
+
+      <button class="cta reveal" style="--d:300ms" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h13M12 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Разобрать первую
+      </button>
+    </div>
+  </section>
+
+  <section class="route">
+    <div class="route-head reveal" style="--d:120ms">
+      <h2>Маршрут на сегодня</h2>
+      <span class="count">12 остановок</span>
+    </div>
+    <p class="route-sub reveal" style="--d:160ms">Ты в начале пути. Пройдём по одной, и линия дорисуется до флажка.</p>
+
+    <ol class="stops">
+      <svg id="spine" aria-hidden="true"><path class="p-done" fill="none"/><path class="p-todo" fill="none"/></svg>
+
+      <li class="stop is-current reveal" style="--d:220ms">
+        <div class="rail"><span class="wet"></span><span class="node">1</span></div>
+        <article class="sheet">
+          <div class="top"><span class="tag start">Ты здесь</span><span class="tag hard">каверзная</span></div>
+          <div class="topic">Текстовые задачи на систему уравнений</div>
+          <p class="task" style="margin-top:6px">2 тетради и 3 ручки стоят <span class="m">240</span> тенге. 1 тетрадь и 2 ручки — <span class="m">140</span> тенге. Сколько стоит ручка?</p>
+          <div class="foot">
+            <span class="last">в прошлый раз: <b>1</b></span>
+            <svg class="go" viewBox="0 0 36 36" fill="none" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#FF8C00"/><path d="M15 12l6 6-6 6" stroke="#201D17" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </article>
+      </li>
+
+      <li class="stop reveal" style="--d:280ms">
+        <div class="rail"><span class="node">2</span></div>
+        <article class="sheet">
+          <div class="topic">Концентрация (задачи на смеси)</div>
+          <p class="task" style="margin-top:6px">Из <span class="m">300</span> г <span class="m">20%</span>-го раствора выпарили <span class="m">100</span> г воды. Какова концентрация?</p>
+        </article>
+      </li>
+
+      <li class="stop reveal" style="--d:330ms">
+        <div class="rail"><span class="node">3</span></div>
+        <article class="sheet">
+          <div class="topic">Площадь комбинированных (составных) фигур</div>
+          <p class="task" style="margin-top:6px">Из прямоугольника <span class="m">10×8</span> вырезали квадрат <span class="m">3×3</span>. Найдите площадь оставшейся фигуры.</p>
+        </article>
+      </li>
+
+      <li class="stop reveal" style="--d:380ms">
+        <div class="rail"><span class="node">4</span></div>
+        <article class="sheet">
+          <div class="topic">Модульные уравнения</div>
+          <p class="task" style="margin-top:6px">Уравнение <span class="m">|x − 3| = 5</span>. Найдите произведение корней.</p>
+        </article>
+      </li>
+
+      <li class="stop reveal" style="--d:430ms">
+        <div class="rail"><span class="node rng">+8</span></div>
+        <div class="restcard">
+          <div class="rt">Остановки 5&#8202;–&#8202;12</div>
+          <div class="rs">ещё 8 ошибок ждут разбора, попроще</div>
+          <div class="dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+      </li>
+
+      <li class="stop is-flag reveal" style="--d:470ms">
+        <div class="rail"><span class="node flagnode">
+          <svg width="30" height="34" viewBox="0 0 30 34" fill="none" aria-hidden="true">
+            <path d="M5 2v30" stroke="#6E675C" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M6 3h18l-4 6 4 6H6z" fill="#FF8C00"/></svg>
+        </span></div>
+        <div class="flagcard">
+          <span class="fnum">12</span>
+          <span class="flabel"><b>Финиш</b>весь срез разобран</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <nav class="tabbar" aria-label="Основная навигация">
+    <div class="inner">
+      <button class="tab active" type="button" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Срез
+      </button>
+      <button class="tab" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V10M12 19V5M19 19v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Прогресс
+      </button>
+    </div>
+  </nav>
+</div>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* entrance reveal */
+  requestAnimationFrame(()=>document.body.classList.add('revealed'));
+
+  /* honest count-up 0→12 и заливка прогресса (0% — заливка пустая) */
+  const num = document.querySelector('.bignum');
+  const target = +num.dataset.count;
+  if(reduce){ num.textContent = target; }
+  else{
+    let t0=null; const dur=900;
+    const step=(t)=>{ if(!t0)t0=t; const k=Math.min(1,(t-t0)/dur);
+      num.textContent = Math.round(target*(1-Math.pow(1-k,3)));
+      if(k<1) requestAnimationFrame(step); };
+    setTimeout(()=>requestAnimationFrame(step),320);
+  }
+  document.querySelector('.fill').style.width = document.querySelector('.fill').dataset.fill + '%';
+
+  /* ——— маршрут маркером: строим путь по фактическим центрам узлов ——— */
+  function drawSpine(){
+    const stops=[...document.querySelectorAll('.stops .stop')];
+    const spine=document.getElementById('spine');
+    const list=document.querySelector('.stops');
+    if(!stops.length||!spine) return;
+    const base=list.getBoundingClientRect();
+    const pts=stops.map(s=>{ const n=s.querySelector('.node').getBoundingClientRect();
+      return { x:(n.left+n.width/2)-base.left, y:(n.top+n.height/2)-base.top, current:s.classList.contains('is-current') }; });
+    spine.setAttribute('viewBox',`0 0 44 ${Math.ceil(base.height)}`);
+    spine.setAttribute('width',44); spine.setAttribute('height',Math.ceil(base.height));
+    const curIdx=pts.findIndex(p=>p.current);
+    /* лёгкое «дрожание маркера» между узлами */
+    const seg=(a,b)=>{ const mx=(a.x+b.x)/2, my=(a.y+b.y)/2, w=(b.y-a.y)*0.16;
+      return `Q ${mx + (Math.random()*4-2) + w} ${a.y+(my-a.y)*0.5} ${mx} ${my} T ${b.x} ${b.y}`; };
+    const build=(from,to)=>{ let d=`M ${pts[from].x} ${pts[from].y}`;
+      for(let i=from;i<to;i++) d+=' '+seg(pts[i],pts[i+1]); return d; };
+    const doneEnd = curIdx>=0?curIdx:0;
+    const pDone=spine.querySelector('.p-done');
+    const pTodo=spine.querySelector('.p-todo');
+    /* пройдено: от старта (чуть выше 1-го узла) до текущего */
+    const startStub = `M ${pts[0].x} ${Math.max(0,pts[0].y-26)} L ${pts[0].x} ${pts[0].y} `;
+    pDone.setAttribute('d', startStub + (doneEnd>0?build(0,doneEnd):''));
+    pDone.setAttribute('stroke','var(--brand)'); pDone.setAttribute('stroke-width','5.5');
+    pDone.setAttribute('stroke-linecap','round'); pDone.setAttribute('stroke-linejoin','round');
+    /* впереди: пунктир от текущего до последнего + вниз к хвосту */
+    pTodo.setAttribute('d', build(Math.max(0,doneEnd), pts.length-1) + ` L ${pts[pts.length-1].x} ${base.height-4}`);
+    pTodo.setAttribute('stroke','rgba(255,140,0,.45)'); pTodo.setAttribute('stroke-width','4');
+    pTodo.setAttribute('stroke-linecap','round'); pTodo.setAttribute('stroke-dasharray','1 11');
+    /* рисование при входе */
+    if(!reduce){
+      const L=pDone.getTotalLength();
+      pDone.style.strokeDasharray=L; pDone.style.strokeDashoffset=L;
+      pDone.getBoundingClientRect();
+      pDone.style.transition='stroke-dashoffset 1s var(--ease) .35s';
+      requestAnimationFrame(()=>{ pDone.style.strokeDashoffset='0'; });
+      pTodo.style.opacity=0; pTodo.style.transition='opacity .6s ease 1.1s';
+      requestAnimationFrame(()=>{ pTodo.style.opacity=1; });
+    }
+  }
+  window.addEventListener('load',()=>setTimeout(drawSpine,60));
+  window.addEventListener('resize',()=>{ clearTimeout(window.__r); window.__r=setTimeout(drawSpine,150); });
+</script>
+</body>
+</html>

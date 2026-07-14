@@ -51,3 +51,6 @@ webapp/.design-notes/
 cabinet/dist/
 cabinet/node_modules/
 cabinet/engine/test-kit/node_modules/
+
+# Рендер-скрины benchmark-loop run'ов (тяжёлые, регенерируются render-скриптами; текст-артефакты коммитятся)
+docs/loops/runs/**/*.png

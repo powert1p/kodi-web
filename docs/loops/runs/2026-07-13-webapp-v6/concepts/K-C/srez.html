@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Мастерская Кёди · Мини-срез</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800;900&family=Golos+Text:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --paper-1:#FAF7F2; --paper-2:#F4EDE0; --paper-3:#EFE6D6; --sheet-edge:#E7DCC8;
+    --ink:#201D17; --text:#3D3A34; --muted:#8A857C; --muted-ink:#6E675C;
+    --brand:#FF8C00; --brand-deep:#E67E00; --brand-soft:#FFF3E2; --brand-ink:#8A4B00;
+    --success:#2E9E5B; --success-soft:#E9F6EE; --attn:#B7791F; --attn-soft:#FBF3E4;
+    --grid:rgba(176,150,104,.13); --stroke:#E8E2D8; --surface:#FFFFFF;
+    --r-chip:9px; --r-ctrl:13px; --r-card:18px; --r-pill:999px;
+    --display:'Rubik',system-ui,sans-serif; --body:'Golos Text',system-ui,sans-serif;
+    --shadow-sheet:0 1px 0 var(--sheet-edge), 0 10px 24px -14px rgba(74,54,20,.30);
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html{background:linear-gradient(180deg,#FCF9F4,#EFE6D6)}
+  body{font-family:var(--body);color:var(--text);min-height:100vh;
+    background:
+      repeating-linear-gradient(0deg,transparent 0 23px,var(--grid) 23px 24px),
+      repeating-linear-gradient(90deg,transparent 0 23px,var(--grid) 23px 24px),
+      radial-gradient(135% 70% at 50% -12%,#FCFAF5 0%,#F5EEE1 52%,#EFE6D6 100%);
+    background-attachment:fixed;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .app{max-width:480px;margin:0 auto;position:relative;display:flex;flex-direction:column;min-height:100vh}
+  @media(min-width:768px){ .app{margin:24px auto;border-radius:26px;overflow:clip;
+    box-shadow:0 30px 80px -40px rgba(74,54,20,.5),0 0 0 1px var(--stroke)} }
+
+  .appbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:12px 18px;
+    background:linear-gradient(180deg,rgba(250,247,242,.95),rgba(250,247,242,.74));
+    backdrop-filter:blur(8px);border-bottom:1px solid rgba(232,226,216,.8)}
+  .back{width:44px;height:44px;flex:none;border:1px solid var(--stroke);background:var(--surface);border-radius:12px;
+    display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+  .back:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+  .back svg{width:20px;height:20px}
+  .appbar .t{font-family:var(--display);font-weight:800;font-size:16px;color:var(--ink);letter-spacing:-.01em}
+  .appbar .s{font-size:12.5px;color:var(--muted-ink);font-weight:500;margin-top:1px}
+  .step-badge{margin-left:auto;font-family:var(--display);font-weight:800;font-size:13px;color:var(--brand-ink);
+    background:var(--brand-soft);border-radius:var(--r-pill);padding:5px 12px;font-variant-numeric:tabular-nums}
+
+  main{flex:1;padding:18px 20px 24px;position:relative}
+  main>*{position:relative;z-index:1}
+  /* сцена мастерской: тот же маркер, что чертит маршрут — тонкой подложкой */
+  .scene{position:absolute;top:0;left:0;right:0;height:330px;z-index:0;overflow:hidden;pointer-events:none}
+  .scene img{width:100%;height:100%;object-fit:cover;object-position:50% 34%;opacity:.15}
+  .scene::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(250,247,242,.35) 0%,rgba(250,247,242,.72) 52%,#F5EEE1 88%,#F3EBDD 100%)}
+
+  /* Кёди hi host */
+  .host{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+  .host .mascot{flex:none;filter:drop-shadow(0 7px 13px rgba(74,54,20,.2))}
+  .host .say{font-size:16px;line-height:1.4;color:var(--text)}
+  .host .say b{font-family:var(--display);font-weight:800;color:var(--ink);display:block;font-size:18px;letter-spacing:-.01em;margin-bottom:1px}
+
+  /* СИГНАТУРА: маршрут из 12 точек, ты на 1-й, финиш-флажок */
+  .route{margin:2px 0 22px}
+  .route-lead{display:flex;align-items:baseline;gap:9px;margin-bottom:14px}
+  .route-lead .big{font-family:var(--display);font-weight:900;font-size:40px;line-height:.9;color:var(--ink);
+    font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .route-lead .of{font-family:var(--display);font-weight:800;font-size:17px;color:var(--muted-ink)}
+  .route-lead .lbl{margin-left:auto;font-size:13px;font-weight:600;color:var(--muted-ink);text-align:right;line-height:1.25}
+  .route-lead .lbl b{font-family:var(--display);color:var(--brand-ink);font-weight:800}
+
+  .track{display:flex;align-items:center;gap:0;padding:6px 2px}
+  .pt{position:relative;flex:none;border-radius:50%;background:var(--paper-1);z-index:2}
+  .pt.s{width:13px;height:13px;border:1.6px solid #E1CFAC}
+  .pt.now{width:26px;height:26px;border:none;background:var(--brand);border-style:solid;
+    box-shadow:0 0 0 5px rgba(255,140,0,.16),inset 0 -2px 0 rgba(122,74,0,.25);display:grid;place-items:center}
+  .pt.now::before{content:"";position:absolute;inset:0;border-radius:50%;animation:pulse 2.1s var(--ease) infinite}
+  .pt.now b{font-family:var(--display);font-weight:800;font-size:12px;color:var(--ink)}
+  .seg{flex:1;height:4px;position:relative;min-width:6px}
+  .seg .d{position:absolute;inset:0;border-radius:3px;
+    background:radial-gradient(circle at 4px 50%,rgba(255,140,0,.5) 1.5px,transparent 2px) 0/8px 100% repeat-x}
+  .seg.done .d{background:var(--brand)}
+  .flagpt{flex:none;margin-left:2px}
+  .flagpt svg{width:26px;height:30px;display:block}
+
+  /* тема */
+  .theme{display:flex;align-items:center;flex-wrap:wrap;gap:3px 8px;background:var(--paper-2);border:1px solid var(--sheet-edge);
+    border-radius:14px;padding:10px 15px;font-size:15px;font-weight:500;color:var(--text);margin-bottom:16px}
+  .theme .dot{width:9px;height:9px;border-radius:50%;background:var(--brand);flex:none;margin-right:1px}
+  .theme .tl{color:var(--muted-ink);font-weight:600}
+  .theme b{font-family:var(--display);font-weight:800;color:var(--ink)}
+  .theme .tp{color:var(--text)}
+
+  /* карточка задачи */
+  .qcard{background:var(--surface);border:1px solid var(--stroke);border-radius:var(--r-card);padding:20px 18px 18px;
+    box-shadow:var(--shadow-sheet);position:relative}
+  .qcard::before{content:"";position:absolute;right:14px;left:20px;top:-6px;height:12px;border-radius:12px 12px 0 0;
+    background:var(--paper-2);border:1px solid var(--sheet-edge);border-bottom:none;z-index:-1}
+  .qcard .qk{font-family:var(--display);font-weight:800;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--brand-ink);margin-bottom:11px;display:flex;align-items:center;gap:8px}
+  .qcard .qk .n{width:24px;height:24px;border-radius:50%;background:var(--brand-soft);display:grid;place-items:center;
+    font-size:12px;color:var(--brand-ink);font-variant-numeric:tabular-nums}
+  .qcard .q{font-size:22px;line-height:1.42;color:var(--ink);font-weight:500;letter-spacing:-.01em}
+
+  .field{margin-top:20px}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--muted-ink);margin-bottom:7px}
+  .field .inwrap{position:relative}
+  .field input{width:100%;height:58px;border:1.5px solid var(--sheet-edge);border-radius:var(--r-ctrl);background:var(--paper-1);
+    padding:0 16px;font-family:var(--display);font-weight:700;font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .field input::placeholder{color:#B4AC9E;font-family:var(--body);font-weight:400;font-size:17px}
+  .field input:focus{outline:none;border-color:var(--brand);background:var(--surface);box-shadow:0 0 0 4px rgba(255,140,0,.14)}
+  .field .hint{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:12.5px;color:var(--muted-ink);font-weight:500}
+
+  .check{margin-top:14px;width:100%;height:58px;border:none;border-radius:var(--r-ctrl);background:var(--brand);color:var(--ink);
+    font-family:var(--display);font-weight:800;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+    box-shadow:0 12px 24px -10px rgba(230,126,0,.7),inset 0 -2px 0 rgba(122,74,0,.22);transition:transform .16s var(--ease),background .16s}
+  .check:hover{background:var(--brand-deep);transform:translateY(-1px)}
+  .check:active{transform:translateY(1px)}
+  .check:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+  .check svg{width:20px;height:20px}
+
+  .skip{margin-top:14px;text-align:center}
+  .skip button{background:none;border:none;font-family:var(--body);font-size:14px;font-weight:600;color:var(--muted-ink);
+    cursor:pointer;padding:8px 14px;border-radius:var(--r-pill);min-height:44px}
+  .skip button:hover{color:var(--ink);background:var(--paper-2)}
+  .skip button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+
+  /* tab bar */
+  .tabbar{z-index:50;margin-top:auto}
+  .tabbar .inner{display:flex;gap:6px;padding:9px 16px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,#F7F0E4,#FAF7F2 45%);border-top:1px solid var(--sheet-edge);box-shadow:0 -8px 22px -18px rgba(74,54,20,.5)}
+  .tab{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    border:none;background:none;cursor:pointer;border-radius:var(--r-ctrl);color:var(--muted-ink);
+    font-family:var(--display);font-weight:700;font-size:12.5px}
+  .tab svg{width:23px;height:23px}
+  .tab.active{color:var(--brand-deep);background:var(--brand-soft)}
+  .tab:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+
+  .reveal{opacity:0;transform:translateY(14px)}
+  .revealed .reveal{opacity:1;transform:none;transition:opacity .5s var(--ease),transform .55s var(--ease);transition-delay:var(--d,0ms)}
+  .pt,.seg .d{opacity:0}
+  .revealed .pt,.revealed .seg .d{opacity:1;transition:opacity .4s var(--ease),transform .4s var(--ease);transition-delay:var(--pd,0ms)}
+  .revealed .pt{transform:scale(1)}
+  .pt{transform:scale(.4)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,140,0,.5)}70%{box-shadow:0 0 0 13px rgba(255,140,0,0)}100%{box-shadow:0 0 0 0 rgba(255,140,0,0)}}
+  @media(prefers-reduced-motion:reduce){
+    .reveal,.pt,.seg .d{opacity:1!important;transform:none!important;transition:none!important}
+    .pt.now::before{animation:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="appbar">
+    <button class="back" type="button" aria-label="Назад к срезу">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div><div class="t">Мини-срез</div><div class="s">Мастерская Кёди</div></div>
+    <span class="step-badge">1 из 12</span>
+  </header>
+
+  <main>
+    <div class="host reveal" style="--d:60ms">
+      <span class="mascot" aria-hidden="true"><svg viewBox="0 0 120 120" width="52" height="52" role="img" aria-label="Кёди улыбается">
+        <path d="M60 30 C 50 8, 28 8, 30 30 C 44 32, 56 30, 60 30 Z" fill="var(--success)"/>
+        <path d="M60 30 C 70 8, 92 8, 90 30 C 76 32, 64 30, 60 30 Z" fill="var(--success)" opacity=".82"/>
+        <rect x="57" y="26" width="6" height="14" rx="3" fill="var(--success)"/>
+        <path d="M60 36 C 90 36, 102 60, 102 78 C 102 100, 84 112, 60 112 C 36 112, 18 100, 18 78 C 18 60, 30 36, 60 36 Z" fill="var(--brand)"/>
+        <ellipse cx="46" cy="50" rx="22" ry="14" fill="var(--surface)" opacity=".16"/>
+        <circle cx="34" cy="68" r="6" fill="var(--brand-deep)" opacity=".45"/><circle cx="86" cy="68" r="6" fill="var(--brand-deep)" opacity=".45"/>
+        <circle cx="46" cy="54" r="5" fill="var(--ink)"/><circle cx="74" cy="54" r="5" fill="var(--ink)"/>
+        <circle cx="48" cy="52" r="1.6" fill="var(--surface)"/><circle cx="76" cy="52" r="1.6" fill="var(--surface)"/>
+        <path d="M50 65 q10 9 20 0" fill="none" stroke="var(--brand-deep)" stroke-width="3.6" stroke-linecap="round"/>
+      </svg></span>
+      <div class="say"><b>Разомнёмся?</b>Короткий срез из 12 вопросов. Первый — лёгкий.</div>
+    </div>
+
+    <div class="route reveal" style="--d:120ms">
+      <div class="route-lead">
+        <span class="big">1</span><span class="of">из 12</span>
+        <span class="lbl">ты на <b>1-й точке</b><br>впереди ещё 11 и флажок</span>
+      </div>
+      <div class="track" aria-label="Вопрос 1 из 12">
+        <span class="pt now" style="--pd:120ms"><b>1</b></span>
+        <span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:180ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:210ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:240ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:270ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:300ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:330ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:360ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:390ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:420ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:450ms"></span><span class="seg"><span class="d"></span></span>
+        <span class="pt s" style="--pd:480ms"></span>
+        <span class="flagpt" style="--pd:520ms" aria-label="финиш">
+          <svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><path d="M4 1v28" stroke="#6E675C" stroke-width="2.4" stroke-linecap="round"/><path d="M5 2h16l-3.5 5 3.5 5H5z" fill="#FF8C00"/></svg>
+        </span>
+      </div>
+    </div>
+
+    <div class="theme reveal" style="--d:200ms"><span class="dot"></span><span class="tl">Тема:</span><b>Цифры числа</b><span class="tp">(разряды, количество)</span></div>
+
+    <div class="qcard reveal" style="--d:260ms">
+      <div class="qk"><span class="n">1</span>Вопрос</div>
+      <p class="q">Найдите двузначное число, если оно равно удвоенному произведению своих цифр.</p>
+
+      <div class="field">
+        <label for="ans">Твой ответ</label>
+        <div class="inwrap">
+          <input id="ans" type="text" inputmode="numeric" placeholder="Введите число" autocomplete="off" />
+          <span class="hint">число</span>
+        </div>
+      </div>
+      <button class="check" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Проверить
+      </button>
+      <div class="skip"><button type="button">Пропустить и вернуться позже</button></div>
+    </div>
+  </main>
+
+  <nav class="tabbar" aria-label="Основная навигация">
+    <div class="inner">
+      <button class="tab active" type="button" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Срез
+      </button>
+      <button class="tab" type="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V10M12 19V5M19 19v-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Прогресс
+      </button>
+    </div>
+  </nav>
+</div>
+
+<script>
+  requestAnimationFrame(()=>document.body.classList.add('revealed'));
+</script>
+</body>
+</html>
