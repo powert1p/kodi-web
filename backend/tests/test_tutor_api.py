@@ -434,6 +434,44 @@ async def test_generate_tutor_reply_uses_valid_ai_move(monkeypatch):
     assert reply == render_tutor_reply(ctx, "check")
 
 
+@pytest.mark.parametrize(("previous_variant", "expected_variant"), [(0, 1), (1, 0)])
+@pytest.mark.asyncio
+async def test_generate_tutor_reply_rotates_copy_when_same_move_repeats(
+    monkeypatch,
+    previous_variant,
+    expected_variant,
+):
+    """Два одинаковых routing-решения не должны звучать как зацикливание."""
+    ctx = _ctx()
+
+    async def _fake_context(*args, **kwargs):
+        return ctx
+
+    async def _fake_chat(messages):
+        return '{"move":"break_down"}'
+
+    monkeypatch.setattr("core.tutor.build_agent_context", _fake_context)
+    monkeypatch.setattr("core.tutor.chat_reply", _fake_chat)
+    previous = render_tutor_reply(ctx, "break_down", variant=previous_variant)
+
+    reply = await generate_tutor_reply(
+        object(),
+        student_id=1,
+        problem_id=1,
+        decomp_idx=None,
+        user_message="а если я всё ещё не понимаю?",
+        history=[
+            {"role": "user", "content": "разбей на шаги"},
+            {"role": "assistant", "content": previous},
+        ],
+    )
+
+    assert reply != previous
+    assert reply == render_tutor_reply(ctx, "break_down", variant=expected_variant)
+    assert reply == sanitize_tutor_output(reply)
+    assert reply.endswith("?")
+
+
 def test_validate_tutor_reply_blocks_final_and_step_answers():
     ctx = _ctx()
     assert validate_tutor_reply("Получится 2. Что сделаешь дальше?", ctx) != "Получится 2. Что сделаешь дальше?"
