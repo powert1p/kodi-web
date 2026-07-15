@@ -173,6 +173,51 @@ async def test_new_wrong_attempt_after_closure_reopens_task(vclient):
     assert wrong_tasks.status_code == 200, wrong_tasks.text
     assert any(task["problem_id"] == p1 for task in wrong_tasks.json()["tasks"])
 
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    eng = create_async_engine(_TEST_URL)
+    fac = async_sessionmaker(eng, expire_on_commit=False)
+    async with fac() as s:
+        resolved = (await s.execute(text(
+            "SELECT resolved FROM recurring_errors "
+            "WHERE student_id = :sid AND micro_skill = 'vf_failed_ms'"
+        ), {"sid": sid})).scalar_one()
+    await eng.dispose()
+    assert resolved is False
+
+
+@pytest.mark.asyncio
+async def test_wrong_recorded_attempt_reopens_recurring_progress(vclient):
+    """Любая новая неверная попытка через record_attempt снова открывает узел."""
+    ac, token, _p1, p2, sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
+
+    closed = await ac.post(
+        "/api/trainer/verification/answer",
+        headers=headers,
+        json={"problem_id": p2, "answer": "20", "micro_skill": "vf_skill"},
+    )
+    assert closed.status_code == 200, closed.text
+    assert closed.json()["correct"] is True
+
+    wrong = await ac.post(
+        "/api/trainer/verification/answer",
+        headers=headers,
+        json={"problem_id": p2, "answer": "99", "micro_skill": "vf_skill"},
+    )
+    assert wrong.status_code == 200, wrong.text
+    assert wrong.json()["correct"] is False
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    eng = create_async_engine(_TEST_URL)
+    fac = async_sessionmaker(eng, expire_on_commit=False)
+    async with fac() as s:
+        resolved = (await s.execute(text(
+            "SELECT resolved FROM recurring_errors "
+            "WHERE student_id = :sid AND micro_skill = 'vf_failed_ms'"
+        ), {"sid": sid})).scalar_one()
+    await eng.dispose()
+    assert resolved is False
+
 
 @pytest.mark.asyncio
 async def test_verification_start_no_token_401(vclient):

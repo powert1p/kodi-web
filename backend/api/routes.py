@@ -1145,6 +1145,14 @@ async def diagnostic_answer(request: Request, body: DiagnosticAnswerBody, lang: 
             source="exam" if isinstance(state, ExamState) else "diagnostic",
         )
         session.add(attempt)
+        if not is_correct:
+            await session.execute(
+                text(
+                    "UPDATE recurring_errors SET resolved = false "
+                    "WHERE student_id = :sid AND node_id = :nid AND resolved = true"
+                ),
+                {"sid": student.id, "nid": problem.node_id},
+            )
 
         await _persist_state(session, student, state, _state_mode(state))
         await session.commit()

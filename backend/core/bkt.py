@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -131,6 +131,18 @@ async def record_attempt(
         source=source,
     )
     session.add(attempt)
+
+    # Закрытие recurring_error означает, что ребёнок подтвердил перенос навыка.
+    # Любая более поздняя неверная попытка того же узла — новое доказательство
+    # пробела, поэтому очередь и аналитический прогресс должны открыться снова.
+    if not is_correct:
+        await session.execute(
+            text(
+                "UPDATE recurring_errors SET resolved = false "
+                "WHERE student_id = :sid AND node_id = :nid AND resolved = true"
+            ),
+            {"sid": student_id, "nid": problem.node_id},
+        )
 
     # 2. Fetch node BKT params
     node = await session.get(Node, problem.node_id)

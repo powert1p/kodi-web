@@ -1188,7 +1188,7 @@ async def test_diagnose_inserts_error_capture(client_for_diagnose, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_diagnose_recurring_errors_upsert(client_for_diagnose, monkeypatch):
-    """После двух POST error_count в recurring_errors = 2."""
+    """Новая фото-ошибка увеличивает счётчик и снова открывает закрытый навык."""
     client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
 
     async def _mock_diagnose(**kwargs):
@@ -1207,6 +1207,21 @@ async def test_diagnose_recurring_errors_upsert(client_for_diagnose, monkeypatch
     )
     assert resp1.status_code == 200, resp1.text
 
+    # Имитируем успешную контрольную между двумя ошибками: следующая реальная
+    # фото-ошибка обязана снова открыть прогресс, а не оставить resolved=true.
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as sess:
+        await sess.execute(
+            text(
+                "UPDATE recurring_errors SET resolved = true "
+                "WHERE student_id = :sid AND micro_skill = 'div_basic'"
+            ),
+            {"sid": student_id},
+        )
+        await sess.commit()
+
     # Второй POST — тот же студент + тот же micro_skill
     resp2 = await client.post(
         "/api/trainer/diagnose",
@@ -1217,13 +1232,10 @@ async def test_diagnose_recurring_errors_upsert(client_for_diagnose, monkeypatch
     assert resp2.status_code == 200, resp2.text
 
     # Проверяем error_count в recurring_errors
-    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-    engine = create_async_engine(_TEST_URL)
-    factory = async_sessionmaker(engine, expire_on_commit=False)
     async with factory() as sess:
         row = await sess.execute(
             text(
-                "SELECT error_count FROM recurring_errors "
+                "SELECT error_count, resolved FROM recurring_errors "
                 "WHERE student_id = :sid AND micro_skill = 'div_basic'"
             ),
             {"sid": student_id},
@@ -1233,6 +1245,7 @@ async def test_diagnose_recurring_errors_upsert(client_for_diagnose, monkeypatch
 
     assert rec is not None, "Запись в recurring_errors не найдена"
     assert rec.error_count == 2, f"Ожидался error_count=2, получен {rec.error_count}"
+    assert rec.resolved is False
 
 
 # ── тест 10: 503 когда diagnose_photo бросает LlmUnavailable ─────────────────

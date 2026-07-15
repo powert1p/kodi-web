@@ -970,7 +970,8 @@ async def post_diagnose(
                     "  error_count = recurring_errors.error_count + 1, "
                     "  last_seen_at = NOW(), "
                     "  last_cause_text = EXCLUDED.last_cause_text, "
-                    "  node_id = EXCLUDED.node_id"
+                    "  node_id = EXCLUDED.node_id, "
+                    "  resolved = false"
                 ),
                 {
                     "sid": student.id,
@@ -1626,6 +1627,14 @@ async def post_srez_answer(request: Request, payload: SrezAnswerIn) -> SrezAnswe
             {"sid": student.id, "pid": payload.problem_id, "nid": prob.node_id,
              "ans": payload.answer, "ok": is_correct, "ms": payload.elapsed_ms},
         )
+        if not is_correct:
+            await session.execute(
+                text(
+                    "UPDATE recurring_errors SET resolved = false "
+                    "WHERE student_id = :sid AND node_id = :nid AND resolved = true"
+                ),
+                {"sid": student.id, "nid": prob.node_id},
+            )
         await session.commit()
     finally:
         await session.close()
