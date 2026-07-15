@@ -88,7 +88,7 @@ class Settings:
     gemini_model_chain: list[str] = field(
         default_factory=lambda: (
             [m.strip() for m in os.getenv("GEMINI_MODEL_CHAIN", "").split(",") if m.strip()]
-            or ["gemini-2.5-flash", "gemini-2.0-flash"]
+            or ["gemini-3.5-flash", "gemini-3.1-flash-lite"]
         )
     )
     # OpenAI Vision — запасной провайдер (VISION_PROVIDER=openai)

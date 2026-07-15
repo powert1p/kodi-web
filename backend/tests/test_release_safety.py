@@ -94,6 +94,31 @@ def test_config_rejects_unknown_vision_provider() -> None:
     assert "VISION_PROVIDER" in result.stderr
 
 
+def test_default_gemini_chain_contains_only_current_ga_models() -> None:
+    """Release default не должен начинаться с исчерпанной или выключенной модели."""
+    env = os.environ.copy()
+    env["JWT_SECRET"] = "release-test-secret-with-at-least-32-chars"
+    env.pop("GEMINI_MODEL_CHAIN", None)
+    code = (
+        "import dotenv; "
+        "dotenv.load_dotenv = lambda *args, **kwargs: False; "
+        "from core.config import settings; "
+        "print(','.join(settings.gemini_model_chain))"
+    )
+
+    result = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "gemini-3.5-flash,gemini-3.1-flash-lite"
+
+
 def test_database_url_components_round_trip_reserved_chars_and_spaces(monkeypatch) -> None:
     from core.config import _database_url_from_env
 
