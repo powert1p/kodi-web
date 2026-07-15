@@ -167,6 +167,14 @@ def save_html(html_bytes: bytes) -> str:
     return token
 
 
+def _should_serve_flutter_index(full_path: str) -> bool:
+    """Разрешает root SPA-fallback только для клиентских маршрутов без расширения."""
+    normalized = full_path.lstrip("/")
+    if normalized == "api" or normalized.startswith("api/"):
+        return False
+    return not os.path.splitext(normalized)[1]
+
+
 @app.get("/stats/{token}")
 async def get_stats(token: str) -> HTMLResponse:
     if not token.isalnum() or len(token) > 32:
@@ -185,6 +193,8 @@ if WEB_STATIC_DIR.exists():
         file_path = WEB_STATIC_DIR / full_path
         if full_path and file_path.exists() and file_path.is_file():
             return FileResponse(file_path)
+        if not _should_serve_flutter_index(full_path):
+            raise HTTPException(status_code=404, detail="Not Found")
         return FileResponse(WEB_STATIC_DIR / "index.html")
 else:
     logger.info("No web_static/ directory — API-only mode")

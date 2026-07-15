@@ -89,6 +89,25 @@ async def test_api_404_stays_json():
     assert r.json() == {"detail": "Not Found"}
 
 
+@pytest.mark.parametrize(
+    ("path", "should_fallback"),
+    [
+        ("", True),
+        ("lesson/mixtures-1", True),
+        ("api", False),
+        ("api/nonexistent", False),
+        ("api/v1/nonexistent", False),
+        ("assets/nonexistent.js", False),
+        ("favicon.ico", False),
+    ],
+)
+def test_flutter_root_fallback_only_handles_client_routes(path, should_fallback):
+    """Root SPA не должна маскировать API 404 и отсутствующие ассеты HTML-ответом."""
+    from web import _should_serve_flutter_index
+
+    assert _should_serve_flutter_index(path) is should_fallback
+
+
 @pytest.mark.skipif(not WEBAPP_DIST_DIR.exists(), reason="webapp_dist не собран в этом окружении")
 @pytest.mark.asyncio
 async def test_real_app_spa_route_smoke():
