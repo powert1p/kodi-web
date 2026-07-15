@@ -1,0 +1,23 @@
+# Изолированный smoke compose topology: без host-портов, prod volume и tunnel.
+services:
+  postgres:
+    container_name: kodi-topology-postgres
+    ports: !reset []
+    volumes: !override
+      - kodi-topology-pg:/var/lib/postgresql/data
+
+  app:
+    container_name: kodi-topology-app
+    image: kodi-web:release-12aceead
+    ports: !reset []
+    volumes: !reset []
+    environment:
+      GEMINI_API_KEY: topology-smoke-placeholder
+
+  tunnel:
+    container_name: kodi-topology-tunnel
+    command: ["version"]
+    restart: "no"
+
+volumes:
+  kodi-topology-pg:

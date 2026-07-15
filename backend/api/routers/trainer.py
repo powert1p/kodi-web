@@ -24,7 +24,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.routes import _get_current_student, limiter
+from api.routes import _get_current_student, ai_ip_limit, limiter
 from core.agent_context import build_agent_context
 from core.config import settings
 from core.grading import check_answer
@@ -654,6 +654,7 @@ def _is_valid_image_payload(image_bytes: bytes, content_type: str) -> bool:
 
 @router.post("/diagnose", response_model=DiagnosisOut)
 @limiter.limit("10/minute")
+@ai_ip_limit
 async def post_diagnose(
     request: Request,
     problem_id: int = Form(..., description="ID задачи из таблицы problems"),
@@ -1014,6 +1015,7 @@ class StepSubmitOut(BaseModel):
 
 @router.post("/step-submit", response_model=StepSubmitOut)
 @limiter.limit("15/minute")
+@ai_ip_limit
 async def post_step_submit(
     request: Request,
     decomp_idx: int = Form(...),
@@ -1411,6 +1413,7 @@ class TutorChatOut(BaseModel):
 
 @router.post("/tutor/chat", response_model=TutorChatOut)
 @limiter.limit("15/minute")
+@ai_ip_limit
 async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOut:
     """Один ход диалога с тьютором. Сессия auto-create по (студент, задача)."""
     session, student = await _get_current_student(request)

@@ -22,7 +22,8 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - kodi-internal
+      kodi-internal:
+        ipv4_address: 172.30.57.2
 
   app:
     build:
@@ -50,9 +51,9 @@ services:
       # owner-гейт выгрузки телеметрии (/api/trainer/events/export); 0 = выгрузка никому
       OWNER_STUDENT_ID: ${OWNER_STUDENT_ID:-0}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
-      # Порт приложения опубликован только на loopback, поэтому единственный
-      # допустимый внешний источник — локальный ingress; доверяем его XFF.
-      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-*}
+      # Host ingress приходит в контейнер от фиксированного gateway compose-сети.
+      # Не использовать "*": иначе клиент может подделать XFF и обойти rate limits.
+      FORWARDED_ALLOW_IPS: "172.30.57.1"
       PORT: "8000"
     # Фото-датасет (детские работы) должен переживать rebuild контейнера
     volumes:
@@ -67,8 +68,13 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - kodi-internal
+      kodi-internal:
+        ipv4_address: 172.30.57.3
 
 networks:
   kodi-internal:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.57.0/24
+          gateway: 172.30.57.1

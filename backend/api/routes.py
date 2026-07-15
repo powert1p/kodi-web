@@ -25,16 +25,19 @@ Endpoints:
 from __future__ import annotations
 
 import asyncio
+from collections import OrderedDict, deque
 import hashlib
 import hmac
 import logging
+import math
 import random
+from threading import Lock
 import time
 from datetime import datetime, timedelta, timezone
 
 import jwt
 from fastapi import APIRouter, HTTPException, Query, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -44,8 +47,7 @@ from slowapi.util import get_remote_address
 from core.bkt import MASTERY_THRESHOLD, is_mastered, record_attempt
 from core.config import settings
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
-from core.grading import check_answer, check_with_claude
+from core.grading import check_answer
 from core.selector import select_next_problem
 from db.base import async_session
 from db.models import Attempt, Edge, Mastery, Node, Problem, ProblemReport, Student, Topic, TopicEdge
@@ -57,6 +59,158 @@ router = APIRouter(prefix="/api")
 JWT_SECRET = settings.jwt_secret
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_DAYS = 30
+
+
+def _rate_limit_key(request: Request) -> str:
+    """Разделяет authenticated buckets по ученикам, anonymous — по IP.
+
+    Подпись и срок JWT проверяются даже для rate-key: неподписанный ``sub`` не
+    должен позволять атакующему выжечь bucket конкретного ребёнка.
+    """
+    remote_ip = get_remote_address(request)
+    if request.url.path.startswith("/api/auth/"):
+        return f"ip:{remote_ip}"
+
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth[7:]
+        if len(token) <= 4096:
+            try:
+                payload = jwt.decode(
+                    token,
+                    JWT_SECRET,
+                    algorithms=[JWT_ALGORITHM],
+                    options={"require": ["sub", "exp"]},
+                )
+                raw_student_id = payload["sub"]
+                student_id = int(raw_student_id)
+                if student_id > 0 and str(student_id) == str(raw_student_id):
+                    return f"student:{student_id}"
+            except (jwt.InvalidTokenError, KeyError, TypeError, ValueError):
+                pass
+    return f"ip:{remote_ip}"
+
+
+limiter = Limiter(key_func=_rate_limit_key, default_limits=["60/minute"])
+
+
+def _ip_rate_limit_key(request: Request) -> str:
+    """Общий bucket по реальному client IP после trusted proxy middleware."""
+    return f"ip:{get_remote_address(request)}"
+
+
+# JWT/account rotation не должна умножать внешний AI и notification budget.
+ai_ip_limit = limiter.shared_limit(
+    "60/minute",
+    scope="llm-ip",
+    key_func=_ip_rate_limit_key,
+)
+report_ip_limit = limiter.shared_limit(
+    "30/minute",
+    scope="problem-report-ip",
+    key_func=_ip_rate_limit_key,
+)
+
+
+_LOGIN_FAILURE_LIMIT = 5
+_LOGIN_FAILURE_WINDOW_SECONDS = 60.0
+_LOGIN_FAILURE_MAX_KEYS = 10_000
+_login_failure_windows: OrderedDict[str, deque[float]] = OrderedDict()
+_login_failure_lock = Lock()
+
+
+def _normalize_phone(phone: str) -> str:
+    return phone.strip().replace(" ", "").replace("-", "")
+
+
+def _login_failure_key(request: Request, phone: str) -> str:
+    phone_digest = hashlib.sha256(_normalize_phone(phone).encode()).hexdigest()
+    return f"{get_remote_address(request)}:{phone_digest}"
+
+
+def _prune_login_failure_windows(now: float) -> None:
+    cutoff = now - _LOGIN_FAILURE_WINDOW_SECONDS
+    while _login_failure_windows:
+        key = next(iter(_login_failure_windows))
+        timestamps = _login_failure_windows[key]
+        while timestamps and timestamps[0] <= cutoff:
+            timestamps.popleft()
+        if timestamps:
+            break
+        _login_failure_windows.popitem(last=False)
+
+
+def _login_failure_retry_after(request: Request, phone: str) -> int | None:
+    now = time.monotonic()
+    key = _login_failure_key(request, phone)
+    with _login_failure_lock:
+        _prune_login_failure_windows(now)
+        timestamps = _login_failure_windows.get(key)
+        if timestamps is None:
+            return None
+        cutoff = now - _LOGIN_FAILURE_WINDOW_SECONDS
+        while timestamps and timestamps[0] <= cutoff:
+            timestamps.popleft()
+        if not timestamps:
+            _login_failure_windows.pop(key, None)
+            return None
+        _login_failure_windows.move_to_end(key)
+        if len(timestamps) < _LOGIN_FAILURE_LIMIT:
+            return None
+        return max(
+            1,
+            math.ceil(timestamps[0] + _LOGIN_FAILURE_WINDOW_SECONDS - now),
+        )
+
+
+def _raise_if_login_failure_limited(request: Request, phone: str) -> None:
+    retry_after = _login_failure_retry_after(request, phone)
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Слишком много неверных попыток. Попробуйте через минуту.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+def _record_login_failure(request: Request, phone: str) -> None:
+    now = time.monotonic()
+    key = _login_failure_key(request, phone)
+    with _login_failure_lock:
+        _prune_login_failure_windows(now)
+        timestamps = _login_failure_windows.setdefault(key, deque())
+        cutoff = now - _LOGIN_FAILURE_WINDOW_SECONDS
+        while timestamps and timestamps[0] <= cutoff:
+            timestamps.popleft()
+        if len(timestamps) >= _LOGIN_FAILURE_LIMIT:
+            retry_after = max(
+                1,
+                math.ceil(timestamps[0] + _LOGIN_FAILURE_WINDOW_SECONDS - now),
+            )
+        else:
+            timestamps.append(now)
+            retry_after = None
+        _login_failure_windows.move_to_end(key)
+        while len(_login_failure_windows) > _LOGIN_FAILURE_MAX_KEYS:
+            _login_failure_windows.popitem(last=False)
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Слишком много неверных попыток. Попробуйте через минуту.",
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+def _clear_login_failures(request: Request, phone: str) -> None:
+    key = _login_failure_key(request, phone)
+    with _login_failure_lock:
+        _login_failure_windows.pop(key, None)
+
+
+def _reset_login_failure_limiter() -> None:
+    """Изолирует integration tests; production-код этот reset не вызывает."""
+    with _login_failure_lock:
+        _login_failure_windows.clear()
 
 
 # ── Pydantic schemas ─────────────────────────────────────────
@@ -103,8 +257,8 @@ class SkipBody(BaseModel):
 
 class ReportBody(BaseModel):
     problem_id: int
-    reason: str
-    student_answer: str = ""
+    reason: str = Field(min_length=1, max_length=30)
+    student_answer: str = Field(default="", max_length=500)
 
 class ExamStartBody(BaseModel):
     num_problems: int = 20
@@ -185,7 +339,7 @@ def _verify_telegram_hash(data: dict) -> bool:
 # ══════════════════════════════════════════════════════════════
 
 @router.post("/auth/telegram")
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def auth_telegram(request: Request, body: TelegramLoginBody):
     tg_data = body.model_dump(exclude_none=True)
     if not _verify_telegram_hash(tg_data):
@@ -208,9 +362,9 @@ async def auth_telegram(request: Request, body: TelegramLoginBody):
 
 
 @router.post("/auth/phone/check")
-@limiter.limit("10/minute")
+@limiter.limit("60/minute")
 async def auth_phone_check(request: Request, body: PhoneCheckBody):
-    phone = body.phone.strip().replace(" ", "").replace("-", "")
+    phone = _normalize_phone(body.phone)
     async with async_session() as session:
         result = await session.execute(
             select(Student).where(Student.phone == phone)
@@ -220,9 +374,9 @@ async def auth_phone_check(request: Request, body: PhoneCheckBody):
 
 
 @router.post("/auth/phone/register")
-@limiter.limit("5/minute")
+@limiter.limit("30/hour")
 async def auth_phone_register(request: Request, body: PhoneRegisterBody):
-    phone = body.phone.strip().replace(" ", "").replace("-", "")
+    phone = _normalize_phone(body.phone)
     if not phone or len(phone) < 10:
         raise HTTPException(status_code=400, detail="Некорректный номер телефона")
     if not body.pin or len(body.pin) < 4:
@@ -237,12 +391,13 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
         if existing.scalar_one_or_none():
             raise HTTPException(status_code=409, detail="Этот номер уже зарегистрирован")
 
+        pin_hash = await asyncio.to_thread(_hash_pin, body.pin)
         student = Student(
             id=int(time.time() * 1_000_000) + random.randint(0, 999_999),
             first_name=body.name,
             full_name=body.name,
             phone=phone,
-            pin_hash=_hash_pin(body.pin),
+            pin_hash=pin_hash,
             grade=body.grade,
             registered=True,
             lang="ru",
@@ -257,23 +412,28 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
 
 
 @router.post("/auth/phone/login")
-@limiter.limit("5/minute")
+@limiter.limit("30/minute")
 async def auth_phone_login(request: Request, body: PhoneLoginBody):
-    phone = body.phone.strip().replace(" ", "").replace("-", "")
+    phone = _normalize_phone(body.phone)
+    _raise_if_login_failure_limited(request, phone)
     async with async_session() as session:
         result = await session.execute(
             select(Student).where(Student.phone == phone)
         )
         student = result.scalar_one_or_none()
         if not student:
+            _record_login_failure(request, phone)
             raise HTTPException(status_code=401, detail="Неверный номер телефона или PIN")
         if not student.pin_hash:
-            raise HTTPException(status_code=401, detail="Для этого аккаунта не установлен PIN. Войдите через Telegram.")
-        if not _verify_pin(body.pin, student.pin_hash):
+            _record_login_failure(request, phone)
             raise HTTPException(status_code=401, detail="Неверный номер телефона или PIN")
+        if not await asyncio.to_thread(_verify_pin, body.pin, student.pin_hash):
+            _record_login_failure(request, phone)
+            raise HTTPException(status_code=401, detail="Неверный номер телефона или PIN")
+        _clear_login_failures(request, phone)
         # Upgrade legacy SHA256 hash to bcrypt on successful login
         if len(student.pin_hash) == 64:
-            student.pin_hash = _hash_pin(body.pin)
+            student.pin_hash = await asyncio.to_thread(_hash_pin, body.pin)
             await session.commit()
         return {"access_token": _create_token(student.id)}
 
@@ -667,7 +827,7 @@ async def practice_skip(request: Request, body: SkipBody):
         await session.close()
 
 
-async def _notify_report(report_id, problem_text, correct_answer, student_answer, reason, ai_verdict=None):
+async def _notify_report(report_id, problem_text, correct_answer, student_answer, reason):
     """Send report notification to admin Telegram."""
     import httpx
 
@@ -682,14 +842,6 @@ async def _notify_report(report_id, problem_text, correct_answer, student_answer
         f"Ответ ученика: {student_answer or '—'}\n"
         f"Причина: {reason}\n"
     )
-    if ai_verdict:
-        action, explanation = ai_verdict
-        if action == "fixed":
-            text += f"\n\u2705 AI автоматически исправил ответ на: {student_answer}\n"
-            text += f"Причина: {explanation}\n"
-        elif action == "rejected":
-            text += f"\n\U0001f916 AI проверил — ответ ученика неверен.\n"
-            text += f"Причина: {explanation}\n"
     logger.info("Notifying %d admins: %s", len(admin_ids), admin_ids)
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     async with httpx.AsyncClient() as client:
@@ -703,6 +855,8 @@ async def _notify_report(report_id, problem_text, correct_answer, student_answer
 
 
 @router.post("/practice/report")
+@limiter.limit("5/minute")
+@report_ip_limit
 async def practice_report(request: Request, body: ReportBody):
     session, student = await _get_current_student(request)
     try:
@@ -724,35 +878,11 @@ async def practice_report(request: Request, body: ReportBody):
         await session.flush()  # get report.id
         await session.commit()
 
-        # AI auto-check: verify if student's answer is actually correct
-        ai_verdict = None
-        if body.student_answer:
-            try:
-                is_correct, explanation = await check_with_claude(
-                    body.student_answer, problem.answer, problem.text_ru
-                )
-                if is_correct:
-                    problem.answer = body.student_answer
-                    report.status = "auto_fixed"
-                    report.resolved_by = "AI (Claude)"
-                    report.resolved_at = datetime.now(timezone.utc)
-                    report.comment = f"AI: {explanation}"
-                    await session.commit()
-                    ai_verdict = ("fixed", explanation)
-                    logger.info("Report #%d auto-fixed by AI: problem #%d answer -> '%s'",
-                                report.id, problem.id, body.student_answer)
-                else:
-                    report.comment = f"AI: ответ ученика неверен. {explanation}"
-                    await session.commit()
-                    ai_verdict = ("rejected", explanation)
-                    logger.info("Report #%d AI-rejected: %s", report.id, explanation)
-            except Exception as exc:
-                logger.warning("AI auto-check failed for report #%d: %s", report.id, exc)
-
-        # Fire-and-forget Telegram notification
+        # Жалоба только создаёт очередь для ручной проверки. Ответ банка нельзя
+        # менять автоматически по пользовательскому вводу или AI-вердикту.
         asyncio.ensure_future(_notify_report(
             report.id, problem.text_ru, problem.answer,
-            body.student_answer, body.reason, ai_verdict,
+            body.student_answer, body.reason,
         ))
 
         return {"ok": True}

@@ -230,7 +230,20 @@ def test_compose_is_fail_closed_and_loopback_only() -> None:
     assert "OPENAI_API_KEY: ${OPENAI_API_KEY:-}" in compose
     assert "http://localhost:8000/ready" in compose
     assert "d.get('status')=='ready'" in compose
-    assert "FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-*}" in compose
+    assert 'FORWARDED_ALLOW_IPS: "172.30.57.1"' in compose
+    assert "172.30.57.0/24" in compose
+    assert "gateway: 172.30.57.1" in compose
+
+    online = (REPO_ROOT / "docker-compose.online.yml").read_text(encoding="utf-8")
+    assert "ipv4_address: 172.30.57.2" in compose
+    assert "ipv4_address: 172.30.57.3" in compose
+    assert 'FORWARDED_ALLOW_IPS: "172.30.57.1,172.30.57.4"' in online
+    assert "ipv4_address: 172.30.57.4" in online
+    assert 'FORWARDED_ALLOW_IPS: "*"' not in online
+
+    nginx = (REPO_ROOT / "docker/nginx/kodi-web.conf").read_text(encoding="utf-8")
+    assert "X-Forwarded-For   $remote_addr;" in nginx
+    assert "$proxy_add_x_forwarded_for" not in nginx
 
 
 def test_docker_context_excludes_private_and_runtime_data() -> None:

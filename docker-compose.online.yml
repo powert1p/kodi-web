@@ -4,8 +4,8 @@ services:
   app:
     image: kodi-web:online
     environment:
-      # Единственный внешний proxy — cloudflared в закрытой compose-сети.
-      FORWARDED_ALLOW_IPS: "*"
+      # Доверяем только host gateway и статическому cloudflared peer.
+      FORWARDED_ALLOW_IPS: "172.30.57.1,172.30.57.4"
 
   tunnel:
     image: cloudflare/cloudflared@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
@@ -28,4 +28,5 @@ services:
         max-size: "10m"
         max-file: "3"
     networks:
-      - kodi-internal
+      kodi-internal:
+        ipv4_address: 172.30.57.4

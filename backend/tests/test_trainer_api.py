@@ -543,6 +543,12 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
     routes_module.async_session = test_session_factory
 
     from web import app
+    from api.routes import limiter as api_limiter
+
+    # SlowAPI хранит счётчики на уровне процесса. Каждый integration-case
+    # получает чистый bucket, иначе соседний diagnose-тест меняет его результат.
+    api_limiter.reset()
+    app.state.limiter.reset()
 
     async with AsyncClient(
         transport=ASGITransport(
@@ -555,6 +561,8 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
 
     db_base.async_session = original_db
     routes_module.async_session = original_routes
+    api_limiter.reset()
+    app.state.limiter.reset()
     await test_engine.dispose()
 
 
