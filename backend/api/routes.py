@@ -44,7 +44,7 @@ from slowapi.util import get_remote_address
 from core.bkt import MASTERY_THRESHOLD, is_mastered, record_attempt
 from core.config import settings
 
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 from core.grading import check_answer, check_with_claude
 from core.selector import select_next_problem
 from db.base import async_session

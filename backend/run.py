@@ -13,7 +13,13 @@ from sqlalchemy import text
 from web import app
 from core.config import settings
 from db.base import Base, async_session, engine
-from db.seed import backfill_theory, seed_graph, seed_problems, seed_topics
+from db.seed import (
+    backfill_problem_content_idx,
+    backfill_theory,
+    seed_graph,
+    seed_problems,
+    seed_topics,
+)
 from db.seed_decomposition import seed_decomposition
 
 logging.basicConfig(
@@ -48,6 +54,9 @@ async def on_startup():
             "ALTER TABLE nodes ADD COLUMN IF NOT EXISTS topic_id VARCHAR(20)",
             # ── карточка теории «Как решать» (метод узла, задача 1d) ──
             "ALTER TABLE nodes ADD COLUMN IF NOT EXISTS theory_ru TEXT",
+            # ── stable identity problem ↔ decomposition ──
+            "ALTER TABLE problems ADD COLUMN IF NOT EXISTS content_idx INTEGER",
+            "CREATE UNIQUE INDEX IF NOT EXISTS ix_problems_content_idx ON problems (content_idx)",
             # ── fix NULLs in existing rows ──
             "UPDATE students SET practice_count = 0 WHERE practice_count IS NULL",
             "UPDATE students SET problems_on_current_node = 0 WHERE problems_on_current_node IS NULL",
@@ -186,20 +195,36 @@ async def on_startup():
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_step_submissions_student_created ON step_submissions (student_id, created_at)",
+            # Серверные typed-answer вердикты лесенки (без хранения эталона)
+            """
+            CREATE TABLE IF NOT EXISTS drill_step_attempts (
+                id          BIGINT      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                student_id  BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                problem_id  INTEGER     NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+                decomp_idx  INTEGER,
+                step_n      INTEGER     NOT NULL,
+                is_correct  BOOLEAN     NOT NULL,
+                source      VARCHAR(16) NOT NULL DEFAULT 'input',
+                created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_drill_step_attempts_student_problem ON drill_step_attempts (student_id, problem_id, created_at)",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")
 
+    # Всегда синхронизируем недостающие canonical-узлы/рёбра. Проверка вида
+    # ``count > 0`` небезопасна: частично засеянная БД иначе оставляет FK задач
+    # без соответствующих nodes и роняет startup.
     async with async_session() as session:
-        count = (await session.execute(text("SELECT count(*) FROM nodes"))).scalar()
-        if count == 0:
-            logger.info("Seeding graph + problems...")
-            await seed_graph(session)
-            await seed_problems(session)
-            await session.commit()
-            logger.info("Seed complete.")
-        else:
-            logger.info("DB already seeded (%d nodes).", count)
+        count = await seed_graph(session)
+        logger.info("Knowledge graph ready (%d nodes).", count)
+
+    # На existing-БД autoincrement id не совпадает с canonical index. Привязываем
+    # безопасно по уникальному (node_id, text_ru); ручные строки остаются NULL.
+    async with async_session() as session:
+        await backfill_problem_content_idx(session)
+        await seed_problems(session)
 
     # seed_topics вызывается всегда (и на свежей, и на уже засеянной БД) — идемпотентен
     async with async_session() as session:

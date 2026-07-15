@@ -8,7 +8,7 @@
 import os
 
 # env ДО любого импорта core.config — иначе fail-fast по пустому JWT_SECRET.
-os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-with-at-least-32-chars")
 
 _TEST_URL = os.getenv("TEST_DATABASE_URL")
 

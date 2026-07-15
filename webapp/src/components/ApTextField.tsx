@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from 'react'
+import { useId, type InputHTMLAttributes, type ReactNode } from 'react'
 
 // ApTextField (DESIGN_SYSTEM §3 — контракт закрыт: size m/l · state default/error/disabled).
 // Радиус control, текст body, фон surface, бордер по состояниям: default stroke (1px),
@@ -27,26 +27,34 @@ export function ApTextField({
   ...rest
 }: ApTextFieldProps) {
   const isError = !!error
+  const generatedId = useId()
+  const fieldId = id ?? `ap-field-${generatedId}`
+  const errorId = `${fieldId}-error`
+  const describedBy = rest['aria-describedby']
+  const inputProps = { ...rest }
+  delete inputProps['aria-describedby']
+
   return (
-    <label className={['flex flex-col gap-2', className].join(' ')}>
-      {label && <span className="text-caption1-medium text-muted">{label}</span>}
+    <div className={['flex flex-col gap-2', className].join(' ')}>
+      {label && <label htmlFor={fieldId} className="text-caption1-medium text-muted">{label}</label>}
       <div className="relative">
         <input
-          id={id}
+          {...inputProps}
+          id={fieldId}
           className={[
-            'w-full rounded-control bg-surface text-body text-text',
+            'field-inset w-full rounded-control bg-surface text-body text-text',
             'placeholder:text-muted',
-            'px-4 outline-none transition-colors',
+            'px-4 transition-colors',
             fieldSize === 'l' ? 'h-14' : 'h-12',
             suffix ? 'pr-11' : '',
             // бордер: 1px default → 1.5px brand на фокусе; error — амбер, не красный
             isError
-              ? 'border border-attn'
-              : 'border border-stroke focus:border-[1.5px] focus:border-brand',
+              ? 'border border-oxide bg-oxide-soft/30'
+              : 'border border-ink/20 focus:border-blue-deep',
           ].join(' ')}
           style={{ fontSize: '16px' }}
           aria-invalid={isError}
-          {...rest}
+          aria-describedby={[describedBy, isError ? errorId : null].filter(Boolean).join(' ') || undefined}
         />
         {suffix && (
           <span className="absolute inset-y-0 right-3 flex items-center text-muted">
@@ -54,7 +62,7 @@ export function ApTextField({
           </span>
         )}
       </div>
-      {error && <span className="text-caption1 text-attn">{error}</span>}
-    </label>
+      {error && <span id={errorId} className="text-caption1 text-oxide" role="alert" aria-live="polite">{error}</span>}
+    </div>
   )
 }

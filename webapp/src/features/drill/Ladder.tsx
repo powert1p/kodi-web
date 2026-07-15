@@ -1,77 +1,77 @@
+import { useEffect, useRef } from 'react'
 import type { Rung } from '../../lib/ladder'
+import { CheckIcon } from '../../icons'
 import { RungActive } from './RungActive'
 import { RungSolved, RungLocked } from './RungQuiet'
-import { RouteSpine, type RouteStop } from '../../components/route/RouteSpine'
 
 interface LadderProps {
   rungs: readonly Rung[]
   hint: boolean
+  hintText?: string | null
   showReveal: boolean
-  /** Ключ ступени, вставленной последней (для тона баннера climb-down). */
   insertedKey: string | null
-  /** Режим «По тетради» — прокидывается только в активную RungActive. */
   photoMode?: boolean
-  onSubmit: (value: string) => void
+  hideLocked?: boolean
+  checking?: boolean
+  onSubmit: (value: string) => void | Promise<void>
 }
 
-// SIGNATURE (§2/§3): лесенка ступеней КАК вертикальный участок маршрута — 4 ступени =
-// 4 отметки высоты на рукописной кривой. Активная ступень «защёлкивается» верным
-// ответом и линия дорисовывается вверх (redrawKey = ключ активной ступени). Активная
-// ступень — самая тяжёлая масса; запертые — призраки; финиш — флажок «вершины».
-export function Ladder({ rungs, hint, showReveal, insertedKey, photoMode, onSubmit }: LadderProps) {
-  // Стабильный 1-based номер по ОРИГИНАЛЬНЫМ шагам (easier не нумеруем).
+export function Ladder({ rungs, hint, hintText, showReveal, insertedKey, photoMode, hideLocked = false, checking = false, onSubmit }: LadderProps) {
   let originalCounter = 0
-  const numbered = rungs.map((r) => {
-    if (r.kind === 'original') originalCounter += 1
-    return { rung: r, num: originalCounter }
+  const numbered = rungs.map((rung) => {
+    if (rung.kind === 'original') originalCounter += 1
+    return { rung, num: originalCounter }
   })
+  const activeKey = rungs.find((rung) => rung.status === 'active')?.key ?? null
+  const previousActiveKey = useRef(activeKey)
+  const focusActive = previousActiveKey.current !== null && previousActiveKey.current !== activeKey
 
-  const activeIndex = numbered.findIndex((n) => n.rung.status === 'active')
-  const activeKey = numbered[activeIndex]?.rung.key ?? 'done'
-
-  const stops: RouteStop[] = numbered.map(({ rung, num }) => ({
-    key: rung.key,
-    state:
-      rung.status === 'solved' ? 'done' : rung.status === 'active' ? 'current' : 'todo',
-    // easier-ступень (разминка) — без номера (пустой узел); оригинал — номер.
-    label: rung.kind === 'easier' ? undefined : String(num),
-    content:
-      rung.status === 'active' ? (
-        <RungActive
-          rung={rung}
-          index={num}
-          hint={hint}
-          showReveal={showReveal}
-          justInserted={rung.key === insertedKey}
-          photoMode={photoMode}
-          onSubmit={onSubmit}
-        />
-      ) : rung.status === 'solved' ? (
-        <RungSolved rung={rung} index={num} />
-      ) : (
-        <RungLocked rung={rung} index={num} />
-      ),
-  }))
-
-  // Флажок «вершина: ошибка побеждена» — линия доходит до финиша.
-  stops.push({
-    key: 'summit',
-    state: 'flag',
-    content: (
-      <div className="flex min-h-8 items-center">
-        <span className="font-display text-caption1-medium text-brand-ink">
-          Вершина: ошибка побеждена
-        </span>
-      </div>
-    ),
-  })
+  useEffect(() => { previousActiveKey.current = activeKey }, [activeKey])
 
   return (
-    <RouteSpine
-      stops={stops}
-      currentIndex={activeIndex < 0 ? stops.length - 1 : activeIndex}
-      redrawKey={activeKey}
-      ariaLabel="Ступени решения"
-    />
+    <div className="min-w-0">
+      <div className="mb-4 flex items-center justify-between gap-4 border-b border-ink/15 pb-4">
+        <div>
+          <p className="text-mark text-brand-deep">Лента решения</p>
+          <p className="mt-2 hidden text-caption1 text-muted sm:block">Верный шаг защёлкивается и открывает следующий.</p>
+        </div>
+      </div>
+      <ol className="solution-ladder min-w-0">
+        {numbered.filter(({ rung }) => !hideLocked || rung.status !== 'locked').map(({ rung, num }) => (
+          <li key={rung.key} className="solution-ladder__item">
+            <span
+              className={[
+                'solution-ladder__node',
+                rung.status === 'active' ? 'solution-ladder__node--active' : '',
+                rung.status === 'solved' ? 'solution-ladder__node--done' : '',
+              ].filter(Boolean).join(' ')}
+              aria-hidden
+            >
+              {rung.status === 'solved' ? <CheckIcon size={12} /> : String(Math.max(1, num)).padStart(2, '0')}
+            </span>
+            <div className="min-w-0">
+              {rung.status === 'active' ? (
+                <RungActive
+                  rung={rung}
+                  index={num}
+                  hint={hint}
+                  hintText={hintText}
+                  showReveal={showReveal}
+                  justInserted={rung.key === insertedKey}
+                  focusOnMount={focusActive}
+                  photoMode={photoMode}
+                  checking={checking}
+                  onSubmit={onSubmit}
+                />
+              ) : rung.status === 'solved' ? (
+                <RungSolved rung={rung} index={num} />
+              ) : (
+                <RungLocked rung={rung} index={num} />
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }

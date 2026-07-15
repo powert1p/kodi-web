@@ -26,7 +26,6 @@ const MOCK_TASK: WrongTask = {
   node_id: 'N01',
   topic_label: 'Тест',
   statement: 'Задача',
-  answer: '5',
   primary_micro_skill: null,
   primary_micro_skill_label: null,
   decomp_idx: null,

@@ -1,115 +1,115 @@
-# DESIGN SYSTEM v6 — «Тетрадь чемпиона» (действующий канон, 2026-07-14)
+# DESIGN SYSTEM v11 — «Лента решения»
 
-> Итог redesign-run `docs/loops/runs/2026-07-13-webapp-v6/` (панель R3: avg 8.21, wow 2/3, один СУПЕР).
-> Глубокие детали и обоснования — в `DESIGN-V6.md` (бриф) и `rounds/round-1/SYNTHESIS.md` (синтез победителя).
-> История линеек: v1 dark → v2 clay → v3 Duolingo → v4 AiPlus → v5 «Спокойный+тёплый» → **v6 (текущая)**.
-> Все прошлые версии superseded — НЕ воспроизводить их предписания (v5-запреты «Golos-only /
-> только плоскость / без иллюстраций» ОТМЕНЕНЫ). Перед работой сверяй дату канона.
+> Действующий канон React PWA `/app/`, 2026-07-15. Он принят из clean-slate run
+> `docs/loops/runs/2026-07-15-webapp-v11-squirrel-clean-slate/`.
+> V7–V10, точный logo lockup и костюм-лис — anti-reference, не источник решений.
 
-## 0. Характер и регистр (зачем так)
+## 1. Характер
 
-Пользователь — 10-13 лет, дома, один на один со СВОИМИ ошибками. Регистр — **«тёплая мастерская
-чемпиона»**: не детсад (отторжение kiddie с 12 лет), не тёмный премиум, не канцелярия. Метафора мира —
-тетрадь в клетку, по которой маркером прочерчен маршрут к вершине. Ошибка — участок пути, о ней говорит
-Кёди («вот тут сбилось — глянем вместе»), никогда «системный» тон, никогда красный.
+AiPlus — тёплая математическая мастерская для ребёнка 10–13 лет после живого урока.
+Интерфейс бодрый и тактильный, но не инфантильный; дорогой, но не официальный. Главный объект
+каждого учебного экрана — конкретное математическое действие ученика.
 
-## 1. Токены — `src/theme/tokens.css` (единственный источник; значения = LAW, менять только с этим файлом)
+Визуальная формула: **тёплая бумага + forest ink + дисциплинированный orange + функциональная
+лента шагов**. Sage создаёт спокойный support-layer. Цвет и белка объясняют контекст, но не
+соревнуются с условием, вводом и feedback.
 
-**Тип-пара:** display **Unbounded** (числа-герои, заголовки, ступени; self-hosted woff2-сабсет
-`src/theme/fonts/`, кириллица есть, **Ң нет** → каскад `'Unbounded','Golos Text'`) + **Golos Text** body.
-Учебный текст (условие, шаг, реплики Кёди) ≥18px. Новый шрифт — только через рендер-верификацию
-(dual-fallback spread + Ң), self-report не верить. ЗАПРЕЩЕНЫ: Inter/Roboto/Arial/system-ui первичным.
+## 2. Источники правды
 
-**Поверхности:** слои тёплой бумаги `--paper #faf7f2` → `--paper-2/3` + `--surface` карточки;
-клетка тетради `--grid`/`--grid-strong` — живая текстура фона. Глубина светом (`--shadow-lift*`),
-не серыми тенями. SaaS-градиент/неон/тёмная тема — запрещены навсегда.
+- Product truth: `../docs/VISION.md` и frozen `BRIEF.md` активного run.
+- Цвет, type tokens, radii, shadows: `src/theme/tokens.css`.
+- Self-hosted fonts: `src/theme/fonts.css`.
+- Math overflow, materials, focus, motion: `src/index.css`.
+- UI contracts: `src/components/Ap*.tsx`, `BrandMark.tsx`, `Mascot.tsx`, `MathText.tsx`.
+- Production harness: `../docs/loops/runs/2026-07-15-webapp-v11-squirrel-clean-slate/render_matrix.py`.
 
-**Два оттенка оранжа (осознанно, НЕ путать и НЕ «чинить»):**
-- bright `--brand #FF8C00` — ТОЛЬКО действие: primary-CTA-заливки, узлы-маяки «ты здесь», активный таб.
-- глубокий амбер `--route-line #b37000` — прочерченный штрих маршрута + заливки прогресса
-  (графический контраст 3.75:1 на бумаге; bright даёт лишь ~2.2:1 — прогресс в bright НЕ возвращать).
-- `--route-trace #94856a` — карандашный след-подложка всей траектории (3.37:1, порог ≥3:1).
-- Ink-пары для текста на светлом: `--brand-ink`, `--attn-ink`, `--success-ink`; на заливке brand —
-  `--on-brand` (ink, не белый). `--muted #71695d` / `--label` — AA ≥4.5:1 на paper И surface.
+Сырые hex и arbitrary raw color/px values вне theme запрещены; смысловые `clamp()` и grid-
+шаблоны допустимы. Контракт проверяет `npm run lint:design`.
 
-**Смыслы:** success зелёный · «не сошлось» — амбер `--attn` (НЕ красный). Радиусы: 8 чипы · 12 контролы ·
-16 карточки · full. Сетка кратна 4px, полушаги запрещены (ловит `npm run lint:design`).
+## 3. Brand и персонажи
 
-## 2. Signature — «маршрут маркером по клетке» (ОДИН приём, сквозной)
+- `BrandMark` — самостоятельный code-native seed-mark: organic forest shape, строчная `a`,
+  orange leaf/plus. Исходный прямоугольный логотип нельзя вставлять или трассировать.
+- Wordmark остаётся текстом AiPlus, но не повторяет исходную композицию и эмблему.
+- Используются только иллюстрированные белки из пользовательской Drive-папки, оптимизированные
+  как `src/assets/brand/squirrel-*.webp`.
+- Одна иллюстрация максимум на viewport. В active Drill/Srez белки нет.
+- Login показывает учебный контекст; Hub — отдельную contextual note; celebrate — только после
+  подтверждённого результата. Белка не является avatar AI-чата и не перекрывает контент.
 
-На КАЖДОМ экране (login/hub/srez/drill/analytics/closure) маршрут командует первым вьюпортом.
-Данные честные: отметок ровно столько, сколько реальных шагов/ошибок — никаких декоративных точек.
+## 4. Типографика и математика
 
-**Правило «нулевой секунды»:** линия обязана читаться СТАТИЧНО на скриншоте в любой момент.
-Три слоя: (1) карандашный след-подложка всей траектории `--route-trace` → (2) плотный пунктир плана
-`--grid-strong` → (3) прочерченный штрих пройденного `--route-line`. Draw-анимация (~1s, easeOut) —
-только УСИЛЕНИЕ, не условие видимости; `prefers-reduced-motion` всегда.
+- **Onest Variable** — весь интерфейс, инструкции, длинные условия и заголовки.
+- **Tektur Variable** — только короткие marks, progress-числа, step nodes и интерактивное
+  `Ответ = [ ]`. Длинная проза в Tektur запрещена.
+- **Golos Text** — glyph fallback для кириллицы и казахского.
+- KaTeX живёт внутри строки чтения. Формула не получает декоративный pill.
+- Смешанная проза переносится естественно; только реально длинная формула получает локальный
+  horizontal scroller с keyboard-доступом. Page-level overflow запрещён.
 
-Число-герой ЗАПУСКАЕТ маршрут (hub: узел под «4», штрих ныряет к рельсу списка); login — трейлхед
-(старт пути); closure — финальный подъём + флаг вершины на celebrate. Кривая живая рукописная
-(не линейка). Компоненты: `src/components/route/` — `useRoutePath` / `RouteSpine` / `RouteMarker` /
-`RouteMeter`. Новую геометрию собирать из них, не рисовать SVG с нуля.
+## 5. Цвет и материал
 
-**Иллюстрации** — генерённые тёплые полосы (провизия в `src/assets/`, генерация
-`bash ~/Documents/design-lab/gen-image.sh`), интеграция wash/дуотоном под бумагу.
-Кёди — ТОЛЬКО существующий SVG `src/components/Mascot.tsx` (+`KodiBubble` для реплик).
+- Base: warm paper `--paper`, near-white `--surface`, deep forest `--ink`.
+- Brand orange — CTA, active route node, progress event и небольшие labels. Orange wall нет.
+- Sage — спокойный контекст/поддержка. Green — подтверждённый шаг. Oxide — локальная ошибка.
+- Основной материал — открытая бумажная плоскость с редким grain, тонким stroke и мягкой тенью.
+- Notches допустимы только у главной route-card Hub. Повторять их на каждой карточке нельзя.
+- Card soup, bento, glass, generic AI gradient, SaaS blue и тёмный luxury-stage запрещены.
 
-## 3. Жёсткие запреты (NEVER — ловятся гейтами или критиком)
+## 6. Signature: Solution Tape
 
-1. NEVER сырой hex/px вне tokens.css; NEVER произвольный `p-[13px]`, `bg-[#…]`.
-2. NEVER внутренние идентификаторы в UI: node_id, snake_case. Только `label_ru`; нет подписи — «этот шаг».
-3. NEVER показывать ответ шага до попытки — ни текстом, ни плейсхолдером, ни aria
-   (плейсхолдеры только формат-нейтральные; inputmode по типу ответа).
-4. NEVER красный для ошибок; NEVER тёмная тема; NEVER kiddie; NEVER новые шрифты/икон-паки без верификации.
-5. NEVER второй primary-CTA на экране; NEVER главное действие текст-ссылкой.
-6. NEVER единицы/валюта не из задачи; валюта продукта — тенге (₸), согласована между экранами.
-7. NEVER мёртвая нижняя треть 390×844: центрируй контент в высоте (`min-h-[Ndvh]`) или заякорь низ.
-8. NEVER обрезание смыслового текста без пути прочитать целиком.
-9. NEVER анимационно-зависимая видимость ключевой графики (см. «нулевая секунда»).
+Сквозная подпись отражает реальные данные решения:
 
-## 4. Компоненты (закрытые контракты — эталоны в `src/components/`)
+1. Orange node показывает активный шаг.
+2. Верный ответ фиксируется в green node и сохраняет введённое значение.
+3. Следующий node открывается только после результата.
+4. После второй ошибки один раз вставляется облегчённая ступень, затем маршрут возвращается к
+   исходному шагу.
+5. Hub показывает реальную очередь, Drill — полную функциональную ленту, Closure подтверждает
+   перенос на новой задаче.
 
-| Компонент | Контракт (только эти пропсы) |
-|---|---|
-| ApButton | variant primary/secondary/ghost · size m(48)/l(56) · full · disabled/loading — disabled живой: brand-soft + brand-ink |
-| ApCard | tone surface/brand-soft/success-soft/attn-soft · padding m/l |
-| ApTag / ApInformer / ApLinearProgress / ApTextField | как в коде; прогресс-заливки = `--route-line` |
-| RouteSpine/RouteMarker/RouteMeter | геометрия маршрута; данные честные (см. §2) |
-| Mascot | mood hi/thinking/oops/celebrate · size s/m/l | 
-| ConsentCard | variant hub/drill · tone attn-soft; в brand-soft НЕ вкладывать |
+`Ответ = [ ]` — action-состояние внутри ленты, а не самостоятельный декоративный мотив.
 
-Новый UI собирается ИЗ них; новый компонент → сначала строка здесь, потом код.
-`className` на Ap* — только layout, НЕ цвет/шрифт/радиус. Тач-таргеты ≥48px; поле ввода шага 56px.
+## 7. Композиция
 
-## 5. Паттерны экрана
+- Mobile 320–375 px — основной режим: math/task выше вводного текста, touch targets ≥44 px,
+  input ≥16 px, bottom nav только «Путь» и «Прогресс».
+- Корневой экран — накопительный «Мой путь»: курс → текущий учебный блок → один следующий урок.
+  Дневная очередь «Сегодня» и закрытие ошибок как главная модель — anti-reference.
+- Desktop ≥1024 px — самостоятельная композиция, не растянутый mobile stack.
+- Hub: первая реальная задача и CTA командуют первым viewport; intro вторичен; белка находится в
+  отдельной contextual note.
+- Drill: активная операция и answer slot выше fold. Исходная задача доступна в compact disclosure;
+  помощь и теория вторичны. Один global progress плюс локальная route node.
+- Srez/Closure: короткий briefing, затем один вопрос и одно действие без persistent navigation.
+- Analytics: открытый ranking накопленных повторений, не mastery, оценка или leaderboard.
+- Login: спокойная форма + отдельная учебная иллюстрация; mascot не залезает в form-layer.
 
-- Один экран — одно главное действие; primary-CTA виден без скролла.
-- Первый вьюпорт = число-герой/маршрут + действие; hero задаёт «что делать сейчас».
-- Состояния у каждого экрана: loading (skeleton) / error (голосом Кёди + retry) / empty / success.
-- Ширина: контент max-width 480px; ≥768px — центр на paper.
-- KaTeX-математика в sans (Golos) — override в index.css меняет ТОЛЬКО font-family; serif не возвращать.
-- Motion: stagger-появление (80-120мс) + draw маршрута; bounce/дрожь запрещены. Confetti — только
-  закрытие ошибки и 100% темы (celebrate достижим в DEV через `?dev=celebrate`).
+## 8. UX и state grammar
 
-## 6. Кёди-протокол (эмоциональная работа — только здесь)
+- Loading сохраняет геометрию. Error объясняет, что сохранилось, и даёт recovery. Empty не
+  обещает mastery. Success показывает доказательство, а не случайное конфетти.
+- Wrong меняет только ближайший slot/hint; правильный ответ не раскрывается.
+- Srez не auto-advance. Closure решает только server-side; network error сохраняет input.
+- `got` означает «Уверенно», не «Закрыто». Fake duration, fake progress и internal id запрещены.
+- На protected page ровно один `<main id="main-content">`; skip-link и keyboard focus видимы.
+- Normal motion показывает причинность `active → solved → next`; reduced motion сразу показывает
+  то же конечное состояние без потери информации.
 
-| Момент | mood | size | Тон |
-|---|---|---|---|
-| Вход / пустой хаб | hi | m | «Привет! Сегодня разберём…» |
-| Диагноз ошибки | thinking | m | «Смотри, вот тут сбилось — глянем вместе» (никогда «Неверно») |
-| Застревание (2+ фейла шага) | oops | s | «Бывает! Попробуем полегче?» |
-| Закрытие ошибки / веха темы | celebrate | l | «Эту ошибку ты победил» |
+## 9. Production gates
 
-Один Кёди на экран; не говорит — значит его нет. Вердикт «не сошлось» — амбер, без стыда.
-Награды — «очки» (не «XP»); числа на экране из одних данных, без рассинхрона прочтений.
+```bash
+npm run lint
+npm run lint:design
+npx tsc -b
+npx vitest run
+npm run build
+```
 
-## 7. Процесс и гейты
+Затем обязателен реальный render 375×844 и 1280×900 по state matrix: console/request errors,
+overflow, fonts/images, touch, keyboard focus, loading/error/empty/success, wrong/network-preserve,
+normal/reduced motion и mascot budget.
 
-- Код-гейты: `npx tsc -b` 0 · `npm run lint:design` · `npx vitest run` · `npm run build`.
-- Визуальный гейт: рендер 390×844 full-page (`docs/loops/runs/2026-07-13-webapp-v6/render-app.mjs`,
-  login в анонимном контексте), console чистая, СМОТРЕТЬ глазами.
-- Существенный UI (новая страница/редизайн/крупный компонент) → судейская панель по
-  `~/Documents/design-lab/AUDIT-RUBRIC.md` + проектный оверрайд `docs/loops/rubric-design.md`.
-- Эталоны `webapp/design-baselines/` (hub/drill/closure + 768) — обновлять при осознанной смене внешности.
-- Чек перед коммитом: grep диффа на `#[0-9a-fA-F]{3,6}` и `\[(#|\d+px)` вне tokens.css — пусто.
-- Остаточные дельты панели R4 — бэклог в `docs/loops/runs/2026-07-13-webapp-v6/RESULT.md`.
+Frozen READY: mechanical gate green; у каждого из трёх независимых judges каждая ось ≥8,
+average ≥8.5, `math_focus` и `premium_distinctiveness` ≥8.5; минимум 2/3 дают `wow`; нет
+consensus high blocker.

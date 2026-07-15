@@ -15,7 +15,6 @@ export interface StepDTO {
   /** Человеческая подпись micro_skill (label_ru); null — код не найден в каталоге.
    * Показывать пользователю ТОЛЬКО её, никогда — micro_skill (запрет DESIGN_SYSTEM §2.2). */
   micro_skill_label: string | null
-  expected_value: string
   kind: StepKind
   /** Подсказка-раскрытие; null — раскрытия нет. */
   reveal: string | null
@@ -29,8 +28,6 @@ export interface WrongTask {
   topic_label: string
   /** Условие задачи; может содержать инлайн-LaTeX в $...$. */
   statement: string
-  /** Правильный ответ. */
-  answer: string
   primary_micro_skill: string | null
   /** Человеческая подпись primary_micro_skill (label_ru); см. запрет §2.2. */
   primary_micro_skill_label: string | null
@@ -135,6 +132,18 @@ export interface StepVerdict {
   step_n: number
 }
 
+/** Серверный вердикт typed-answer; эталон ответа намеренно отсутствует. */
+export interface StepAnswerVerdict {
+  correct: boolean
+  hint: string | null
+  step_n: number
+}
+
+/** Восстановимый прогресс лесенки, подтверждённый backend. */
+export interface DrillState {
+  solved_step_ns: number[]
+}
+
 /** Диагноз ошибки (визуальный разбор по фото/тексту решения). */
 export interface Diagnosis {
   transcription: string
@@ -148,4 +157,89 @@ export interface Diagnosis {
   /** Уверенность диагноза, 0..1. */
   confidence: number
   image_ref: string
+}
+
+// ── Учебный путь ──
+
+export type LearningRole = 'worked' | 'guided' | 'independent' | 'transfer'
+export type LearningStatus = 'active' | 'completed'
+export type LearningLessonStatus = 'not_started' | LearningStatus
+
+export interface LearningLessonSummary {
+  id: string
+  title: string
+  lesson_title: string
+  goal: string
+  result_label: string
+  duration_minutes: number
+}
+
+export interface LearningPathLesson extends LearningLessonSummary {
+  status: LearningLessonStatus
+  progress: { completed: number; total: number; current_role: LearningRole | null }
+  primary_action: { label: string; lesson_id: string }
+}
+
+export interface LearningPathSummary {
+  id: string
+  title: string
+  current_block: {
+    id: string
+    title: string
+    completed_lessons: number
+    total_lessons: number
+  }
+}
+
+export interface LearningPathResponse {
+  path: LearningPathSummary
+  lesson: LearningPathLesson | null
+}
+
+export interface LearningWorkedStep {
+  label: string
+  expression: string
+  result: string
+}
+
+/** Student-safe activity: expected answer and future hints never enter this type. */
+export interface LearningActivity {
+  id: string
+  role: LearningRole
+  phase_label: string
+  title: string
+  prompt: string
+  statement: string
+  answer_type: string | null
+  input_suffix: string | null
+  embedded_supports: string[]
+  worked_steps: LearningWorkedStep[]
+  support_level: number
+  support: string | null
+  last_answer: string | null
+}
+
+export interface LearningFeedback {
+  is_correct: boolean
+  message: string
+  is_duplicate: boolean
+}
+
+export interface LearningResult {
+  title: string
+  skill: string
+  independent_completed: number
+  transfer_completed: number
+  without_support: number
+  evidence_label: string
+}
+
+export interface LearningSessionState {
+  session_id: number
+  status: LearningStatus
+  lesson: LearningLessonSummary
+  progress: { current: number; total: number; completed: number }
+  activity: LearningActivity | null
+  feedback: LearningFeedback | null
+  result: LearningResult | null
 }

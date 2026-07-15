@@ -5,14 +5,16 @@ import { track } from '../../lib/telemetry'
 import type { VerificationProblemDTO } from '../../lib/types'
 
 /** Статус закрепления: загрузка / решает / ошибся / закрыл / ошибка сети. */
-export type ClosureStatus = 'loading' | 'solving' | 'wrong' | 'correct' | 'error'
+export type ClosureStatus = 'loading' | 'solving' | 'checking' | 'wrong' | 'correct' | 'error'
 
 interface ClosureState {
   status: ClosureStatus
   problem: VerificationProblemDTO | null
   attempts: number
+  lastAnswer: string | null
   check: (value: string) => void
   resume: () => void
+  retryStart: () => void
 }
 
 // Живое закрепление: контрольная приходит с verification/start (тот же узел,
@@ -26,28 +28,38 @@ export function useClosure(
   const [status, setStatus] = useState<ClosureStatus>('loading')
   const [problem, setProblem] = useState<VerificationProblemDTO | null>(null)
   const [attempts, setAttempts] = useState(0)
+  const [lastAnswer, setLastAnswer] = useState<string | null>(null)
+  const [startAttempt, setStartAttempt] = useState(0)
   const queryClient = useQueryClient()
   // Guard от двойного клика: запрос уже в полёте — повторный check игнорируем.
   const checkInFlight = useRef(false)
+  // Изолирует ответы старой closure-сессии при смене route param или retry.
+  const generationRef = useRef(0)
 
   useEffect(() => {
+    const generation = generationRef.current + 1
+    generationRef.current = generation
+    checkInFlight.current = false
+    setStatus('loading')
+    setProblem(null)
+    setAttempts(0)
+    setLastAnswer(null)
     // Холодный кэш wrong-tasks: problem_id ещё 0 (useWrongTask не отдал данные) —
-    // ждём реальный id, статус остаётся 'loading', запрос не шлём.
+    // состояние уже очищено, но запрос ждёт реальный id.
     if (!drillProblemId) return
-    let alive = true
     startVerification(drillProblemId, microSkill)
       .then((p) => {
-        if (!alive) return
+        if (generationRef.current !== generation) return
         setProblem(p)
         setStatus('solving')
       })
       .catch(() => {
-        if (alive) setStatus('error')
+        if (generationRef.current === generation) setStatus('error')
       })
     return () => {
-      alive = false
+      if (generationRef.current === generation) generationRef.current += 1
     }
-  }, [drillProblemId, microSkill])
+  }, [drillProblemId, microSkill, startAttempt])
 
   const check = useCallback(
     (value: string) => {
@@ -55,8 +67,12 @@ export function useClosure(
       // Двойной клик по проверке — игнорируем повторный вызов, пока первый в полёте.
       if (checkInFlight.current) return
       checkInFlight.current = true
+      const generation = generationRef.current
+      setLastAnswer(value.trim())
+      setStatus('checking')
       answerVerification(problem.problem_id, value, microSkill)
         .then((res) => {
+          if (generationRef.current !== generation) return
           if (res.correct) {
             setStatus('correct')
             void track('closure_passed')
@@ -70,17 +86,24 @@ export function useClosure(
           setAttempts((n) => n + 1)
           setStatus('wrong')
         })
-        .catch(() => setStatus('error'))
+        .catch(() => {
+          if (generationRef.current === generation) setStatus('error')
+        })
         .finally(() => {
-          checkInFlight.current = false
+          if (generationRef.current === generation) checkInFlight.current = false
         })
     },
     [problem, microSkill, onClosed, queryClient],
   )
 
   const resume = useCallback(() => {
-    setStatus((s) => (s === 'wrong' ? 'solving' : s))
-  }, [])
+    setStatus((s) => (s === 'wrong' || (s === 'error' && problem) ? 'solving' : s))
+  }, [problem])
 
-  return { status, problem, attempts, check, resume }
+  const retryStart = useCallback(() => {
+    if (problem || status !== 'error') return
+    setStartAttempt((attempt) => attempt + 1)
+  }, [problem, status])
+
+  return { status, problem, attempts, lastAnswer, check, resume, retryStart }
 }

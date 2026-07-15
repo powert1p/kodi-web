@@ -1,28 +1,13 @@
-import { Mascot } from '../../components/Mascot'
-import { ApInformer } from '../../components/ApInformer'
+import { MathText } from '../../components/MathText'
 
-interface HintBannerProps {
-  /** Сократическая подсказка — наводящий вопрос, НИКОГДА не финальный ответ. */
-  text: string
-  /** «easier» — climb-down: вставлена ступень попроще. */
-  variant?: 'hint' | 'easier'
-}
+interface HintBannerProps { text: string; variant?: 'hint' | 'easier' }
 
-// Подсказка Кёди — спокойный neutral-информер (не бренд-подложка: акцент экрана
-// держит только активная ступень, §1 дисциплина акцента). Появляется через reveal.
-// Никогда не показывает ответ.
 export function HintBanner({ text, variant = 'hint' }: HintBannerProps) {
-  const isEasier = variant === 'easier'
-
+  const easier = variant === 'easier'
   return (
-    <div className="reveal">
-      <ApInformer
-        tone="neutral"
-        leading={<Mascot mood={isEasier ? 'hi' : 'thinking'} size="s" className="shrink-0" />}
-        title={isEasier ? 'Спустимся на ступень ниже' : 'Подсказка Кёди'}
-      >
-        <span className="text-study">{text}</span>
-      </ApInformer>
-    </div>
+    <aside className="reveal rounded-control border border-brand/20 border-l-4 border-l-brand bg-brand-soft/45 p-4 text-text" role="status">
+      <p className="text-mark text-brand-deep">{easier ? 'Шаг попроще' : 'Намёк'}</p>
+      <p className="formula-body mt-2 text-study"><MathText text={text} /></p>
+    </aside>
   )
 }

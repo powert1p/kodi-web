@@ -5,6 +5,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -50,7 +51,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Если токен изменился снаружи (другой таб) — синхронизируем.
   // Простой подход: слушаем storage event.
-  useState(() => {
+  useEffect(() => {
     const handler = (e: StorageEvent) => {
       if (e.key === 'kodi.jwt') {
         setTokenState(e.newValue)
@@ -60,7 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
     window.addEventListener('storage', handler)
     return () => window.removeEventListener('storage', handler)
-  })
+  }, [])
 
   const value = useMemo<AuthContextValue>(
     () => ({ token, login, register, logout }),

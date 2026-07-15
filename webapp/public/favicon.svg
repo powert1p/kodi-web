@@ -1,27 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <!-- Бренд-плитка: тёплый оранжевый с тонким светлым верхним бликом -->
-  <rect width="512" height="512" rx="120" fill="#EA580C"/>
-  <rect width="512" height="512" rx="120" fill="#ffffff" opacity="0.06"/>
-
-  <!-- Маскот «Кёди»: росток-капля. Два листочка + тельце-капля, белым по оранжевому -->
-  <!-- листочки -->
-  <path d="M256 150 C 214 86, 124 86, 134 158 C 196 168, 244 156, 256 150 Z" fill="#4F9D00"/>
-  <path d="M256 150 C 298 86, 388 86, 378 158 C 316 168, 268 156, 256 150 Z" fill="#3D7A00"/>
-  <rect x="244" y="138" width="24" height="44" rx="12" fill="#3D7A00"/>
-
-  <!-- тельце-капля (белая, читается как «семечко роста») -->
-  <path d="M256 168
-           C 360 168, 400 250, 400 312
-           C 400 388, 338 428, 256 428
-           C 174 428, 112 388, 112 312
-           C 112 250, 152 168, 256 168 Z"
-        fill="#ffffff"/>
-
-  <!-- мимика: тёплые глаза + улыбка оранжевым -->
-  <circle cx="212" cy="296" r="17" fill="#2B2724"/>
-  <circle cx="300" cy="296" r="17" fill="#2B2724"/>
-  <path d="M216 344 q40 34 80 0" fill="none" stroke="#EA580C" stroke-width="16" stroke-linecap="round"/>
-  <!-- щёчки -->
-  <circle cx="172" cy="332" r="14" fill="#EA580C" opacity="0.35"/>
-  <circle cx="340" cy="332" r="14" fill="#EA580C" opacity="0.35"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AiPlus">
+  <rect width="64" height="64" rx="16" fill="#F5F1E7"/>
+  <path d="M14.5 20.2C18.6 12.7 28.8 9.1 38.2 12.7c8.9 3.4 13.5 13.8 10.7 23.1-2.6 8.5-10.7 15.2-20.1 14.9-8.8-.3-16.4-7.2-17.1-15.9-.4-5 1-10.2 2.8-14.6Z" fill="#17312E"/>
+  <path d="M39.5 9.2c5.9-3.7 10.5-1.7 11.5 3.8-5.2 2.3-9.3 1.2-11.5-3.8Z" fill="#FF9F2F"/>
+  <text x="22" y="39" fill="#FFFDF7" font-family="Onest,system-ui,sans-serif" font-size="27" font-weight="800">a</text>
+  <circle cx="44.5" cy="43.5" r="9.5" fill="#FF9F2F"/>
+  <path d="M44.5 38v11M39 43.5h11" stroke="#17312E" stroke-width="2.6" stroke-linecap="round"/>
 </svg>

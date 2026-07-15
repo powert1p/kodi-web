@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 import pytest
 
 # env до импорта core.config (fail-fast guard)
-os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-with-at-least-32-chars")
 
 
 # ─── helpers ──────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-// ApInformer (v6 — tone neutral/brand/attn/success). brand — тёплая реплика Кёди
+// ApInformer (v11 — tone neutral/brand/attn/success). Brand — редкий action/context accent.
 // (brand-soft подложка = «голос Кёди», мягкий тинт, НЕ сильный оранж действия §8).
 // neutral — нейтральный факт (бумага). attn — «не сошлось» (амбер, НИКОГДА красный).
 // success — закрытие/веха. Синий упразднён. Ink-пары акцента держат AA на светлом.
@@ -8,7 +8,7 @@ export type InformerTone = 'neutral' | 'brand' | 'attn' | 'success'
 
 const TONE: Record<InformerTone, { box: string; accent: string }> = {
   neutral: { box: 'bg-paper-2 border-stroke', accent: 'text-text' },
-  brand: { box: 'bg-brand-soft border-brand/30', accent: 'text-brand-ink' },
+  brand: { box: 'bg-brand-soft border-brand/45', accent: 'text-brand-ink' },
   attn: { box: 'bg-attn-soft border-attn/30', accent: 'text-attn-ink' },
   success: { box: 'bg-success-soft border-success/30', accent: 'text-success-ink' },
 }
@@ -39,7 +39,7 @@ export function ApInformer({
     <div
       role={role}
       className={[
-        'flex w-full items-start gap-3 rounded-control border p-3',
+        'flex w-full items-start gap-3 rounded-control border border-l-4 p-4',
         t.box,
         className,
       ].join(' ')}

@@ -175,6 +175,11 @@ async def client_with_student(db_session):
     routes_module.async_session = test_session_factory
 
     from web import app
+    from api.routes import limiter as api_limiter
+
+    # Route-level SlowAPI counters are process-global; isolate every test case.
+    api_limiter.reset()
+    app.state.limiter.reset()
 
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -209,8 +214,12 @@ async def test_wrong_tasks_returns_200(client_with_student):
 
     # Проверяем структуру первой задачи
     task = body["tasks"][0]
-    for field in ("id", "problem_id", "node_id", "topic_label", "statement", "answer", "state", "wrong_answer", "mastery", "steps", "primary_micro_skill_label", "theory_ru"):
+    for field in ("id", "problem_id", "node_id", "topic_label", "statement", "state", "wrong_answer", "mastery", "steps", "primary_micro_skill_label", "theory_ru"):
         assert field in task, f"В задаче отсутствует поле '{field}'"
+    assert "answer" not in task, "Правильный ответ нельзя отдавать браузеру"
+    assert all("expected_value" not in step for step in task["steps"]), (
+        "Эталоны отдельных шагов нельзя отдавать браузеру"
+    )
     # theory_ru присутствует всегда; у сид-узла без карточки метода — null
     assert task["theory_ru"] is None
 
@@ -254,6 +263,12 @@ async def test_analytics_returns_my_top(client_with_student):
     # Первая запись — int_add (error_count=5 > frac_div error_count=3)
     assert body["my_top"][0]["micro_skill"] == "int_add"
     assert body["my_top"][0]["error_count"] == 5
+    assert body["my_top"][0]["last_cause_text"] == (
+        "На этом шаге решение расходится с правилом. "
+        "Сравни действие с предыдущей строкой и проверь, что изменилось."
+    )
+    assert "Перепутал знак" not in resp.text
+    assert "Перевернул дробь" not in resp.text
 
     # global_top НЕ должен присутствовать для обычного студента
     assert "global_top" not in body or body.get("global_top") is None
@@ -438,6 +453,15 @@ def _make_tiny_jpeg() -> bytes:
     ])
 
 
+def _make_tiny_png() -> bytes:
+    """Валидный PNG 1×1 для проверки MIME/расширения."""
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (1, 1), (255, 255, 255)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 @pytest_asyncio.fixture
 async def client_for_diagnose(db_session, tmp_path, monkeypatch):
     """Фикстура для тестов /diagnose: студент + задача + неверная попытка + monkeypatch фото_dir."""
@@ -461,8 +485,27 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
     # Каталог micro_skills — нужен для label_ru в ответе /diagnose (DESIGN_SYSTEM §2.2)
     await db_session.execute(
         text(
-            "INSERT INTO micro_skills (code, label_ru) VALUES ('div_basic', 'Базовое деление') "
+            "INSERT INTO micro_skills (code, label_ru) VALUES "
+            "('div_basic', 'Базовое деление'), ('mul_basic', 'Базовое умножение') "
             "ON CONFLICT (code) DO NOTHING"
+        )
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, primary_micro_skill, problems_db_id, "
+            " all_steps_verified, needs_review) "
+            "VALUES (90002, :nid, '4', 'div_basic', :pid, true, false)"
+        ),
+        {"nid": NODE, "pid": pid},
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO problem_steps "
+            "(decomp_idx, n, instruction_ru, micro_skill, expected_value) "
+            "VALUES "
+            "(90002, 1, 'Раздели обе части на 2', 'div_basic', 'x=4'), "
+            "(90002, 2, 'Проверь ответ умножением', 'mul_basic', '2*4=8')"
         )
     )
 
@@ -502,7 +545,10 @@ async def client_for_diagnose(db_session, tmp_path, monkeypatch):
     from web import app
 
     async with AsyncClient(
-        transport=ASGITransport(app=app),
+        transport=ASGITransport(
+            app=app,
+            client=(f"diagnose-{tmp_path.name}", 123),
+        ),
         base_url="http://testserver",
     ) as ac:
         yield ac, STUDENT_ID, token, pid, attempt_id, tmp_path
@@ -552,7 +598,11 @@ async def test_diagnose_200_body_and_file(client_for_diagnose, monkeypatch):
     for field in ("transcription", "failed_step", "cause_text", "level", "micro_skill", "micro_skill_label", "confidence", "image_ref"):
         assert field in body, f"Отсутствует поле '{field}' в ответе"
 
-    assert body["transcription"] == "2x = 8, x = 8 (ошибка: делитель забыт)"
+    assert body["transcription"] == "Фото решения распознано."
+    assert body["cause_text"] == (
+        "На этом шаге решение расходится с правилом. "
+        "Сравни действие с предыдущей строкой и проверь, что изменилось."
+    )
     assert body["micro_skill"] == "div_basic"
     # label_ru из micro_skills вместо голого кода на UI (запрет §2.2 DESIGN_SYSTEM)
     assert body["micro_skill_label"] == "Базовое деление"
@@ -564,6 +614,528 @@ async def test_diagnose_200_body_and_file(client_for_diagnose, monkeypatch):
     saved_path = tmp_path / image_ref
     assert saved_path.exists(), f"Файл фото не найден: {saved_path}"
     assert saved_path.stat().st_size > 0, "Файл фото пустой"
+
+
+@pytest.mark.asyncio
+async def test_diagnose_preserves_png_media_contract(client_for_diagnose, monkeypatch):
+    """PNG не маскируется под JPEG в durable storage."""
+    client, _student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    png = _make_tiny_png()
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("solution.png", io.BytesIO(png), "image/png")},
+    )
+
+    assert response.status_code == 200, response.text
+    image_ref = response.json()["image_ref"]
+    assert image_ref.endswith(".png")
+    assert (tmp_path / image_ref).read_bytes() == png
+
+
+@pytest.mark.asyncio
+async def test_diagnose_never_returns_or_persists_free_form_model_text(
+    client_for_diagnose,
+    monkeypatch,
+):
+    """Vision free-form не проходит ни в response, ни в durable memory."""
+    client, student_id, token, pid, attempt_id, _tmp_path = client_for_diagnose
+    raw_cause = "Правильный ответ — число после трёх. Просто перепиши его."
+    raw_transcription = "MODEL_RAW: две двойки вместе"
+
+    async def _mock_diagnose(**kwargs):
+        result = _fixed_diagnosis_result()
+        result.cause_text = raw_cause
+        result.transcription = raw_transcription
+        return result
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert raw_cause not in response.text
+    assert raw_transcription not in response.text
+    assert body["transcription"] == "Фото решения распознано."
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as session:
+        capture = (
+            await session.execute(
+                text(
+                    "SELECT transcription, cause_text FROM error_captures "
+                    "WHERE student_id = :sid AND problem_id = :pid "
+                    "ORDER BY id DESC LIMIT 1"
+                ),
+                {"sid": student_id, "pid": pid},
+            )
+        ).one()
+        recurring_cause = (
+            await session.execute(
+                text(
+                    "SELECT last_cause_text FROM recurring_errors "
+                    "WHERE student_id = :sid AND micro_skill = 'div_basic'"
+                ),
+                {"sid": student_id},
+            )
+        ).scalar_one()
+    await engine.dispose()
+
+    persisted = f"{capture.transcription}\n{capture.cause_text}\n{recurring_cause}"
+    assert raw_cause not in persisted
+    assert raw_transcription not in persisted
+    assert capture.transcription == body["transcription"]
+    assert capture.cause_text == body["cause_text"]
+
+
+@pytest.mark.asyncio
+async def test_diagnose_normalises_untrusted_provider_fields_and_records_provenance(
+    client_for_diagnose,
+    monkeypatch,
+):
+    """Gemini fallback JSON не может записать NaN/oversized поля или ложную model."""
+    client, student_id, token, pid, attempt_id, _tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        result = _fixed_diagnosis_result()
+        result.failed_step = 999
+        result.level = 99
+        result.micro_skill = "x" * 100
+        result.confidence = float("nan")
+        result.provider = "gemini"
+        result.model = "gemini-2.5-flash"
+        return result
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["confidence"] == 0.0
+    assert body["failed_step"] is None
+    assert body["level"] == 2
+    assert body["micro_skill"] is None
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as sess:
+        row = (
+            await sess.execute(
+                text(
+                    "SELECT confidence, failed_step, failed_micro_skill, level, model "
+                    "FROM error_captures WHERE student_id = :sid AND problem_id = :pid "
+                    "ORDER BY id DESC LIMIT 1"
+                ),
+                {"sid": student_id, "pid": pid},
+            )
+        ).one()
+    await engine.dispose()
+
+    assert row.confidence == 0.0
+    assert row.failed_step is None
+    assert row.failed_micro_skill is None
+    assert row.level == 2
+    assert row.model == "gemini:gemini-2.5-flash"
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rejects_hallucinated_micro_skill_from_adaptive_memory(
+    client_for_diagnose,
+    monkeypatch,
+):
+    """Валидно выглядящий, но не-grounded skill не меняе маршрут."""
+    client, student_id, token, pid, attempt_id, _tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        result = _fixed_diagnosis_result()
+        result.micro_skill = "hallucinated_skill"
+        return result
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["micro_skill"] is None
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as session:
+        capture_skill = (
+            await session.execute(
+                text(
+                    "SELECT failed_micro_skill FROM error_captures "
+                    "WHERE student_id = :sid ORDER BY id DESC LIMIT 1"
+                ),
+                {"sid": student_id},
+            )
+        ).scalar()
+        recurring_count = (
+            await session.execute(
+                text(
+                    "SELECT COUNT(*) FROM recurring_errors "
+                    "WHERE student_id = :sid AND micro_skill = 'hallucinated_skill'"
+                ),
+                {"sid": student_id},
+            )
+        ).scalar_one()
+    await engine.dispose()
+
+    assert capture_skill is None
+    assert recurring_count == 0
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rejects_micro_skill_from_another_canonical_step(
+    client_for_diagnose,
+    monkeypatch,
+):
+    """failed_step=1 не может записать skill, принадлежащий только шагу 2."""
+    client, student_id, token, pid, attempt_id, _tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        result = _fixed_diagnosis_result()
+        result.failed_step = 1
+        result.micro_skill = "mul_basic"
+        return result
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["failed_step"] == 1
+    assert response.json()["micro_skill"] is None
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as session:
+        capture_skill = (
+            await session.execute(
+                text(
+                    "SELECT failed_micro_skill FROM error_captures "
+                    "WHERE student_id = :sid AND problem_id = :pid "
+                    "ORDER BY id DESC LIMIT 1"
+                ),
+                {"sid": student_id, "pid": pid},
+            )
+        ).scalar_one()
+        recurring_count = (
+            await session.execute(
+                text(
+                    "SELECT COUNT(*) FROM recurring_errors "
+                    "WHERE student_id = :sid AND micro_skill = 'mul_basic'"
+                ),
+                {"sid": student_id},
+            )
+        ).scalar_one()
+    await engine.dispose()
+
+    assert capture_skill is None
+    assert recurring_count == 0
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rejects_fingerprint_skill_from_needs_review_decomp(
+    client_for_diagnose,
+    db_session,
+    monkeypatch,
+):
+    """Fingerprint из needs_review-разбора не попадает в adaptive memory."""
+    client, student_id, token, pid, attempt_id, _tmp_path = client_for_diagnose
+
+    # У задачи есть отдельный валидный canonical-разбор только с div_basic.
+    # Второй linked-разбор помечен needs_review, но содержит совпадающий
+    # fingerprint для mul_basic — он не является grounded-источником навыка.
+    await db_session.execute(
+        text("UPDATE problems SET content_idx = 90002 WHERE id = :pid"),
+        {"pid": pid},
+    )
+    await db_session.execute(
+        text(
+            "UPDATE problem_steps SET micro_skill = 'div_basic' "
+            "WHERE decomp_idx = 90002"
+        )
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO decomposition_problems "
+            "(idx, node_id, answer, primary_micro_skill, problems_db_id, "
+            " all_steps_verified, needs_review) "
+            "VALUES (90003, 'TR02', '4', 'mul_basic', :pid, true, true)"
+        ),
+        {"pid": pid},
+    )
+    await db_session.execute(
+        text(
+            "INSERT INTO problem_fingerprints "
+            "(decomp_idx, micro_skill, wrong_answer, mistake_ru) "
+            "VALUES (90003, 'mul_basic', '8', 'Непроверенный отпечаток')"
+        )
+    )
+    await db_session.commit()
+
+    async def _mock_diagnose(**kwargs):
+        result = _fixed_diagnosis_result()
+        result.failed_step = None
+        result.micro_skill = None
+        return result
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["micro_skill"] is None
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as session:
+        capture_skill = (
+            await session.execute(
+                text(
+                    "SELECT failed_micro_skill FROM error_captures "
+                    "WHERE student_id = :sid AND problem_id = :pid "
+                    "ORDER BY id DESC LIMIT 1"
+                ),
+                {"sid": student_id, "pid": pid},
+            )
+        ).scalar_one()
+        recurring_count = (
+            await session.execute(
+                text(
+                    "SELECT COUNT(*) FROM recurring_errors "
+                    "WHERE student_id = :sid AND micro_skill = 'mul_basic'"
+                ),
+                {"sid": student_id},
+            )
+        ).scalar_one()
+    await engine.dispose()
+
+    assert capture_skill is None
+    assert recurring_count == 0
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rejects_foreign_attempt_before_vision(
+    client_for_diagnose,
+    db_session,
+    monkeypatch,
+):
+    """Чужой attempt_id не уходит в Vision и не связывается с текущим capture."""
+    client, student_id, token, pid, _attempt_id, tmp_path = client_for_diagnose
+    other_student_id = 7003
+    await _seed_student_api(db_session, other_student_id)
+    row = await db_session.execute(
+        text(
+            "INSERT INTO attempts "
+            "(student_id, problem_id, node_id, answer_given, is_correct, source, created_at) "
+            "VALUES (:sid, :pid, 'TR02', '8', false, 'diagnostic', NOW()) RETURNING id"
+        ),
+        {"sid": other_student_id, "pid": pid},
+    )
+    foreign_attempt_id = row.scalar_one()
+    await db_session.commit()
+
+    provider_called = False
+
+    async def _mock_diagnose(**kwargs):
+        nonlocal provider_called
+        provider_called = True
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    response = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid), "attempt_id": str(foreign_attempt_id)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 404, response.text
+    assert provider_called is False
+    assert list(tmp_path.rglob("*")) == []
+
+    count = (
+        await db_session.execute(
+            text(
+                "SELECT COUNT(*) FROM error_captures "
+                "WHERE student_id = :sid AND attempt_id = :aid"
+            ),
+            {"sid": student_id, "aid": foreign_attempt_id},
+        )
+    ).scalar_one()
+    assert count == 0
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rate_limit_returns_429(client_for_diagnose, monkeypatch):
+    """Paid Vision endpoint имеет отдельный жёсткий лимит до вызова provider."""
+    client, _student_id, token, pid, _attempt_id, _tmp_path = client_for_diagnose
+    provider_called = False
+
+    async def _mock_diagnose(**kwargs):
+        nonlocal provider_called
+        provider_called = True
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    for _ in range(10):
+        response = await client.post(
+            "/api/trainer/diagnose",
+            headers={"Authorization": f"Bearer {token}"},
+            data={"problem_id": str(pid)},
+            files={"photo": ("bad.jpg", io.BytesIO(b"not-an-image"), "image/jpeg")},
+        )
+        assert response.status_code == 422, response.text
+
+    limited = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("bad.jpg", io.BytesIO(b"not-an-image"), "image/jpeg")},
+    )
+    assert limited.status_code == 429, limited.text
+    assert provider_called is False
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rejects_empty_photo_before_llm(client_for_diagnose, monkeypatch):
+    """Пустой upload не должен вызывать vision-провайдер или создавать историю ошибки."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+    provider_called = False
+
+    async def _mock_diagnose(**kwargs):
+        nonlocal provider_called
+        provider_called = True
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("empty.jpg", io.BytesIO(b""), "image/jpeg")},
+    )
+
+    assert resp.status_code == 422, resp.text
+    assert provider_called is False
+    assert list(tmp_path.rglob("*")) == []
+
+
+@pytest.mark.asyncio
+async def test_diagnose_rejects_corrupt_image_before_llm(client_for_diagnose, monkeypatch):
+    """MIME недостаточно: повреждённый JPEG не отправляется во внешний provider."""
+    client, _student_id, token, pid, _attempt_id, tmp_path = client_for_diagnose
+    provider_called = False
+
+    async def _mock_diagnose(**kwargs):
+        nonlocal provider_called
+        provider_called = True
+        return _fixed_diagnosis_result()
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("fake.jpg", io.BytesIO(b"not-an-image"), "image/jpeg")},
+    )
+
+    assert resp.status_code == 422, resp.text
+    assert provider_called is False
+    assert list(tmp_path.rglob("*")) == []
+
+
+@pytest.mark.asyncio
+async def test_diagnose_storage_failure_does_not_create_history(client_for_diagnose, monkeypatch):
+    """Если фото нельзя сохранить, API fail-closed и не фиксирует несуществующий артефакт."""
+    client, student_id, token, pid, attempt_id, tmp_path = client_for_diagnose
+
+    async def _mock_diagnose(**kwargs):
+        return _fixed_diagnosis_result()
+
+    def _fail_write(self, data):
+        raise OSError("test storage failure")
+
+    monkeypatch.setattr("api.routers.trainer.diagnose_photo", _mock_diagnose)
+    monkeypatch.setattr("api.routers.trainer.Path.write_bytes", _fail_write)
+
+    resp = await client.post(
+        "/api/trainer/diagnose",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert resp.status_code == 503, resp.text
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    engine = create_async_engine(_TEST_URL)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    async with factory() as sess:
+        captures = (
+            await sess.execute(
+                text(
+                    "SELECT COUNT(*) FROM error_captures "
+                    "WHERE student_id = :sid AND problem_id = :pid"
+                ),
+                {"sid": student_id, "pid": pid},
+            )
+        ).scalar_one()
+        recurring = (
+            await sess.execute(
+                text(
+                    "SELECT COUNT(*) FROM recurring_errors "
+                    "WHERE student_id = :sid AND micro_skill = 'div_basic'"
+                ),
+                {"sid": student_id},
+            )
+        ).scalar_one()
+    await engine.dispose()
+
+    assert captures == 0
+    assert recurring == 0
 
 
 # ── тест 8: ровно одна строка в error_captures ───────────────────────────────

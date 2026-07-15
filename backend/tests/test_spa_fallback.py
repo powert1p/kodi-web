@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 
-os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-with-at-least-32-chars")
 
 import pytest
 from fastapi import FastAPI

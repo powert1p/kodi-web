@@ -3,426 +3,612 @@
 @import './theme/tokens.css';
 @import 'katex/dist/katex.min.css';
 
-/* ---- База (v6: тёплая бумага в клетку, пара Unbounded/Golos Text) ---- */
 @layer base {
-  :root {
-    color-scheme: light;
-  }
+  :root { color-scheme: light; }
 
   html {
+    min-width: 320px;
+    background: var(--paper);
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
   }
 
   body {
+    min-height: 100dvh;
     margin: 0;
-    background-color: var(--paper);
+    overflow-x: clip;
+    background: var(--paper);
     color: var(--text);
     font-family: var(--font-sans);
-    font-weight: 400;
+    font-weight: 440;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* iOS: инпуты ≥16px чтобы не зумило при фокусе */
-  input,
-  textarea,
-  select {
-    font-size: 16px;
+  *, *::before, *::after { box-sizing: border-box; }
+  img { display: block; max-width: 100%; }
+  button, a, input, textarea, select { accent-color: var(--brand-deep); }
+  button { cursor: pointer; touch-action: manipulation; }
+  input, textarea, select { font-size: 16px; }
+  ::selection { background: var(--brand-soft); color: var(--ink); }
+
+  :focus-visible {
+    outline: 3px solid var(--blue-deep);
+    outline-offset: 3px;
+    border-radius: var(--radius-control);
+  }
+  :focus:not(:focus-visible) { outline: none; }
+}
+
+@layer components {
+  .text-hero {
+    font: 720 clamp(42px, 9vw, 76px) / 0.96 var(--font-sans);
+    letter-spacing: -0.065em;
+  }
+  .text-frac {
+    font: 690 clamp(44px, 12vw, 82px) / 0.9 var(--font-display);
+    letter-spacing: -0.06em;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-frac .den { color: var(--brand-deep); font-size: 0.5em; }
+  .text-h1 {
+    font: 710 clamp(38px, 7vw, 62px) / 0.98 var(--font-sans);
+    letter-spacing: -0.06em;
+  }
+  .text-h2 {
+    font: 700 clamp(29px, 5vw, 44px) / 1.02 var(--font-sans);
+    letter-spacing: -0.05em;
+  }
+  .text-h3 {
+    font: 680 22px / 1.18 var(--font-sans);
+    letter-spacing: -0.03em;
+  }
+  .text-title { font: 670 17px / 24px var(--font-sans); letter-spacing: -0.02em; }
+  .text-body { font: 440 16px / 24px var(--font-sans); }
+  .text-study { font: 440 18px / 28px var(--font-sans); }
+  .text-caption1-medium { font: 660 13px / 18px var(--font-sans); }
+  .text-caption1 { font: 500 13px / 18px var(--font-sans); }
+  .text-caption2-medium { font: 690 11px / 16px var(--font-sans); }
+  .text-caption2 { font: 520 11px / 16px var(--font-sans); }
+  .text-label-small { font: 660 12px / 16px var(--font-sans); }
+  .text-mark {
+    font: 680 10px / 1.25 var(--font-display);
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+  .text-display { font-family: var(--font-display); font-weight: 680; letter-spacing: -0.05em; }
+  .font-editorial { font-family: var(--font-sans); }
+
+  /* Новый mark построен кодом и не воспроизводит исходный lockup. */
+  .brand-signature {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 9px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .brand-signature__seed {
+    position: relative;
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: 48% 44% 53% 39%;
+    background: var(--ink);
+    color: var(--surface);
+    font: 730 20px / 1 var(--font-sans);
+    transform: rotate(-7deg);
+  }
+  .brand-signature__seed::before {
+    position: absolute;
+    top: -4px;
+    right: 1px;
+    width: 11px;
+    height: 7px;
+    border-radius: 100% 0 100% 0;
+    background: var(--brand);
+    content: '';
+    transform: rotate(-18deg);
+  }
+  .brand-signature__seed > span:first-child { transform: rotate(7deg) translateX(-2px); }
+  .brand-signature__plus {
+    position: absolute;
+    right: 2px;
+    bottom: 1px;
+    display: grid;
+    width: 15px;
+    height: 15px;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--brand);
+    color: var(--ink);
+    font: 850 11px / 1 var(--font-sans);
+    transform: rotate(7deg);
+  }
+  .brand-signature__name {
+    font-size: 18px;
+    font-weight: 790;
+    letter-spacing: -0.055em;
   }
 
-  /* Видимый фокус для клавиатуры (не мыши) — бренд-кольцо */
-  :focus-visible {
-    outline: 2px solid var(--brand);
-    outline-offset: 2px;
-    border-radius: var(--radius-chip);
+  .math-viewport,
+  .math-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--stroke) transparent;
   }
-  :focus:not(:focus-visible) {
+  .math-prose { min-width: 0; max-width: 100%; }
+  .math-scroll { display: inline-block; vertical-align: middle; }
+  .math-scroll-frame {
+    position: relative;
+    display: inline-grid;
+    width: fit-content;
+    max-width: 100%;
+    vertical-align: middle;
+  }
+  .math-scroll-frame--overflow { padding-bottom: 20px; }
+  .math-scroll--long { padding-inline-end: 6px; }
+  .math-scroll--long:focus-visible { outline-offset: -3px; }
+  .math-scroll-cue {
+    position: absolute;
+    right: 2px;
+    bottom: 0;
+    display: grid;
+    width: 26px;
+    height: 18px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--brand);
+    color: var(--on-brand);
+    font: 750 12px / 1 var(--font-sans);
+    pointer-events: none;
+  }
+  .math-viewport .katex,
+  .math-scroll .katex { white-space: nowrap; }
+  .formula-body { min-width: 0; overflow-wrap: anywhere; }
+  .formula-body .katex { font-size: 1.03em; font-weight: 560; }
+
+  .ap-card {
+    border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+    border-radius: var(--radius-card);
+    background: var(--surface);
+    box-shadow: var(--shadow-lift-sm);
+  }
+
+  .studio-grain {
+    position: relative;
+    isolation: isolate;
+  }
+  .studio-grain::before {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 49.85%, rgb(23 49 46 / 0.028) 50%, transparent 50.15%),
+      radial-gradient(circle at 12% 5%, rgb(255 255 255 / 0.82), transparent 30%);
+    content: '';
+  }
+  .studio-grain::after {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(rgb(23 49 46 / 0.13) 0.6px, transparent 0.6px);
+    background-size: 9px 9px;
+    opacity: 0.13;
+    content: '';
+  }
+
+  /* Светлая рабочая лента вместо отвергнутого повторяющегося dark stage. */
+  .tape-stage {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--ink) 13%, transparent);
+    border-radius: var(--radius-tape);
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--shadow-lift);
+  }
+  .tape-stage::before {
+    position: absolute;
+    top: 24px;
+    bottom: 24px;
+    left: 0;
+    z-index: -1;
+    width: 5px;
+    border-radius: 0 5px 5px 0;
+    background: var(--brand);
+    content: '';
+  }
+  .tape-stage--success::before { background: var(--success); }
+  .tape-stage .text-surface { color: var(--ink); }
+  .tape-stage .text-on-cobalt { color: var(--text); }
+  .tape-stage .text-on-cobalt-muted { color: var(--muted); }
+  .tape-stage .text-brand { color: var(--brand-deep); }
+  .tape-stage :focus-visible { outline-color: var(--blue-deep); }
+
+  .tape-card {
+    position: relative;
+    border: 1px solid color-mix(in srgb, var(--ink) 13%, transparent);
+    border-radius: var(--radius-tape);
+    background: var(--surface);
+    box-shadow: var(--shadow-lift);
+  }
+  .tape-card--notched::before,
+  .tape-card--notched::after {
+    position: absolute;
+    left: -1px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid color-mix(in srgb, var(--ink) 13%, transparent);
+    border-left: 0;
+    border-radius: 0 50% 50% 0;
+    background: var(--paper);
+    content: '';
+  }
+  .tape-card--notched::before { top: 30%; }
+  .tape-card--notched::after { top: 70%; }
+
+  .bracket-slot {
+    position: relative;
+    display: inline-grid;
+    min-width: 2.1em;
+    min-height: 1.12em;
+    place-items: center;
+    padding: 0.06em 0.28em 0.1em;
+    border-bottom: 0.07em solid currentColor;
+    color: var(--ink);
+    transition: border-color 180ms var(--ease-out-soft), color 180ms var(--ease-out-soft), background 180ms var(--ease-out-soft);
+  }
+  .bracket-slot::before,
+  .bracket-slot::after { display: none; }
+  .bracket-slot[data-state='wrong'] {
+    border-color: var(--oxide);
+    background: var(--oxide-soft);
+    color: var(--oxide);
+  }
+  .bracket-slot[data-state='done'] {
+    border-color: var(--success);
+    background: var(--success-soft);
+    color: var(--success-ink);
+  }
+
+  .equation-input {
+    width: 7ch;
+    min-width: 7ch;
+    max-width: 10ch;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
     outline: none;
   }
+  .equation-input:focus-visible {
+    outline: 3px solid var(--blue-deep);
+    outline-offset: 0.08em;
+  }
+  .equation-input::placeholder { color: color-mix(in srgb, currentColor 48%, transparent); }
+
+  .number-viewport {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-block: 2px 8px;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: var(--oxide) transparent;
+  }
+
+  .proof-rule {
+    position: relative;
+    padding-left: 24px;
+  }
+  .proof-rule::before {
+    position: absolute;
+    top: 5px;
+    bottom: 5px;
+    left: 0;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(var(--brand), var(--brand-deep));
+    content: '';
+  }
+
+  .mascot-frame {
+    position: relative;
+    display: grid;
+    place-items: end center;
+  }
+  .mascot-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+
+  .answer-panel {
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+    border-radius: var(--radius-control);
+    background: color-mix(in srgb, var(--surface) 82%, var(--sage-soft));
+    box-shadow: inset 0 -3px 0 rgb(23 49 46 / 0.08);
+  }
+
+  .field-inset { box-shadow: inset 0 -3px 0 rgb(23 49 46 / 0.08); }
+
+  .hub-route-rail::before {
+    position: absolute;
+    top: 12px;
+    bottom: 12px;
+    left: 50%;
+    z-index: -1;
+    width: 2px;
+    background: var(--stroke);
+    content: '';
+    transform: translateX(-50%);
+  }
+
+  .solution-ladder {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .solution-ladder__item {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .solution-ladder__item:not(:last-child)::after {
+    position: absolute;
+    top: 30px;
+    bottom: -18px;
+    left: 16px;
+    z-index: 0;
+    width: 2px;
+    background: var(--stroke);
+    content: '';
+  }
+  .solution-ladder__node {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+    margin-top: 18px;
+    border: 1px solid var(--stroke);
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--muted);
+    font: 680 9px / 1 var(--font-display);
+  }
+  .solution-ladder__node--active {
+    border-color: var(--brand);
+    background: var(--brand);
+    color: var(--ink);
+    box-shadow: 0 0 0 5px var(--brand-soft);
+  }
+  .solution-ladder__node--done {
+    border-color: var(--success);
+    background: var(--success);
+    color: var(--surface);
+    animation: routeNodeLock 420ms var(--ease-proof) both;
+  }
+
+  .learning-phase-nav { min-width: 0; }
+  .learning-phase-rail {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 4px;
+  }
+  .learning-phase-item {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    justify-items: center;
+    gap: 4px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .learning-phase-item:not(:last-child)::after {
+    position: absolute;
+    top: 17px;
+    left: calc(50% + 20px);
+    width: calc(100% - 40px);
+    height: 2px;
+    background: var(--stroke);
+    content: '';
+  }
+  .learning-phase-item[data-state='done']:not(:last-child)::after { background: var(--success); }
+  .learning-phase-node {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 34px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid var(--stroke);
+    border-radius: 50%;
+    background: var(--paper);
+    font: 680 9px / 1 var(--font-display);
+  }
+  .learning-phase-item[data-state='active'] { color: var(--ink); }
+  .learning-phase-item[data-state='active'] .learning-phase-node {
+    border-color: var(--brand);
+    background: var(--brand);
+    box-shadow: 0 0 0 5px var(--brand-soft);
+  }
+  .learning-phase-item[data-state='done'] .learning-phase-node {
+    border-color: var(--success);
+    background: var(--success);
+    color: var(--surface);
+  }
+  .learning-phase-label { font: 660 12px / 16px var(--font-sans); }
+  .learning-phase-detail { display: none; }
+  @keyframes routeNodeLock {
+    0% { transform: scale(0.72); }
+    70% { transform: scale(1.1); }
+    100% { transform: none; }
+  }
 }
 
-/* ---- Типографика v6 — пара ролей:
-   DISPLAY (Unbounded) — числа-герои, заголовки экранов, номера ступеней (характер);
-   BODY (Golos Text) — учебный текст, инструкции, реплики Кёди (читаемость ≥18px).
-   Контраст уровней ≥3x, веса 400↔800/900. Класс-имена сохранены как словарь вёрстки. ---- */
-@layer components {
-  /* число-герой — гигант альтиметра (hub «12»); tnum, плотный трекинг, короткий leading */
-  .text-hero {
-    font: 900 clamp(84px, 30vw, 116px) / 0.84 var(--font-display);
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
-  }
-  /* дробь-альтиметр «1/4» · «1/12» — display, крупно, знаменатель мельче/brand-ink */
-  .text-frac {
-    font: 900 clamp(52px, 18vw, 76px) / 0.9 var(--font-display);
-    letter-spacing: -0.02em;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum' 1;
-  }
-  .text-frac .den {
-    font-size: 0.5em;
-    font-weight: 800;
-    color: var(--brand-ink);
-  }
-  /* display h1 — заголовок героя/экрана (Unbounded 800) */
-  .text-h1 {
-    font: 800 clamp(28px, 8vw, 34px) / 1.05 var(--font-display);
-    letter-spacing: -0.01em;
-  }
-  /* display h2 (канон) — заголовок экрана / крупная веха (Unbounded 800) */
-  .text-h2 {
-    font: 800 23px/1.1 var(--font-display);
-    letter-spacing: -0.01em;
-  }
-  /* h3 (body-грот) — заголовок секции / КРУПНАЯ инструкция шага (Golos, читаемость) */
-  .text-h3 {
-    font: 700 20px/26px var(--font-sans);
-  }
-  /* control — семиболд-вариант body (заголовки плиток, лейблы кнопок) */
-  .text-title {
-    font: 600 16px/24px var(--font-sans);
-  }
-  /* body (канон, точное совпадение) */
-  .text-body {
-    font: 400 16px/24px var(--font-sans);
-  }
-  /* учебный текст — условие/реплика Кёди/метод, минимум 18px (canon §1) */
-  .text-study {
-    font: 400 18px/27px var(--font-sans);
-  }
-  /* caption — тяжёлый вариант для акцентных подписей */
-  .text-caption1-medium {
-    font: 600 13px/18px var(--font-sans);
-  }
-  /* caption (канон, точное совпадение) */
-  .text-caption1 {
-    font: 500 13px/18px var(--font-sans);
-  }
-  /* label (канон) — эйбров/бейджи */
-  .text-caption2-medium {
-    font: 600 11px/16px var(--font-sans);
-  }
-  /* label, лёгкий вариант — мелкие вторичные подписи */
-  .text-caption2 {
-    font: 400 11px/16px var(--font-sans);
-  }
-  /* label (канон, точное совпадение) — навигация */
-  .text-label-small {
-    font: 600 11px/16px var(--font-sans);
-  }
-  /* эйбров-метка display — номера ступеней/крамбы (Unbounded 800, разрядка) */
-  .text-mark {
-    font: 800 13px/1.2 var(--font-display);
-    letter-spacing: 0.06em;
-  }
-}
-
-/* ---- Обёртка для формул KaTeX ----
-   overflow-x на ОБЁРТКЕ, не на .katex (иначе ложный вертикальный скролл). */
-@utility math-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  max-width: 100%;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-.math-scroll::-webkit-scrollbar {
-  display: none;
-}
-.math-scroll .katex {
-  white-space: nowrap;
-}
-
-/* ---- KaTeX в sans-системе приложения (R4 §4) ----
-   Числа/проценты/дроби задач рендерились Computer-Modern SERIF внутри sans-приложения —
-   видимый шов почти на каждом экране. Переопределяем ТОЛЬКО font-family (глифы) на Golos:
-   позиционирование дробей/степеней KaTeX держит в inline-стилях по СВОИМ метрикам, поэтому
-   кегль/вертикаль (font-size 1.21em) НЕ трогаем — иначе дроби разъедутся. Правило un-layered
-   и после @import katex → выигрывает каскад у KaTeX_Main. Математика простая (числа/%/дроби);
-   визуальный гейт R4: drill/srez/hub/closure — дроби и индексы на месте. */
-.katex,
-.katex .mathnormal,
-.katex .mathdefault,
-.katex .mainrm {
-  font-family: var(--font-sans);
-}
-
-/* ---- Карточка v6: surface + 1px stroke, радиус card. Скелетоны используют те же
-   токены. Глубина — светом бумаги, не серой тенью. ---- */
-@utility ap-card {
-  background: var(--surface);
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-card);
-}
-
-/* ---- Утилиты ---- */
 @layer utilities {
-  /* Табличные цифры — включаем tnum явно (Golos и Unbounded несут функцию). */
   .font-num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
-    letter-spacing: 0;
+    letter-spacing: -0.025em;
   }
-  /* Display-семейство точечно (номера ступеней, крамбы, метки маршрута). */
-  .font-display {
-    font-family: var(--font-display);
-  }
+  .font-display { font-family: var(--font-display); }
+  .lift { box-shadow: var(--shadow-lift); }
+  .lift-sm { box-shadow: var(--shadow-lift-sm); }
+  .shadow-key { box-shadow: var(--shadow-key); }
+  .shadow-key:active { box-shadow: 0 2px 0 var(--brand-deep); }
 
-  /* Тёплая мягкая тень-объём под маскотом Кёди (не серая — оранж-крафт). */
-  .mascot-shadow {
-    filter: drop-shadow(
-      0 6px 12px color-mix(in srgb, var(--brand-deep) 22%, transparent)
-    );
-  }
-
-  /* SIGNATURE-подложка: тетрадная клетка + тёплый paper-wash. Живая текстура
-     продукта (математика решается ручкой в тетради), НЕ плоский cream-color.
-     Клетка тонкой линией --grid; сверху мягкий свет из --surface. */
-  .bg-graph {
-    background-color: var(--paper);
-    background-image:
-      repeating-linear-gradient(
-        0deg,
-        transparent 0 21px,
-        var(--grid) 21px 22px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        transparent 0 21px,
-        var(--grid) 21px 22px
-      ),
-      radial-gradient(130% 65% at 50% -12%, var(--surface) 0%, transparent 58%);
-  }
-
-  /* Hero-scrim: сплошной тёплый градиент под текстом поверх иллюстрации (AA-читаемость,
-     directive §10) — от полупрозрачного сверху к плотной бумаге снизу. */
-  .hero-scrim {
-    background: linear-gradient(
-      178deg,
-      color-mix(in srgb, var(--paper) 32%, transparent) 0%,
-      color-mix(in srgb, var(--paper) 74%, transparent) 46%,
-      var(--paper) 92%
-    );
-  }
-
-  /* Крафт-lift активной ступени/ведущей карточки — единственный стиль тёплой тени. */
-  .lift {
-    box-shadow: var(--shadow-lift);
-  }
-  .lift-sm {
-    box-shadow: var(--shadow-lift-sm);
-  }
-  /* «Физический ключ» primary-CTA: нижняя кромка brand-deep, уходит при :active. */
-  .shadow-key {
-    box-shadow: 0 1px 0 var(--brand-deep);
-  }
-  .shadow-key:active {
-    box-shadow: 0 0 0 var(--brand-deep);
-  }
-
-  /* Узел маршрута (отметка высоты) — фикс-геометрия без arbitrary-значений;
-     цвет/бордер варианта задаёт компонент RouteMarker Tailwind-утилитами. */
-  .route-node {
-    position: relative;
-    display: flex;
-    width: 26px;
-    height: 26px;
-    margin-top: 3px;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-full);
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    z-index: 1;
-  }
-
-  /* Пульс текущего узла маршрута (кольцо расходится) — только на активной точке. */
-  .route-pulse {
-    animation: routePulse 2.1s var(--ease-out-soft) 0.9s infinite;
-  }
-  @keyframes routePulse {
-    0% {
-      opacity: 0.5;
-      transform: scale(1);
-    }
-    70%,
-    100% {
-      opacity: 0;
-      transform: scale(1.8);
-    }
-  }
-
-  /* «Печатает» в чате Кёди — мягкий пульс прозрачности (bounce запрещён §11). */
-  .typing-dot {
-    animation: typingPulse 1.2s var(--ease-out-soft) infinite;
-  }
-  @keyframes typingPulse {
-    0%,
-    100% {
-      opacity: 0.3;
-    }
-    40% {
-      opacity: 1;
-    }
-  }
-
-  /* Оркестрованный stagger-reveal при загрузке (только transform/opacity).
-     Контент виден без JS — класс лишь анимирует появление. */
   .reveal {
     opacity: 0;
-    transform: translateY(12px);
-    animation: reveal 480ms var(--ease-out-soft) forwards;
+    transform: translateX(-7px);
+    animation: tapeSettle 380ms var(--ease-proof) forwards;
     animation-delay: var(--reveal-delay, 0ms);
   }
-  @keyframes reveal {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  @keyframes tapeSettle { to { opacity: 1; transform: none; } }
+
+  .equation-commit {
+    transform-origin: left center;
+    animation: routeLock 480ms var(--ease-proof) both;
+  }
+  @keyframes routeLock {
+    0% { opacity: 0.35; transform: translateX(-10px) scale(0.98); }
+    70% { opacity: 1; transform: translateX(2px); }
+    100% { opacity: 1; transform: none; }
   }
 
-  /* «Всплытие» узла-маркера маршрута при входе (pop из масштаба). */
-  .pop {
-    opacity: 0;
-    transform: scale(0.4);
-    animation: pop 420ms var(--ease-out-soft) forwards;
-    animation-delay: var(--pop-delay, 0ms);
+  .thread-grow {
+    transform-origin: top;
+    animation: threadGrow 520ms var(--ease-proof) both;
   }
-  @keyframes pop {
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
+  @keyframes threadGrow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 
-  /* Shimmer для скелетонов загрузки. */
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
+  .shimmer { position: relative; overflow: hidden; }
   .shimmer::after {
-    content: '';
     position: absolute;
     inset: 0;
     transform: translateX(-100%);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, var(--surface) 80%, transparent),
-      transparent
-    );
-    animation: shimmer 1.6s infinite;
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface) 78%, transparent), transparent);
+    animation: shimmer 1.55s infinite;
+    content: '';
   }
-  @keyframes shimmer {
-    100% {
-      transform: translateX(100%);
-    }
-  }
+  @keyframes shimmer { to { transform: translateX(100%); } }
 
-  /* Лёгкое «дыхание» маскота при празднике (только transform). */
-  .bob {
-    animation: bob 2.6s var(--ease-out-soft) infinite alternate;
-  }
-  @keyframes bob {
-    to {
-      transform: translateY(-6px);
-    }
-  }
+  .typing-dot { animation: typingPulse 1.2s var(--ease-out-soft) infinite; }
+  @keyframes typingPulse { 0%, 100% { opacity: 0.25; } 42% { opacity: 1; } }
 
-  /* Таб-бар: активная вкладка — иконка лерпится к бренду + лёгкий scale.
-     Отметка-точка маршрута под активной вкладкой (часть сигнатуры, §9). */
-  .ap-nav-icon {
-    transition:
-      transform 220ms var(--ease-out-soft),
-      color 220ms var(--ease-out-soft);
+  .proof-trace { position: relative; width: 100%; min-width: 0; color: var(--ink); }
+  .proof-trace svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .proof-trace__line, .proof-trace__line-muted {
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
   }
-  .ap-nav-active .ap-nav-icon {
-    transform: scale(1.12);
+  .proof-trace__line {
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: proofDraw 520ms var(--ease-proof) forwards;
   }
+  .proof-trace__line-muted { stroke: currentColor; stroke-width: 1; opacity: 0.17; }
+  .proof-trace__node {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    animation: proofNode 240ms var(--ease-proof) forwards;
+    animation-delay: var(--proof-delay, 420ms);
+  }
+  .proof-trace__active-ring {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: proofLock 360ms var(--ease-proof) 480ms both;
+  }
+  @keyframes proofDraw { to { stroke-dashoffset: 0; } }
+  @keyframes proofNode { to { opacity: 1; transform: none; } }
+  @keyframes proofLock { from { opacity: 0; transform: scale(1.55); } to { opacity: 1; transform: none; } }
 
-  /* Закрытие: мягкий «штамп ЗАКРЫТО» — прилетает чуть из масштаба и оседает. */
-  .stamp {
-    animation: stamp 480ms var(--ease-out-soft) both;
-  }
-  @keyframes stamp {
-    0% {
-      opacity: 0;
-      transform: rotate(-8deg) scale(1.5);
-    }
-    70% {
-      opacity: 1;
-      transform: rotate(-4deg) scale(0.96);
-    }
-    100% {
-      opacity: 1;
-      transform: rotate(-4deg) scale(1);
-    }
-  }
+  .bg-graph, .bone-grid { background: var(--paper); }
+  .cobalt-stage { background: var(--surface); }
+  .mascot-shadow { filter: drop-shadow(0 16px 24px rgb(23 49 46 / 0.14)); }
+  .bob { animation: mascotPlace 520ms var(--ease-proof) both; }
+  @keyframes mascotPlace { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+}
 
-  /* Лёгкое конфетти: чипсы разлетаются вверх-в-стороны и оседают. */
-  .confetti-chip {
-    animation: confetti 1100ms var(--ease-out-soft) both;
-    animation-delay: var(--confetti-delay, 0ms);
-  }
-  @keyframes confetti {
-    0% {
-      opacity: 0;
-      transform: translate(0, 0) scale(0.4) rotate(0deg);
-    }
-    18% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-      transform: translate(var(--confetti-x, 0), var(--confetti-y, -60px))
-        scale(1) rotate(var(--confetti-r, 180deg));
-    }
-  }
+@media (min-width: 800px) {
+  .brand-signature__name { font-size: 19px; }
+}
 
-  /* Формула-чип: инлайн-KaTeX внутри учебных карточек читается как «чип-формула»
-     (directive §5: формулы-чипы ≥18px) — мягкая бумажная подложка, tnum. */
-  .formula-body .katex {
-    font-size: 1.02em;
-    background: var(--paper-3);
-    border-radius: var(--radius-chip);
-    padding: 0.05em 0.4em;
+@media (min-width: 1024px) {
+  .learning-phase-nav {
+    position: sticky;
+    top: 20px;
+    align-self: start;
+    padding: 22px 18px;
+    border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+    border-radius: var(--radius-card);
+    background: color-mix(in srgb, var(--surface) 76%, transparent);
+  }
+  .learning-phase-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 18px;
+  }
+  .learning-phase-item {
+    min-height: 76px;
+    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    justify-items: start;
+    gap: 1px 10px;
+    text-align: left;
+  }
+  .learning-phase-item:not(:last-child)::after {
+    top: 34px;
+    bottom: 0;
+    left: 16px;
+    width: 2px;
+    height: auto;
+  }
+  .learning-phase-node { grid-row: 1 / 3; }
+  .learning-phase-label { align-self: end; font-size: 14px; }
+  .learning-phase-detail {
+    display: block;
+    align-self: start;
+    font: 500 11px / 16px var(--font-sans);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal,
-  .pop {
-    animation: none;
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  .reveal, .equation-commit, .thread-grow, .proof-trace__node, .proof-trace__active-ring, .bob {
     opacity: 1;
     transform: none;
   }
-  .route-pulse {
-    animation: none;
-    opacity: 0;
-  }
-  .ap-nav-icon {
-    transition: none;
-  }
-  .ap-nav-active .ap-nav-icon {
-    transform: none;
-  }
-  .shimmer::after,
-  .bob,
-  .typing-dot {
-    animation: none;
-  }
-  /* Штамп появляется без полёта; конфетти не запускается. */
-  .stamp {
-    animation: none;
-    opacity: 1;
-    transform: rotate(-4deg);
-  }
-  .confetti-chip {
-    animation: none;
-    opacity: 0;
-  }
+  .proof-trace__line { stroke-dashoffset: 0; }
+  .shimmer::after { display: none; }
+  .solution-ladder__node--done { animation: none; }
 }

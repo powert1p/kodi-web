@@ -38,6 +38,7 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
+RUN rm -rf /app/webapp_dist /app/web_static
 # Банк декомпозиций для сид-движка лежит в backend/data/ (в build-контексте; docs/ исключён .dockerignore)
 # и уже попадает в образ через `COPY backend/ .` → /app/data/full_decomposition_v1.json.
 
@@ -50,9 +51,11 @@ COPY --from=pwa-build /webapp/dist /app/webapp_dist
 RUN python scripts/generate_images.py --lang ru && \
     python scripts/generate_images.py --lang kz
 
-RUN useradd -m -s /bin/bash app && chown -R app:app /app
-USER app
+RUN useradd -m -s /bin/bash app && \
+    chown -R app:app /app && \
+    chmod 0755 /app/scripts/docker-entrypoint.sh
 
 EXPOSE 8000
 
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
 CMD ["python", "run.py"]

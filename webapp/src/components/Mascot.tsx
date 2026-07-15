@@ -1,158 +1,74 @@
-// Маскот «Кёди» — ОРИГИНАЛЬНЫЙ дружелюбный росток-семечко в бренд-оранжевом.
-// Не сова и не чужой персонаж: круглое тельце-капля + два листочка-«ушка»,
-// ободряющая мимика. Растёт вместе с настроением (mood). Чистый inline SVG.
-// Тонируется токенами v5, чтобы жить в плоской системе.
-//
-// Контракт (DESIGN_SYSTEM §3 — закрыт): mood hi/thinking/oops/celebrate,
-// size s(40)/m(64)/l(96) — §5 Кёди-протокол называет моменты этими именами.
+import learner420 from '../assets/brand/squirrel-learner-420.webp'
+import learner840 from '../assets/brand/squirrel-learner-840.webp'
+import coach420 from '../assets/brand/squirrel-coach-420.webp'
+import coach840 from '../assets/brand/squirrel-coach-840.webp'
+import celebrate420 from '../assets/brand/squirrel-celebrate-420.webp'
+import celebrate840 from '../assets/brand/squirrel-celebrate-840.webp'
+import empathy420 from '../assets/brand/squirrel-empathy-420.webp'
+import rest420 from '../assets/brand/squirrel-rest-420.webp'
 
-type Mood = 'hi' | 'thinking' | 'celebrate' | 'oops'
-type Size = 's' | 'm' | 'l'
+export type MascotMood = 'hi' | 'thinking' | 'celebrate' | 'oops' | 'rest'
+type Size = 's' | 'm' | 'l' | 'xl'
 
-const SIZE_PX: Record<Size, number> = { s: 40, m: 64, l: 96 }
+const SIZE: Record<Size, string> = {
+  s: 'h-14 w-20',
+  m: 'h-24 w-32',
+  l: 'h-44 w-56',
+  xl: 'h-full w-full',
+}
+
+const LABEL: Record<MascotMood, string> = {
+  hi: 'Белка Кёди изучает решение в тетради',
+  thinking: 'Белка Кёди помогает найти следующий шаг',
+  celebrate: 'Белки AiPlus празднуют верное решение',
+  oops: 'Белки AiPlus поддерживают после ошибки',
+  rest: 'Белки AiPlus отдыхают с книгой',
+}
+
+const ASSET = {
+  hi: { small: learner420, large: learner840, width: 840, height: 609 },
+  thinking: { small: coach420, large: coach840, width: 840, height: 1012 },
+  celebrate: { small: celebrate420, large: celebrate840, width: 840, height: 709 },
+  oops: { small: empathy420, large: empathy420, width: 420, height: 420 },
+  rest: { small: rest420, large: rest420, width: 420, height: 420 },
+} satisfies Record<MascotMood, { small: string; large: string; width: number; height: number }>
 
 interface MascotProps {
-  mood?: Mood
+  mood?: MascotMood
   size?: Size
   className?: string
+  decorative?: boolean
+  eager?: boolean
 }
 
-// Глаза по настроению: радостные дуги, сосредоточенные точки, зажмур на празднике.
-function Eyes({ mood }: { mood: Mood }) {
-  const eyeColor = 'var(--ink)'
-  if (mood === 'celebrate') {
-    // зажмуренные «^ ^» от счастья
-    return (
-      <g
-        fill="none"
-        stroke={eyeColor}
-        strokeWidth="3.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M40 55 l6 -6 l6 6" />
-        <path d="M68 55 l6 -6 l6 6" />
-      </g>
-    )
-  }
-  if (mood === 'thinking') {
-    // сосредоточенные точки + приподнятая бровь
-    return (
-      <g fill={eyeColor}>
-        <circle cx="46" cy="54" r="4" />
-        <circle cx="74" cy="54" r="4" />
-        <path
-          d="M68 45 q6 -4 12 -1"
-          fill="none"
-          stroke={eyeColor}
-          strokeWidth="3"
-          strokeLinecap="round"
-        />
-      </g>
-    )
-  }
-  if (mood === 'oops') {
-    // мягкие большие глаза-капли (виновато, но без стыда)
-    return (
-      <g fill={eyeColor}>
-        <circle cx="46" cy="55" r="5" />
-        <circle cx="74" cy="55" r="5" />
-      </g>
-    )
-  }
-  // hi — обычные тёплые круглые глаза с бликом
+// Только реальные белки из бренд-папки пользователя. Active Drill/Srez не должны
+// рендерить этот компонент: персонаж зарезервирован для входа, empty/error и closure.
+export function Mascot({
+  mood = 'hi',
+  size = 'm',
+  className = '',
+  decorative = false,
+  eager = false,
+}: MascotProps) {
+  const asset = ASSET[mood]
+
   return (
-    <g>
-      <circle cx="46" cy="54" r="5" fill={eyeColor} />
-      <circle cx="74" cy="54" r="5" fill={eyeColor} />
-      <circle cx="48" cy="52" r="1.6" fill="var(--surface)" />
-      <circle cx="76" cy="52" r="1.6" fill="var(--surface)" />
-    </g>
-  )
-}
-
-// Рот по настроению.
-function Mouth({ mood }: { mood: Mood }) {
-  const stroke = 'var(--brand-deep)'
-  if (mood === 'celebrate') {
-    return <path d="M50 66 q10 12 20 0" fill="var(--surface)" stroke={stroke} strokeWidth="3" />
-  }
-  if (mood === 'thinking') {
-    return (
-      <path d="M52 68 h16" fill="none" stroke={stroke} strokeWidth="3.4" strokeLinecap="round" />
-    )
-  }
-  if (mood === 'oops') {
-    return (
-      <path
-        d="M52 70 q8 -6 16 0"
-        fill="none"
-        stroke={stroke}
-        strokeWidth="3.4"
-        strokeLinecap="round"
-      />
-    )
-  }
-  return (
-    <path
-      d="M50 65 q10 9 20 0"
-      fill="none"
-      stroke={stroke}
-      strokeWidth="3.6"
-      strokeLinecap="round"
-    />
-  )
-}
-
-const LABEL: Record<Mood, string> = {
-  hi: 'Кёди улыбается',
-  thinking: 'Кёди думает',
-  celebrate: 'Кёди празднует',
-  oops: 'Кёди подбадривает',
-}
-
-export function Mascot({ mood = 'hi', size = 'm', className = '' }: MascotProps) {
-  const px = SIZE_PX[size]
-  return (
-    <svg
-      viewBox="0 0 120 120"
-      width={px}
-      height={px}
-      className={className}
-      role="img"
-      aria-label={LABEL[mood]}
+    <span
+      className={['mascot-frame block shrink-0', SIZE[size], className].join(' ')}
+      role={decorative ? undefined : 'img'}
+      aria-label={decorative ? undefined : LABEL[mood]}
+      aria-hidden={decorative || undefined}
     >
-      {/* два листочка-«ушка» сверху (росток) */}
-      <path
-        d="M60 30 C 50 8, 28 8, 30 30 C 44 32, 56 30, 60 30 Z"
-        fill="var(--success)"
+      <img
+        src={asset.small}
+        srcSet={asset.large === asset.small ? undefined : `${asset.small} 420w, ${asset.large} 840w`}
+        sizes={size === 'xl' ? '(min-width: 800px) 36vw, 50vw' : size === 'l' ? '224px' : '128px'}
+        alt=""
+        width={asset.width}
+        height={asset.height}
+        loading={eager ? 'eager' : 'lazy'}
+        decoding="async"
       />
-      <path
-        d="M60 30 C 70 8, 92 8, 90 30 C 76 32, 64 30, 60 30 Z"
-        fill="var(--success)"
-        opacity="0.82"
-      />
-      {/* стебелёк */}
-      <rect x="57" y="26" width="6" height="14" rx="3" fill="var(--success)" />
-
-      {/* тельце-капля в бренд-оранжевом */}
-      <path
-        d="M60 36
-           C 90 36, 102 60, 102 78
-           C 102 100, 84 112, 60 112
-           C 36 112, 18 100, 18 78
-           C 18 60, 30 36, 60 36 Z"
-        fill="var(--brand)"
-      />
-      {/* мягкий верхний блик (объём без тяжёлых теней) */}
-      <ellipse cx="46" cy="50" rx="22" ry="14" fill="var(--surface)" opacity="0.16" />
-
-      {/* щёчки */}
-      <circle cx="34" cy="68" r="6" fill="var(--brand-deep)" opacity="0.45" />
-      <circle cx="86" cy="68" r="6" fill="var(--brand-deep)" opacity="0.45" />
-
-      <Eyes mood={mood} />
-      <Mouth mood={mood} />
-    </svg>
+    </span>
   )
 }

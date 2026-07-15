@@ -20,6 +20,7 @@ import base64
 import io
 import json
 import logging
+import math
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,8 @@ class DiagnosisResult:
         level:          Сложность ошибки 1–3.
         micro_skill:    Идентификатор навыка если определён, иначе None.
         confidence:     Уверенность модели 0.0–1.0.
+        provider:       Реально отработавший vision-провайдер.
+        model:          Реально отработавшая модель из fallback-chain.
     """
     transcription: str
     failed_step: int | None
@@ -55,6 +58,8 @@ class DiagnosisResult:
     level: int
     micro_skill: str | None
     confidence: float
+    provider: str = "unknown"
+    model: str = "unknown"
 
 
 class LlmUnavailable(Exception):
@@ -67,6 +72,39 @@ class StepClassification:
     verdict: str          # "match" | "mismatch" | "unsure"
     seen_value: str | None
     confidence: float
+
+
+def _step_classification_from_data(data: object) -> StepClassification:
+    """Не доверяет no-strict JSON: любой schema drift становится unsure."""
+    if not isinstance(data, dict):
+        return StepClassification(verdict="unsure", seen_value=None, confidence=0.0)
+
+    raw_verdict = data.get("verdict")
+    verdict = (
+        raw_verdict
+        if isinstance(raw_verdict, str)
+        and raw_verdict in {"match", "mismatch", "unsure"}
+        else "unsure"
+    )
+
+    raw_seen_value = data.get("seen_value")
+    seen_value = raw_seen_value.strip()[:500] if isinstance(raw_seen_value, str) else None
+    if not seen_value:
+        seen_value = None
+
+    try:
+        confidence = float(data.get("confidence", 0.0))
+    except (TypeError, ValueError, OverflowError):
+        confidence = 0.0
+    if not math.isfinite(confidence) or not 0.0 <= confidence <= 1.0:
+        confidence = 0.0
+        verdict = "unsure"
+
+    return StepClassification(
+        verdict=verdict,
+        seen_value=seen_value,
+        confidence=confidence,
+    )
 
 
 # ─── JSON Schema для structured output ────────────────────────────────────────
@@ -97,7 +135,7 @@ _DIAGNOSIS_JSON_SCHEMA = {
             "micro_skill": {
                 "anyOf": [{"type": "string"}, {"type": "null"}]
             },
-            "confidence": {"type": "number"},
+            "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
         },
     },
 }
@@ -113,7 +151,7 @@ _STEP_JSON_SCHEMA = {
         "properties": {
             "verdict": {"type": "string", "enum": ["match", "mismatch", "unsure"]},
             "seen_value": {"anyOf": [{"type": "string"}, {"type": "null"}]},
-            "confidence": {"type": "number"},
+            "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
         },
     },
 }
@@ -211,8 +249,11 @@ def _get_active_client():
     from core.config import settings  # noqa: PLC0415
     if settings.vision_provider == "gemini":
         return _get_gemini_client(), settings.gemini_model_chain
-    # Fallback — OpenAI
-    return _get_openai_client(), settings.openai_model_chain
+    if settings.vision_provider == "openai":
+        return _get_openai_client(), settings.openai_model_chain
+    raise LlmUnavailable(
+        f"Неизвестный vision provider: {settings.vision_provider!r}."
+    )
 
 
 # ─── grounded prompt ──────────────────────────────────────────────────────────
@@ -365,6 +406,8 @@ async def diagnose_photo(
                 level=int(data["level"]),
                 micro_skill=data.get("micro_skill"),
                 confidence=float(data["confidence"]),
+                provider=provider,
+                model=model,
             )
         except asyncio.TimeoutError as exc:
             logger.warning("%s timeout (model=%s, %.1fs)", provider, model, _OPENAI_TIMEOUT)
@@ -398,6 +441,8 @@ async def diagnose_photo(
                         level=int(data["level"]),
                         micro_skill=data.get("micro_skill"),
                         confidence=float(data["confidence"]),
+                        provider=provider,
+                        model=model,
                     )
                 except Exception as inner_exc:  # noqa: BLE001
                     logger.warning(
@@ -500,11 +545,7 @@ async def classify_step_photo(
             )
             content = response.choices[0].message.content
             data = json.loads(content)
-            return StepClassification(
-                verdict=data["verdict"],
-                seen_value=data.get("seen_value"),
-                confidence=float(data["confidence"]),
-            )
+            return _step_classification_from_data(data)
         except asyncio.TimeoutError as exc:
             logger.warning("%s timeout (model=%s, %.1fs)", provider, model, _OPENAI_TIMEOUT)
             last_exc = exc
@@ -530,11 +571,7 @@ async def classify_step_photo(
                     )
                     content = response.choices[0].message.content
                     data = json.loads(content)
-                    return StepClassification(
-                        verdict=data["verdict"],
-                        seen_value=data.get("seen_value"),
-                        confidence=float(data["confidence"]),
-                    )
+                    return _step_classification_from_data(data)
                 except Exception as inner_exc:  # noqa: BLE001
                     logger.warning(
                         "%s fallback-no-strict error (model=%s): %s",

@@ -3,7 +3,7 @@
 // Мутирует внутренний state объекта — вызывающий код получает актуальные данные
 // через геттеры (rungs, activeRung, attempts, hint, finished).
 
-import type { StepDTO } from './types'
+import type { StepDTO, StepKind } from './types'
 
 // ——————————————————————————————————
 // Математика: нормализация и сравнение ответов
@@ -76,21 +76,18 @@ export interface Rung {
   /** Уникальный ключ ступени. */
   key: string
   kind: RungKind
+  /** Тип ответа из боевой декомпозиции; не выводится эвристикой из значения. */
+  answerKind: StepKind
   instruction: string
   microSkill: string
-  /** Ожидаемый ответ для сравнения. */
-  expected_value: string
+  /** Номер canonical-шага, который проверяет backend. */
+  stepN: number
   status: RungStatus
   reveal: string | null
+  /** Точный эквивалентный ответ ученика после успешной проверки — для proof chain. */
+  submitted_value?: string
   /** Для easier: ключ исходной ступени, к которой возвращаемся после решения. */
   parentKey?: string
-}
-
-/** Необязательный параметр «ступень попроще» для climb-down. */
-export interface EasierRung {
-  instruction: string
-  microSkill: string
-  expected: string
 }
 
 /** Публичное API объекта-лесенки (мутирующее, не иммутабельное). */
@@ -105,8 +102,8 @@ export interface LadderState {
   readonly hint: boolean
   /** true — все ступени решены. */
   readonly finished: boolean
-  /** Отправить ответ. Возвращает результат шага. */
-  submit(value: string): 'correct' | 'wrong' | 'inserted'
+  /** Применить уже проверенный backend/vision-вердикт. */
+  resolve(correct: boolean, submittedValue?: string): 'correct' | 'wrong'
 }
 
 // ——————————————————————————————————
@@ -117,20 +114,27 @@ export interface LadderState {
  * Создаёт объект-лесенку из шагов задачи.
  *
  * @param steps — шаги задачи (StepDTO[]) из API
- * @param easierRung — необязательная ступень «попроще» для climb-down при 2-й ошибке
- * @returns объект LadderState с мутирующим submit()
+ * @param solvedStepNs — ранее подтверждённые backend шаги для resume после reload
+ * @returns объект LadderState, применяющий уже проверенные verdict-ы
  */
-export function createLadder(steps: StepDTO[], easierRung?: EasierRung): LadderState {
+export function createLadder(steps: StepDTO[], solvedStepNs: readonly number[] = []): LadderState {
+  const solved = new Set(solvedStepNs)
+  let activeAssigned = false
   // Внутренний изменяемый массив ступеней.
   // microSkill — ТОЛЬКО человеческая подпись (label_ru); голый код на UI запрещён
   // (DESIGN_SYSTEM §2.2). Подписи нет — нейтральное «этот шаг», не код.
-  let rungs: Rung[] = steps.map((s, i) => ({
+  const rungs: Rung[] = steps.map((s) => ({
     key: `s${s.n}`,
     kind: 'original' as RungKind,
+    answerKind: s.kind,
     instruction: s.instruction_ru,
     microSkill: s.micro_skill_label ?? 'этот шаг',
-    expected_value: s.expected_value,
-    status: (i === 0 ? 'active' : 'locked') as RungStatus,
+    stepN: s.n,
+    status: solved.has(s.n)
+      ? 'solved'
+      : !activeAssigned
+        ? ((activeAssigned = true), 'active')
+        : 'locked',
     reveal: s.reveal,
   }))
 
@@ -144,16 +148,19 @@ export function createLadder(steps: StepDTO[], easierRung?: EasierRung): LadderS
   const getFinished = (): boolean =>
     rungs.length > 0 && rungs.every((r) => r.status === 'solved')
 
-  const submit = (value: string): 'correct' | 'wrong' | 'inserted' => {
+  const resolve = (correct: boolean, submittedValue?: string): 'correct' | 'wrong' => {
     const activeIdx = rungs.findIndex((r) => r.status === 'active')
     if (activeIdx === -1) return 'wrong'
 
     const active = rungs[activeIdx]!
 
-    // Проверяем ответ
-    if (answersMatch(value, active.expected_value)) {
+    if (correct) {
       // Верно: помечаем решённой
-      rungs[activeIdx] = { ...active, status: 'solved' }
+      rungs[activeIdx] = {
+        ...active,
+        status: 'solved',
+        submitted_value: submittedValue?.trim() || undefined,
+      }
 
       // Если это была easier-ступень — активируем её parent (climb back)
       if (active.kind === 'easier' && active.parentKey) {
@@ -178,29 +185,6 @@ export function createLadder(steps: StepDTO[], easierRung?: EasierRung): LadderS
     attempts += 1
     hint = true
 
-    // 2-я ошибка на оригинальной ступени → climb-down (если easier есть и ещё не давалась)
-    const alreadyHasEasier = rungs.some((r) => r.parentKey === active.key)
-    if (attempts >= 2 && active.kind === 'original' && !alreadyHasEasier && easierRung) {
-      const insertedRung: Rung = {
-        key: `${active.key}-easy`,
-        kind: 'easier',
-        instruction: easierRung.instruction,
-        microSkill: easierRung.microSkill,
-        expected_value: easierRung.expected,
-        status: 'active',
-        reveal: null,
-        parentKey: active.key,
-      }
-
-      // Оригинальную ступень → locked; вставляем easier ПЕРЕД ней
-      rungs[activeIdx] = { ...active, status: 'locked' }
-      rungs.splice(activeIdx, 0, insertedRung)
-
-      attempts = 0
-      hint = false
-      return 'inserted'
-    }
-
     return 'wrong'
   }
 
@@ -211,6 +195,6 @@ export function createLadder(steps: StepDTO[], easierRung?: EasierRung): LadderS
     get attempts() { return attempts },
     get hint() { return hint },
     get finished() { return getFinished() },
-    submit,
+    resolve,
   }
 }

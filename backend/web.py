@@ -12,15 +12,18 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
-from api.routes import router as api_router
+from api.routes import limiter, router as api_router
+from api.routers.learning import router as learning_router
 from api.routers.trainer import router as trainer_router
+from core.config import settings
+from db.base import engine
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +51,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
-
 app = FastAPI(docs_url="/docs", redoc_url=None)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -60,9 +61,6 @@ _ALLOWED_ORIGINS = [
     o.strip()
     for o in os.environ.get("CORS_ORIGINS", "").split(",")
     if o.strip()
-] or [
-    "https://kodi-web-production.up.railway.app",
-    "http://localhost:8000",
 ]
 
 app.add_middleware(
@@ -75,11 +73,42 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(trainer_router)
+app.include_router(learning_router)
 
 
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+
+async def _database_is_ready() -> bool:
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+        return True
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Readiness DB check failed: %s", exc)
+        return False
+
+
+@app.get("/ready")
+async def readiness_check():
+    provider_ready = (
+        bool(settings.gemini_api_key.strip())
+        if settings.vision_provider == "gemini"
+        else bool(settings.openai_api_key.strip())
+    )
+    checks = {
+        "database": await _database_is_ready(),
+        "pwa": (WEBAPP_DIST_DIR / "index.html").is_file(),
+        "ai_provider": provider_ready,
+    }
+    if not all(checks.values()):
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "not_ready", "checks": checks},
+        )
+    return {"status": "ready", "checks": checks}
 
 if PROBLEM_IMAGES_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(PROBLEM_IMAGES_DIR)), name="problem_images")

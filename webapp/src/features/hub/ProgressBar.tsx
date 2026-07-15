@@ -21,7 +21,7 @@ export function ProgressBar({ done, total }: ProgressBarProps) {
         ariaLabel={`Закрыто ${done} из ${total}`}
       />
       <div className="flex items-center justify-between">
-        <span className="text-caption1 text-muted">Разобрано сегодня</span>
+        <span className="text-caption1 text-muted">Разобрано в списке</span>
         {/* «N из total» — та же система прочтения, что hero «N из total ждут разбора» (R4 §5) */}
         <span className="font-num text-caption1-medium tabular-nums text-text">
           {done} из {total} · {pct}%

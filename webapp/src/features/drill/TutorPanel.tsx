@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApInformer } from '../../components/ApInformer'
 import { ApCard } from '../../components/ApCard'
@@ -74,9 +73,8 @@ export function TutorPanel({ problemId, decompIdx, stepN }: TutorPanelProps) {
 
   return (
     <ApCard as="article" padding="m" className="reveal flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <Mascot mood="thinking" size="s" className="shrink-0" />
-        <span className="text-caption1-medium text-ink">Спроси Кёди про этот шаг</span>
+      <div className="flex items-center gap-2 border-l-4 border-brand pl-3">
+        <span className="text-caption1-medium text-ink">AI-наставник · только про этот шаг</span>
       </div>
 
       <div
@@ -94,7 +92,7 @@ export function TutorPanel({ problemId, decompIdx, stepN }: TutorPanelProps) {
       </div>
 
       {status === 'error' && (
-        <ApInformer tone="attn" role="alert" leading={<Mascot mood="oops" size="s" />}>
+        <ApInformer tone="attn" role="alert">
           <div className="flex flex-col items-start gap-2">
             <span>{errorText}</span>
             <ApButton

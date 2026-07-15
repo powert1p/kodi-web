@@ -1,0 +1,185 @@
+{
+  "version": "2026-07-15.pc06.v1",
+  "path": {
+    "id": "nish-preparation",
+    "title": "Подготовка к НИШ",
+    "current_block_id": "PC06",
+    "current_block_title": "Смеси и концентрации"
+  },
+  "lessons": [
+    {
+      "id": "mixtures-1",
+      "node_id": "PC06",
+      "title": "Смеси и концентрации",
+      "lesson_title": "Вещество остаётся",
+      "goal": "Пересчитывать концентрацию, когда воду добавили или выпарили.",
+      "result_label": "Ты сохраняешь массу вещества и пересчитываешь концентрацию после изменения количества воды.",
+      "duration_minutes": 12,
+      "prerequisite": "Находить процент от числа и понимать, что концентрация — это доля вещества во всей смеси.",
+      "structural_cases": [
+        "добавили воду — масса вещества постоянна, общая масса растёт",
+        "выпарили воду — масса вещества постоянна, общая масса уменьшается"
+      ],
+      "misconceptions": [
+        {
+          "id": "keeps_old_concentration",
+          "description": "Оставляет прежний процент после изменения массы воды."
+        },
+        {
+          "id": "uses_old_denominator",
+          "description": "Делит массу вещества на старую массу раствора."
+        },
+        {
+          "id": "confuses_substance_and_concentration",
+          "description": "Выдаёт массу вещества в граммах как концентрацию в процентах."
+        }
+      ],
+      "activities": [
+        {
+          "id": "worked-dilution",
+          "role": "worked",
+          "phase_label": "Разбираем пример",
+          "title": "Что остаётся неизменным",
+          "prompt": "Проследи, как одна и та же масса соли переходит в новый раствор.",
+          "content_idx": 1764,
+          "answer_source": "problem",
+          "expected_answer": "10",
+          "answer_type": "number",
+          "embedded_support_count": 0,
+          "embedded_supports": [],
+          "hint_levels": [],
+          "worked_steps": [
+            {
+              "label": "Масса соли",
+              "expression": "20% от 200 г",
+              "result": "40 г"
+            },
+            {
+              "label": "Новая масса раствора",
+              "expression": "200 г + 200 г воды",
+              "result": "400 г"
+            },
+            {
+              "label": "Новая концентрация",
+              "expression": "40 ÷ 400 × 100%",
+              "result": "10%"
+            }
+          ],
+          "hardest_case": false,
+          "discriminates_misconception": null,
+          "counts_for_mastery": false
+        },
+        {
+          "id": "guided-substance",
+          "role": "guided",
+          "phase_label": "Решаем вместе",
+          "title": "Сначала найди неизменную часть",
+          "prompt": "Сколько граммов соли было в исходном растворе?",
+          "content_idx": 1525,
+          "answer_source": "manifest",
+          "expected_answer": "20",
+          "answer_type": "number",
+          "input_suffix": "г",
+          "embedded_support_count": 2,
+          "embedded_supports": [
+            "Было 200 г раствора.",
+            "Концентрация — 10%."
+          ],
+          "hint_levels": [
+            "Соль не добавляли и не убирали. Начни с 10% от исходных 200 г.",
+            "10% — это десятая часть. Раздели 200 г на 10."
+          ],
+          "hardest_case": false,
+          "discriminates_misconception": "confuses_substance_and_concentration",
+          "counts_for_mastery": false
+        },
+        {
+          "id": "guided-total",
+          "role": "guided",
+          "phase_label": "Решаем вместе",
+          "title": "Теперь измени общую массу",
+          "prompt": "Какой стала масса раствора после добавления 50 г воды?",
+          "content_idx": 1525,
+          "answer_source": "manifest",
+          "expected_answer": "250",
+          "answer_type": "number",
+          "input_suffix": "г",
+          "embedded_support_count": 1,
+          "embedded_supports": [
+            "Масса соли 20 г сохранена."
+          ],
+          "hint_levels": [
+            "Вода стала частью раствора. Прибавь её массу к исходным 200 г.",
+            "Запиши сумму: 200 г раствора + 50 г воды."
+          ],
+          "hardest_case": false,
+          "discriminates_misconception": "uses_old_denominator",
+          "counts_for_mastery": false
+        },
+        {
+          "id": "guided-concentration",
+          "role": "guided",
+          "phase_label": "Решаем вместе",
+          "title": "Собери новую долю",
+          "prompt": "Какой процент составляют 20 г соли в 250 г нового раствора?",
+          "content_idx": 1525,
+          "answer_source": "problem",
+          "expected_answer": "8",
+          "answer_type": "number",
+          "input_suffix": "%",
+          "embedded_support_count": 0,
+          "embedded_supports": [],
+          "hint_levels": [
+            "Концентрация — это масса соли, делённая на всю новую массу раствора.",
+            "Составь выражение 20 ÷ 250 × 100%."
+          ],
+          "hardest_case": false,
+          "discriminates_misconception": "uses_old_denominator",
+          "counts_for_mastery": false
+        },
+        {
+          "id": "independent-dilution",
+          "role": "independent",
+          "phase_label": "Решаешь сам",
+          "title": "Теперь без раскрытых шагов",
+          "prompt": "Найди новую концентрацию и введи ответ.",
+          "content_idx": 1765,
+          "answer_source": "problem",
+          "expected_answer": "15",
+          "answer_type": "number",
+          "input_suffix": "%",
+          "embedded_support_count": 0,
+          "embedded_supports": [],
+          "hint_levels": [
+            "Проверь две величины отдельно: сколько вещества и сколько всего раствора стало.",
+            "Масса вещества не меняется; в знаменателе должна быть новая масса раствора."
+          ],
+          "hardest_case": false,
+          "discriminates_misconception": "keeps_old_concentration",
+          "counts_for_mastery": true
+        },
+        {
+          "id": "transfer-evaporation",
+          "role": "transfer",
+          "phase_label": "Проверяем перенос",
+          "title": "Теперь вода не добавляется, а уходит",
+          "prompt": "Найди концентрацию после выпаривания.",
+          "content_idx": 331,
+          "answer_source": "problem",
+          "expected_answer": "30",
+          "answer_type": "number",
+          "input_suffix": "%",
+          "embedded_support_count": 0,
+          "embedded_supports": [],
+          "hint_levels": [
+            "При выпаривании уходит только вода. Какая масса остаётся неизменной?",
+            "Сначала сохрани массу соли, затем уменьши общую массу раствора на 100 г."
+          ],
+          "hardest_case": true,
+          "discriminates_misconception": "uses_old_denominator",
+          "counts_for_mastery": true
+        }
+      ]
+    }
+  ]
+}

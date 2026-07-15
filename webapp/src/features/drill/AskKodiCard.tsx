@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { ApButton } from '../../components/ApButton'
-import { Mascot } from '../../components/Mascot'
 import { DownIcon } from '../../icons'
 import { TutorPanel } from './TutorPanel'
 
@@ -18,7 +17,7 @@ export function AskKodiCard({ problemId, decompIdx, stepN }: AskKodiCardProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 border-t border-stroke pt-5">
       <ApButton
         variant="secondary"
         size="m"
@@ -26,8 +25,7 @@ export function AskKodiCard({ problemId, decompIdx, stepN }: AskKodiCardProps) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
-        <Mascot mood="thinking" size="s" className="shrink-0" />
-        Спросить Кёди
+        Спросить AI-наставника
         <span className={['transition-transform', open ? 'rotate-180' : ''].join(' ')}>
           <DownIcon size={16} />
         </span>

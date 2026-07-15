@@ -1,56 +1,40 @@
 import { useNavigate } from 'react-router-dom'
 import type { WrongTask } from '../../lib/types'
 import { MathText } from '../../components/MathText'
-import { ApCard } from '../../components/ApCard'
 import { RightIcon } from '../../icons'
 import { StateChip } from './StateChip'
 
-interface TaskCardProps {
-  task: WrongTask
-  /** Ведущая карточка маршрута (текущая) — крафт-lift + «Ты здесь». */
-  lead?: boolean
-}
+interface TaskCardProps { task: WrongTask; index: number }
 
-// Плитка-ошибка = остановка маршрута (ApCard as=button) — САМА тапается, без кнопки-дубля.
-// Ведущая (current) карточка получает крафт-lift и метку «Ты здесь». Тема — display
-// (Unbounded), условие (KaTeX) клампом в 2 строки, снизу — прошлый ответ + тихий переход.
-export function TaskCard({ task, lead = false }: TaskCardProps) {
+export function TaskCard({ task, index }: TaskCardProps) {
   const navigate = useNavigate()
-
   return (
-    <ApCard
-      as="button"
+    <button
       type="button"
       onClick={() => navigate(`/drill/${task.id}`)}
       aria-label={`Разобрать: ${task.topic_label}`}
-      className={[
-        'flex w-full flex-col gap-3 text-left transition-shadow hover:border-brand',
-        lead ? 'lift border-brand/40' : '',
-      ].join(' ')}
+      className="group grid w-full min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3 gap-y-4 border-b border-ink/15 py-6 text-left transition-colors hover:bg-surface/70 md:grid-cols-[3.5rem_minmax(0,1fr)_10rem] md:gap-x-5 md:px-3"
     >
-      {/* Шапка: тема (display) + метка «Ты здесь»/статус */}
-      <div className="flex items-start gap-2">
-        <span className="font-display line-clamp-2 min-w-0 flex-1 pt-0.5 text-title font-extrabold text-ink">
-          {task.topic_label}
-        </span>
-        {lead ? <StateChip state="revisit" label="Ты здесь" /> : <StateChip state={task.state} />}
+      <span className="font-display text-xl font-semibold leading-none text-brand-deep md:text-2xl" aria-hidden>
+        {String(index).padStart(2, '0')}
+      </span>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-title text-ink">{task.topic_label}</h3>
+          <StateChip state={task.state} />
+        </div>
+        <p className="formula-body mt-3 line-clamp-3 max-w-3xl text-[clamp(20px,3vw,28px)] font-semibold leading-tight tracking-[-0.025em] text-ink">
+          <MathText text={task.statement} />
+        </p>
       </div>
-
-      {/* Условие — учебный текст ≥18px (§5/R3 §6), KaTeX, не больше двух строк */}
-      <p className="line-clamp-2 text-study text-text">
-        <MathText text={task.statement} />
-      </p>
-
-      {/* Подвал: что вышло в прошлый раз + тихий affordance перехода */}
-      <div className="mt-0.5 flex items-center gap-3 border-t border-stroke pt-3">
-        <span className="text-caption1 text-muted">
-          в прошлый раз: <span className="font-num text-text">{task.wrong_answer}</span>
-        </span>
-        <span className="ml-auto inline-flex items-center gap-1 text-caption1-medium text-brand-ink">
-          Разобрать
-          <RightIcon size={16} />
+      <div className="col-start-2 flex items-center justify-between gap-4 md:col-start-3 md:row-start-1 md:flex-col md:items-end">
+        <p className="text-caption1 text-muted">
+          было <span className="font-num font-semibold text-oxide">{task.wrong_answer}</span>
+        </p>
+        <span className="inline-flex min-h-11 items-center gap-2 rounded-chip bg-brand-soft px-3 text-caption1-medium text-brand-ink transition-colors group-hover:bg-brand">
+          Разобрать <RightIcon size={16} />
         </span>
       </div>
-    </ApCard>
+    </button>
   )
 }

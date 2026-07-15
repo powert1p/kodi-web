@@ -1,5 +1,5 @@
 # Не тянуть в build-контекст артефакты и мусор (AUDIT OPS-2).
-# ВАЖНО: backend/fonts и backend/data НУЖНЫ на build — НЕ исключать.
+# ВАЖНО: backend/fonts и учебные данные НУЖНЫ на build. Пользовательские фото — нет.
 .git
 .gitignore
 *.md
@@ -13,11 +13,13 @@ PROJECT.md
 **/*.py[cod]
 **/.venv/
 **/venv/
+**/node_modules/
 .env
 
 # Сгенерится на build / в рантайме
 backend/static/
 backend/web_static/
+backend/webapp_dist/
 
 # Flutter build outputs (образ билдит сам)
 frontend/apps/kodi_web/build/
@@ -28,6 +30,9 @@ frontend/packages/kodi_core/.dart_tool/
 
 # Local compose data
 pgdata/
+backend/data/error_photos/
+error_photos/
+backups/
 
 # IDE
 .idea/

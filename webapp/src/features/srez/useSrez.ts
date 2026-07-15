@@ -4,8 +4,7 @@ import { startSrez, answerSrez } from '../../lib/api'
 import { track } from '../../lib/telemetry'
 import type { SrezTask } from '../../lib/types'
 
-/** Пауза после фидбека перед авто-переходом к следующей задаче. */
-const FEEDBACK_DELAY_MS = 900
+let srezSessionSequence = 0
 
 export type SrezPhase = 'answering' | 'feedback'
 
@@ -23,6 +22,8 @@ interface UseSrezResult {
   answerError: boolean
   wrongCount: number
   submit: (value: string) => void
+  /** Явный переход после того, как ученик прочитал фидбек. */
+  next: () => void
 }
 
 /**
@@ -33,10 +34,14 @@ interface UseSrezResult {
  * is_correct с сервера (канон §2.5).
  */
 export function useSrez(): UseSrezResult {
+  // Каждый вход в route — новая серверная выборка. Иначе React Query отдаст
+  // закэшированный набор, а локальный index начнёт старую сессию с нуля.
+  const [sessionKey] = useState(() => ++srezSessionSequence)
   const query = useQuery({
-    queryKey: ['srez'],
+    queryKey: ['srez', sessionKey],
     queryFn: startSrez,
     staleTime: Infinity,
+    gcTime: 0,
     retry: false,
   })
 
@@ -99,15 +104,11 @@ export function useSrez(): UseSrezResult {
     [currentTask, submitting, phase],
   )
 
-  // Автопереход к следующей задаче после показа фидбека.
-  useEffect(() => {
-    if (feedbackCorrect === null) return
-    const timer = setTimeout(() => {
-      setFeedbackCorrect(null)
-      setIndex((i) => i + 1)
-    }, FEEDBACK_DELAY_MS)
-    return () => clearTimeout(timer)
-  }, [feedbackCorrect])
+  const next = useCallback(() => {
+    if (feedbackCorrect === null || submitting) return
+    setFeedbackCorrect(null)
+    setIndex((i) => i + 1)
+  }, [feedbackCorrect, submitting])
 
   return {
     isLoading: query.isPending,
@@ -122,5 +123,6 @@ export function useSrez(): UseSrezResult {
     answerError,
     wrongCount,
     submit,
+    next,
   }
 }

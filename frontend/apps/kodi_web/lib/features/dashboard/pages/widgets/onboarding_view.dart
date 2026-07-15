@@ -18,7 +18,8 @@ class OnboardingView extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final firstName = student.displayName.split(' ').first;
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics:
+          const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: EdgeInsets.all(rp(context, 24)),
       child: Center(
         child: ConstrainedBox(
@@ -30,8 +31,10 @@ class OnboardingView extends StatelessWidget {
                 width: rs(context, 100),
                 height: rs(context, 100),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                      colors: [AppColors.gradientPurpleStart, AppColors.gradientPurpleEnd]),
+                  gradient: const LinearGradient(colors: [
+                    AppColors.gradientPurpleStart,
+                    AppColors.gradientPurpleEnd
+                  ]),
                   borderRadius: BorderRadius.circular(28),
                 ),
                 child: Icon(Icons.school_rounded,
@@ -50,7 +53,9 @@ class OnboardingView extends StatelessWidget {
               Text(
                 l.onboardingWelcome,
                 style: TextStyle(
-                    fontSize: rs(context, 16), color: Colors.grey[600], height: 1.5),
+                    fontSize: rs(context, 16),
+                    color: Colors.grey[600],
+                    height: 1.5),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
@@ -82,9 +87,12 @@ class OnboardingView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(DiagnosticPage.routeName)
-                      .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                  onPressed: () async {
+                    await Navigator.of(context)
+                        .pushNamed(DiagnosticPage.routeName);
+                    if (!context.mounted) return;
+                    context.read<DashboardBloc>().add(DashboardLoad());
+                  },
                   icon: const Icon(Icons.play_arrow_rounded),
                   label: Text(l.startDiagnostic,
                       style: const TextStyle(
@@ -98,12 +106,15 @@ class OnboardingView extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(ExamPage.routeName)
-                      .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                  onPressed: () async {
+                    await Navigator.of(context).pushNamed(ExamPage.routeName);
+                    if (!context.mounted) return;
+                    context.read<DashboardBloc>().add(DashboardLoad());
+                  },
                   icon: const Icon(Icons.timer_rounded, color: AppColors.error),
                   label: Text(l.examWithTimer,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w600)),
                   style: OutlinedButton.styleFrom(
                       minimumSize: const Size(0, 48),
                       side: const BorderSide(color: AppColors.error)),
@@ -111,12 +122,13 @@ class OnboardingView extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () => Navigator.of(context)
-                    .pushNamed(PracticePage.routeName)
-                    .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                onPressed: () async {
+                  await Navigator.of(context).pushNamed(PracticePage.routeName);
+                  if (!context.mounted) return;
+                  context.read<DashboardBloc>().add(DashboardLoad());
+                },
                 child: Text(l.orJustSolve,
-                    style: TextStyle(
-                        color: Colors.grey[500], fontSize: 14)),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 14)),
               ),
             ],
           ),
@@ -168,7 +180,8 @@ class StepCard extends StatelessWidget {
               children: [
                 Text(title,
                     style: TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: rs(context, 15))),
+                        fontWeight: FontWeight.w600,
+                        fontSize: rs(context, 15))),
                 Text(subtitle,
                     style: TextStyle(
                         fontSize: rs(context, 12), color: Colors.grey[500])),

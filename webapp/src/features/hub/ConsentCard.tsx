@@ -1,6 +1,5 @@
 import { useState, type CSSProperties } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApCard } from '../../components/ApCard'
 import { postConsent } from '../../lib/api'
@@ -75,15 +74,16 @@ export function ConsentCard({ delay = 0, onGranted, onDismiss, variant = 'drill'
       as="section"
       tone="attn-soft"
       padding="m"
-      className="reveal flex flex-col gap-4"
+      className="reveal flex flex-col gap-4 border-l-4 border-l-brand shadow-lift-sm"
       style={{ '--reveal-delay': `${delay}ms` } as CSSProperties}
     >
       <div className="flex items-start gap-3">
-        {variant === 'drill' && <Mascot mood="thinking" size="m" className="shrink-0" />}
         <div className="flex flex-col gap-1 pt-0.5">
-          <h3 className="text-h3 text-ink">Спросим родителя</h3>
+          <p className="text-mark text-brand-deep">Фото решения</p>
+          <h3 className="text-h3 text-ink">Нужно разрешение родителя</h3>
           <p className="text-body text-text">
-            Чтобы разбирать ошибки по фото, нужно согласие родителя на использование снимков.
+            Фото решения можно обрабатывать только с разрешения взрослого. Кнопку ниже
+            должен нажать родитель.
           </p>
         </div>
       </div>
@@ -92,16 +92,16 @@ export function ConsentCard({ delay = 0, onGranted, onDismiss, variant = 'drill'
         <p className="text-caption1 text-attn">Не сохранилось — попробуй ещё раз.</p>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2">
         <ApButton
           variant={variant === 'hub' ? 'secondary' : 'primary'}
           size="m"
-          className="flex-1"
+          full
           loading={grant.isPending}
           disabled={grant.isPending}
           onClick={() => grant.mutate()}
         >
-          Разрешаю
+          Я родитель — разрешаю
         </ApButton>
         <ApButton
           variant="ghost"

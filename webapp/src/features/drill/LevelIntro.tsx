@@ -1,18 +1,20 @@
-import { KodiBubble } from '../../components/KodiBubble'
+import { Mascot } from '../../components/Mascot'
 import { LEVEL_META, type DrillLevel } from './levelConfig'
 
 interface LevelIntroProps {
   level: DrillLevel
 }
 
-// Интро уровня — голос Кёди (§7 thinking): тёплый пузырь с меткой уровня и рамочной
-// строкой growth-mindset. Уровень выводится из mastery (см. levelConfig).
 export function LevelIntro({ level }: LevelIntroProps) {
   const meta = LEVEL_META[level]
 
   return (
-    <KodiBubble mood={meta.mood} level={meta.eyebrow} size="s">
-      {meta.line}
-    </KodiBubble>
+    <div className="flex items-center gap-3 border border-on-cobalt/25 bg-cobalt px-4 py-3">
+      <Mascot mood={meta.mood} size="s" className="shrink-0" />
+      <div>
+        <p className="font-display text-caption2-medium uppercase tracking-[0.08em] text-brand">{meta.eyebrow}</p>
+        <p className="mt-1 text-caption1 text-on-cobalt">{meta.line}</p>
+      </div>
+    </div>
   )
 }

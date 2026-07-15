@@ -1,6 +1,6 @@
 // Сегмент-контрол выбора класса (4–7) при регистрации — тот же паттерн, что
 // StepModeToggle в drill: бренд-заливка только у активного сегмента (дисциплина
-// акцента v5), по умолчанию не выбрано ничего (value=null).
+// акцента v11), по умолчанию не выбрано ничего (value=null).
 
 interface GradeSelectProps {
   value: number | null
@@ -16,7 +16,7 @@ export function GradeSelect({ value, onChange, disabled }: GradeSelectProps) {
     <div
       role="radiogroup"
       aria-label="Класс"
-      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-paper-3 p-1"
+      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-paper p-1"
     >
       {GRADES.map((g) => {
         const active = value === g
@@ -31,8 +31,8 @@ export function GradeSelect({ value, onChange, disabled }: GradeSelectProps) {
             className={[
               'font-display h-12 flex-1 rounded-chip text-title transition-colors',
               active
-                ? 'lift-sm bg-surface text-ink'
-                : 'bg-transparent text-muted hover:text-text',
+                ? 'bg-ink text-surface'
+                : 'bg-transparent text-muted hover:bg-paper-2 hover:text-ink',
             ].join(' ')}
           >
             {g}

@@ -2,7 +2,7 @@ import 'dart:convert';
 import '../../../app/config.dart';
 import '../../../app/colors.dart';
 import '../../../app/locale_bloc.dart';
-// ignore: avoid_web_libraries_in_flutter
+// ignore: avoid_web_libraries_in_flutter, deprecated_member_use
 import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,7 +47,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _openTelegramLogin() {
-    final url = Uri.base.resolve('telegram_login.html?bot=${AppConfig.telegramBotName}').toString();
+    final url = Uri.base
+        .resolve('telegram_login.html?bot=${AppConfig.telegramBotName}')
+        .toString();
     _popup = html.window.open(
       url,
       'tg_login',
@@ -78,12 +80,15 @@ class _LoginPageState extends State<LoginPage> {
                     final isRu = localeState.locale.languageCode == 'ru';
                     return TextButton(
                       onPressed: () {
-                        final next = isRu ? const Locale('kk') : const Locale('ru');
+                        final next =
+                            isRu ? const Locale('kk') : const Locale('ru');
                         context.read<LocaleBloc>().add(LocaleChanged(next));
                       },
                       child: Text(
                         isRu ? 'Қазақша' : 'Русский',
-                        style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500),
                       ),
                     );
                   },
@@ -95,98 +100,124 @@ class _LoginPageState extends State<LoginPage> {
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 420),
                     child: Card(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: rp(context, 40), vertical: rp(context, 48)),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: rs(context, 72), height: rs(context, 72),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(20)),
-                        child: Icon(Icons.school_rounded, color: Colors.white, size: rs(context, 40))),
-                      const SizedBox(height: 24),
-                      Text('NIS Math',
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text(l.loginSubtitle,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                          textAlign: TextAlign.center),
-                      const SizedBox(height: 32),
-
-                      // Phone auth (primary)
-                      BlocBuilder<AuthBloc, AuthState>(
-                        builder: (context, state) {
-                          if (state is AuthLoading) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 24),
-                              child: CircularProgressIndicator());
-                          }
-                          if (state is AuthError) {
-                            return Column(children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: rp(context, 40),
+                            vertical: rp(context, 48)),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                                width: rs(context, 72),
+                                height: rs(context, 72),
                                 decoration: BoxDecoration(
-                                  color: Colors.red[50],
-                                  borderRadius: BorderRadius.circular(8)),
-                                child: Text(localizeError(context, state.message),
-                                    style: TextStyle(color: Colors.red[700], fontSize: 13),
-                                    textAlign: TextAlign.center)),
-                              const SizedBox(height: 16),
-                              const PhoneLoginPage(),
-                            ]);
-                          }
-                          return const PhoneLoginPage();
-                        },
-                      ),
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Icon(Icons.school_rounded,
+                                    color: Colors.white,
+                                    size: rs(context, 40))),
+                            const SizedBox(height: 24),
+                            Text('NIS Math',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Text(l.loginSubtitle,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(color: Colors.grey[600]),
+                                textAlign: TextAlign.center),
+                            const SizedBox(height: 32),
 
-                      const SizedBox(height: 24),
+                            // Phone auth (primary)
+                            BlocBuilder<AuthBloc, AuthState>(
+                              builder: (context, state) {
+                                if (state is AuthLoading) {
+                                  return const Padding(
+                                      padding:
+                                          EdgeInsets.symmetric(vertical: 24),
+                                      child: CircularProgressIndicator());
+                                }
+                                if (state is AuthError) {
+                                  return Column(children: [
+                                    Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                            color: Colors.red[50],
+                                            borderRadius:
+                                                BorderRadius.circular(8)),
+                                        child: Text(
+                                            localizeError(
+                                                context, state.message),
+                                            style: TextStyle(
+                                                color: Colors.red[700],
+                                                fontSize: 13),
+                                            textAlign: TextAlign.center)),
+                                    const SizedBox(height: 16),
+                                    const PhoneLoginPage(),
+                                  ]);
+                                }
+                                return const PhoneLoginPage();
+                              },
+                            ),
 
-                      // Divider
-                      Row(children: [
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(l.loginOr, style: TextStyle(color: Colors.grey[400], fontSize: 13))),
-                        Expanded(child: Divider(color: Colors.grey[300])),
-                      ]),
+                            const SizedBox(height: 24),
 
-                      const SizedBox(height: 16),
+                            // Divider
+                            Row(children: [
+                              Expanded(child: Divider(color: Colors.grey[300])),
+                              Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: Text(l.loginOr,
+                                      style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 13))),
+                              Expanded(child: Divider(color: Colors.grey[300])),
+                            ]),
 
-                      // Telegram auth (secondary)
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: _openTelegramLogin,
-                          icon: const Icon(Icons.telegram, size: 20),
-                          label: Text(l.loginViaTelegram),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, 48),
-                            foregroundColor: AppColors.telegram,
-                            side: const BorderSide(color: AppColors.telegram)),
+                            const SizedBox(height: 16),
+
+                            // Telegram auth (secondary)
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _openTelegramLogin,
+                                icon: const Icon(Icons.telegram, size: 20),
+                                label: Text(l.loginViaTelegram),
+                                style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size(0, 48),
+                                    foregroundColor: AppColors.telegram,
+                                    side: const BorderSide(
+                                        color: AppColors.telegram)),
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+                            TextButton.icon(
+                              onPressed: () => Navigator.of(context)
+                                  .pushNamed(PublicGraphPage.routeName),
+                              icon: const Icon(Icons.account_tree_rounded,
+                                  size: 18),
+                              label: Text(l.graphPublicCta),
+                            ),
+
+                            const SizedBox(height: 24),
+                            Text(l.loginFooter,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(color: Colors.grey[500]),
+                                textAlign: TextAlign.center),
+                          ],
                         ),
                       ),
-
-                      const SizedBox(height: 12),
-                      TextButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(PublicGraphPage.routeName),
-                        icon: const Icon(Icons.account_tree_rounded, size: 18),
-                        label: Text(l.graphPublicCta),
-                      ),
-
-                      const SizedBox(height: 24),
-                      Text(l.loginFooter,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
-                          textAlign: TextAlign.center),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ),
             ],
           ),
         ),

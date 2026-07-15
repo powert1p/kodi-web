@@ -21,6 +21,8 @@ frontend/packages/kodi_core/.dart_tool/
 .DS_Store
 
 # Build outputs
+node_modules/
+webapp/node_modules/
 backend/web_static/
 backend/static/
 backend/webapp_dist/

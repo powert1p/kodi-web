@@ -22,18 +22,16 @@ export default defineConfig({
         'icons/apple-touch-icon.png',
       ],
       manifest: {
-        name: 'Работа над ошибками',
-        short_name: 'Над ошибками',
-        description: 'Тренажёр разбора ошибок по математике — где растёт мозг.',
+        name: 'AiPlus — разбор математики',
+        short_name: 'AiPlus',
+        description: 'Пошаговый разбор математических ошибок и самостоятельное закрепление.',
         start_url: '/app/',
         scope: '/app/',
         display: 'standalone',
         orientation: 'portrait',
         lang: 'ru',
-        // v6 «Тетрадь чемпиона»: доминанта — тёплая бумага; статус-бар PWA
-        // сливается с фоном (--paper #FAF7F2), оранж бережём под действие/маршрут.
-        theme_color: '#faf7f2',
-        background_color: '#faf7f2',
+        theme_color: '#f5f1e7',
+        background_color: '#f5f1e7',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -42,7 +40,10 @@ export default defineConfig({
       },
       workbox: {
         // Прекэш только оболочки (вкл. шрифты приложения и шрифты KaTeX).
-        globPatterns: ['**/*.{js,css,html,woff2,svg,png,ico}'],
+        globPatterns: [
+          '**/*.{js,css,html,woff2,svg,png,ico}',
+          '**/squirrel-*.webp',
+        ],
         // НЕ кэшировать API — всегда живой запрос.
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [{ urlPattern: /\/api\//, handler: 'NetworkOnly' }],

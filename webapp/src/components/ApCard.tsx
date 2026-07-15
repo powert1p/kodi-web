@@ -1,9 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 
-// ApCard (DESIGN_SYSTEM §3 — контракт закрыт: tone/padding). Плоская bordered-карточка,
-// БЕЗ тени — глубина живёт в поверхности+бордере. tone=surface — обычная белая
-// карточка (эталон: список ошибок/скелетоны). tone=brand-soft — ЕДИНСТВЕННЫЙ
-// активный фокус экрана (эталон: HubHero, активная ступень лесенки) — не размножать.
+// ApCard v11: supporting surface, не основной math-stage. Основной stage использует
+// tape-card/tape-stage; карточки остаются только для consent/help/state context.
 // success-soft/attn-soft — закрытие темы / «не сошлось» (§5).
 // Полиморфна через `as` (article/section/button) — карточка иногда САМА тапается
 // (TaskCard), тогда a11y/touch-target остаются на нативном <button>.
@@ -13,7 +11,7 @@ type Padding = 'm' | 'l'
 
 const TONE: Record<CardTone, string> = {
   surface: 'bg-surface border-stroke',
-  'brand-soft': 'bg-brand-soft border-brand/30',
+  'brand-soft': 'bg-brand-soft border-brand/45',
   'success-soft': 'bg-success-soft border-success/30',
   'attn-soft': 'bg-attn-soft border-attn/30',
 }
@@ -46,7 +44,7 @@ export function ApCard<T extends ElementType = 'div'>({
   return (
     <Tag
       className={[
-        'rounded-card border',
+        'rounded-card border shadow-lift-sm',
         TONE[tone],
         PADDING[padding],
         className,

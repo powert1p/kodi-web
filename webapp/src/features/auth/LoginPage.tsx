@@ -1,35 +1,26 @@
-// Экран входа/регистрации (v5: paper-подложка, Golos Text, тёплый бренд-оранжевый).
+// Экран входа/регистрации v11: короткая форма в системе «Лента решения».
 // Шаги: 1) ввод телефона → проверка /phone/check → ветка login или register.
 //        2a) login: PIN → вход.
-//        2b) register: имя → PIN → регистрация.
+//        2b) register: имя → класс → PIN → регистрация.
 // Маскот приветствует, поддерживающий тон при ошибках (без «злого красного»).
 
-import { useState, type FormEvent, type CSSProperties } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApTextField } from '../../components/ApTextField'
-import { RouteMeter } from '../../components/route/RouteMeter'
+import { BrandMark } from '../../components/BrandMark'
 import { ConsentCheckbox } from './ConsentCheckbox'
 import { GradeSelect } from './GradeSelect'
 import { LeftIcon } from '../../icons'
 import { useAuth } from './AuthContext'
 import { checkPhone } from '../../lib/auth'
-import heroDesk from '../../assets/hero-desk.jpg'
 
 // Этап формы.
 type Step = 'phone' | 'login' | 'register-name' | 'register-grade' | 'register-pin'
 
 // Шаги регистрации как отметки маршрута (тот же язык, что hub/drill/srez).
 const REGISTER_STEPS: Step[] = ['register-name', 'register-grade', 'register-pin']
-
-// Маскот-настроение по этапу (§5 Кёди-протокол: hi на входе).
-function mascotMood(step: Step, hasError: boolean) {
-  if (hasError) return 'oops' as const
-  if (step === 'phone') return 'hi' as const
-  if (step === 'login') return 'thinking' as const
-  return 'celebrate' as const
-}
 
 // Заголовок по этапу.
 function stepTitle(step: Step): string {
@@ -73,8 +64,6 @@ export function LoginPage() {
   const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
-  const mood = mascotMood(step, !!error)
 
   // Сброс ошибки при изменении поля.
   function clearError() {
@@ -263,72 +252,46 @@ export function LoginPage() {
   }
 
   const regIdx = REGISTER_STEPS.indexOf(step)
-  const isPhone = step === 'phone'
-
   return (
-    <div className="bg-graph relative flex min-h-dvh flex-col overflow-hidden">
-      <div className="relative z-10 mx-auto flex w-full max-w-[30rem] flex-1 flex-col justify-center px-6 py-8">
-        {/* Герой формы — центрирован как ОДНА группа; тёплая desk-полоса ниже
-            закрывает прежде пустую нижнюю клетку (R4 §1). */}
-        <div
-          className="reveal flex w-full flex-col items-center gap-6"
-          style={{ '--reveal-delay': '0ms' } as CSSProperties}
-        >
-          <div className="flex flex-col items-center gap-3 text-center">
-            {/* Входной экран — первый контакт ребёнка: Кёди крупнее (R4 §1). */}
-            <Mascot
-              mood={mood}
-              size={isPhone ? 'l' : 'm'}
-              className={['mascot-shadow', mood === 'celebrate' ? 'bob' : ''].join(' ')}
-            />
-            <div className="flex flex-col gap-1">
-              <h1 className="text-h1 text-ink">{stepTitle(step)}</h1>
-              <p className="text-study text-muted">{stepSub(step, phone)}</p>
+    <div className="studio-grain min-h-dvh bg-paper">
+      <header className="mx-auto flex min-h-18 max-w-6xl items-center px-5 md:px-8">
+        <BrandMark />
+      </header>
+      <main className="mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-6xl items-center gap-6 px-5 py-6 md:px-8 lg:grid-cols-[minmax(22rem,0.82fr)_minmax(22rem,1fr)] lg:gap-12 lg:py-10">
+        <section className="tape-card reveal order-1 w-full px-6 py-7 md:px-9 md:py-9">
+          <p className="text-mark text-brand-deep">{step === 'login' ? 'С возвращением' : step === 'phone' ? 'Вход' : 'Регистрация'}</p>
+          <h1 className="mt-3 text-h2 text-ink">{stepTitle(step)}</h1>
+          <p className="mt-3 text-body text-muted">{stepSub(step, phone)}</p>
+
+          {regIdx >= 0 && (
+            <div className="mt-6" aria-label={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-caption1-medium text-ink">Твой маршрут входа</span>
+                <span className="font-display rounded-chip bg-brand-soft px-3 py-1 text-caption1-medium text-brand-ink">{regIdx + 1} / {REGISTER_STEPS.length}</span>
+              </div>
+              <ol className="mt-4 grid grid-cols-3 gap-2">
+                {REGISTER_STEPS.map((registerStep, index) => (
+                  <li key={registerStep} className={['h-2 rounded-full', index < regIdx ? 'bg-success' : index === regIdx ? 'bg-brand ring-2 ring-brand-soft' : 'bg-ink/15'].join(' ')}>
+                    <span className="sr-only">Шаг {index + 1}{index < regIdx ? ' пройден' : index === regIdx ? ' текущий' : ' впереди'}</span>
+                  </li>
+                ))}
+              </ol>
             </div>
+          )}
+
+          <div className="mt-6 w-full">{renderForm()}</div>
+          <p className="mt-6 rounded-control bg-sage-soft px-4 py-3 text-caption1 text-text">Кёди помогает восстановить ход решения, но ответ остаётся твоим.</p>
+        </section>
+
+        <aside className="order-2 grid min-h-60 grid-cols-[minmax(0,1fr)_8rem] items-center overflow-hidden rounded-card border border-ink/10 bg-sage-soft/70 px-5 pt-5 shadow-lift-sm lg:min-h-[34rem] lg:grid-cols-1 lg:grid-rows-[auto_minmax(0,1fr)] lg:px-8 lg:pt-8">
+          <div className="self-start">
+            <p className="text-mark text-sage-deep">Продолжение живого урока</p>
+            <h2 className="mt-3 max-w-md text-[clamp(27px,4vw,48px)] font-bold leading-[1.02] tracking-[-0.055em] text-ink">Точный шаг вместо ещё одной случайной задачи.</h2>
+            <p className="mt-4 hidden max-w-lg text-body text-muted sm:block">Учитель объясняет тему. Здесь ты спокойно находишь место ошибки и восстанавливаешь решение сам.</p>
           </div>
-
-          {/* Маршрут-подпись (§Signature-язык на всех экранах): на ВХОДНОМ шаге —
-              трейлхед «начало пути» (одна отметка «ты здесь» → флажок-цель, без
-              ложного счётчика — ветка и длина пути ещё неизвестны); на шагах
-              регистрации — честный прогресс N из 3 (R4 §1). */}
-          {isPhone ? (
-            <div className="w-full">
-              <RouteMeter current={1} total={1} ariaLabel="Вход — ты в начале пути" />
-            </div>
-          ) : regIdx >= 0 ? (
-            <div className="w-full">
-              <RouteMeter
-                current={regIdx + 1}
-                total={REGISTER_STEPS.length}
-                ariaLabel={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}
-              />
-            </div>
-          ) : null}
-
-          <div className="w-full">{renderForm()}</div>
-
-          {/* Тихий низ — сразу под формой. */}
-          <p className="text-center text-caption1 text-muted">
-            Кёди рядом на каждом шаге — разберём ошибки вместе.
-          </p>
-        </div>
-      </div>
-
-      {/* Тёплый desk-натюрморт заполняет нижнюю клетку (R4 §1): фейдит из бумаги
-          сверху в иллюстрацию снизу — «уголок подготовки, где тебя ждут». Чистый
-          декор: aria-hidden, pointer-events-none, за контентом — текст лежит на
-          сплошной бумаге сверху полосы, читаемость сохранена. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[34dvh] overflow-hidden"
-      >
-        <img
-          src={heroDesk}
-          alt=""
-          className="h-full w-full object-cover object-center opacity-90"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-paper via-paper/70 to-transparent" />
-      </div>
+          <Mascot mood="hi" size="xl" eager decorative className="mascot-shadow h-36 self-end lg:h-full lg:max-h-72" />
+        </aside>
+      </main>
     </div>
   )
 }

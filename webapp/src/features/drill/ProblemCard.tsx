@@ -1,43 +1,40 @@
 import { MathText } from '../../components/MathText'
-import { ApCard } from '../../components/ApCard'
 
 interface ProblemCardProps {
+  topic: string
   statement: string
   wrongAnswer: string
 }
 
-// Карточка-условие (ведущая, крафт-lift-sm): формулировка через KaTeX (учебный текст
-// ≥18px, формулы-чипы) + эмпатичная плашка «в прошлый раз» с прежним ответом (мягкий тон).
-export function ProblemCard({ statement, wrongAnswer }: ProblemCardProps) {
+export function ProblemCard({ topic, statement, wrongAnswer }: ProblemCardProps) {
   return (
-    <ApCard as="article" padding="m" className="lift-sm flex flex-col gap-3">
-      <span className="font-display text-caption2-medium uppercase tracking-[0.12em] text-brand-ink">
-        Задача
-      </span>
-      <p className="formula-body text-study text-ink">
-        <MathText text={statement} />
-      </p>
+    <section className="min-w-0">
+      <h1 className="sr-only">{topic}: исходная задача</h1>
 
-      <div className="flex items-center gap-2 rounded-control bg-attn-soft px-3 py-2">
-        <span aria-hidden className="text-attn-ink">
-          <PenIcon />
-        </span>
-        <span className="text-caption1 text-attn-ink">
-          В прошлый раз получилось{' '}
-          <span className="font-num tabular-nums text-ink">{wrongAnswer}</span> — разберёмся, где
-          сбилось.
-        </span>
-      </div>
-    </ApCard>
-  )
-}
+      <details className="rounded-control border border-ink/15 bg-surface/60 px-4">
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 py-3 text-caption1-medium text-ink marker:hidden">
+          <span><span className="text-brand-deep">Исходная задача</span> · {topic}</span>
+          <span className="max-w-[46%] shrink-0 text-right">
+            <span className="block text-caption2 text-muted">Было</span>
+            <span
+              className={[
+                'number-viewport font-num block text-oxide',
+                wrongAnswer.length > 10 ? 'text-caption2' : 'text-caption1-medium',
+              ].join(' ')}
+              tabIndex={wrongAnswer.length > 10 ? 0 : undefined}
+              aria-label={`Предыдущий ответ: ${wrongAnswer}`}
+            >
+              {wrongAnswer}
+            </span>
+          </span>
+        </summary>
+        <div className="math-prose border-t border-ink/10 py-4">
+          <p className="formula-body text-2xl font-semibold leading-tight tracking-tight text-ink">
+            <MathText text={statement} />
+          </p>
+        </div>
+      </details>
 
-// Перо-иконка (крафт-акцент вместо эмодзи ✏️ — §Anti-references «эмодзи вместо иконок»).
-function PenIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 20l4-1L19 8a2 2 0 0 0-3-3L5 16z" />
-      <path d="M14 7l3 3" />
-    </svg>
+    </section>
   )
 }

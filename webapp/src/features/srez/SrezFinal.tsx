@@ -1,38 +1,30 @@
 import { Mascot } from '../../components/Mascot'
-import { ApCard } from '../../components/ApCard'
 import { ApButton } from '../../components/ApButton'
 import { LongArrowRightIcon } from '../../icons'
 
-interface SrezFinalProps {
-  wrongCount: number
-  onContinue: () => void
-}
+interface SrezFinalProps { wrongCount: number; onContinue: () => void }
 
-// Финал среза: празднование прохождения (это не оценка!) + сколько тем нашли
-// для прокачки → «К разбору» уводит на хаб с уже инвалидированным списком ошибок.
 export function SrezFinal({ wrongCount, onContinue }: SrezFinalProps) {
   return (
-    <ApCard padding="l" className="reveal flex flex-col items-center gap-5 py-12 text-center">
-      <Mascot mood="celebrate" size="l" className="bob" />
-      <div className="flex flex-col gap-2">
-        <h2 className="text-h2 text-ink">Срез пройден</h2>
-        <p className="max-w-[17rem] text-study text-text">
-          Нашли {wrongCount} {topicWord(wrongCount)} для прокачки
-        </p>
+    <section className="tape-card reveal grid w-full overflow-hidden md:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="flex flex-col justify-center px-6 py-10 md:px-10 md:py-14">
+        <p className="text-mark text-brand-deep">Срез пройден</p>
+        <h1 className="mt-5 text-h1 text-ink">План стал точнее.</h1>
+        <p className="mt-5 max-w-xl text-study text-text">{resultLine(wrongCount)}</p>
+        <ApButton className="mt-7 w-full sm:w-auto sm:self-start" size="l" onClick={onContinue}>
+          К разбору <LongArrowRightIcon size={18} />
+        </ApButton>
       </div>
-      <ApButton variant="primary" size="m" full onClick={onContinue}>
-        К разбору
-        <LongArrowRightIcon size={18} />
-      </ApButton>
-    </ApCard>
+      <Mascot mood="celebrate" size="xl" className="min-h-72 bg-brand-soft/40" />
+    </section>
   )
 }
 
-// Русское склонение «тема/темы/тем» по числу — без него счётчик режет слух.
-function topicWord(n: number): string {
+function resultLine(n: number): string {
+  if (n === 0) return 'Все ответы сошлись. Следующий шаг появится в учебном пути.'
   const mod10 = n % 10
   const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'тему'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'темы'
-  return 'тем'
+  if (mod10 === 1 && mod100 !== 11) return `В ${n} задаче нашёлся шаг для разбора.`
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `В ${n} задачах нашлись шаги для разбора.`
+  return `В ${n} задачах нашлись шаги для разбора.`
 }

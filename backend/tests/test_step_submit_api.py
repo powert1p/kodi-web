@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import io
 import os
-os.environ.setdefault("JWT_SECRET", "test-secret")
+from pathlib import Path
+os.environ.setdefault("JWT_SECRET", "test-jwt-secret-with-at-least-32-chars")
 
 import pytest
 import pytest_asyncio
@@ -81,6 +82,15 @@ def _make_tiny_jpeg() -> bytes:
     ])
 
 
+def _make_tiny_png() -> bytes:
+    """Валидный PNG 1×1 для round-trip проверки."""
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (1, 1), (255, 255, 255)).save(buffer, format="PNG")
+    return buffer.getvalue()
+
+
 @pytest_asyncio.fixture
 async def client_for_step(db_session, tmp_path, monkeypatch):
     """Студент + узел + задача + decomposition_problems + problem_steps + problem_fingerprints.
@@ -114,19 +124,21 @@ async def client_for_step(db_session, tmp_path, monkeypatch):
 
     DECOMP_IDX = 90003  # idx — явный PK банка декомпозиций, не автоинкремент
     await db_session.execute(text(
-        "INSERT INTO decomposition_problems (idx, node_id, answer, primary_micro_skill, problems_db_id) "
-        "VALUES (:idx, :nid, '4', 'div_basic', :pid)"
+        "INSERT INTO decomposition_problems "
+        "(idx, node_id, answer, primary_micro_skill, problems_db_id, all_steps_verified, needs_review) "
+        "VALUES (:idx, :nid, '4', 'div_basic', :pid, true, false)"
     ), {"idx": DECOMP_IDX, "nid": NODE, "pid": pid})
     decomp_idx = DECOMP_IDX
 
     await db_session.execute(text(
         "INSERT INTO problem_steps (decomp_idx, n, instruction_ru, micro_skill, expected_value) "
-        "VALUES (:d, :n, 'Раздели 8 на 2', 'div_basic', '4')"
+        "VALUES (:d, :n, 'Раздели 8 на 2', 'div_basic', '4'), "
+        "       (:d, 2, 'Проверь результат умножением', 'div_basic', '8')"
     ), {"d": decomp_idx, "n": STEP_N})
 
     await db_session.execute(text(
         "INSERT INTO problem_fingerprints (decomp_idx, micro_skill, wrong_answer, mistake_ru) "
-        "VALUES (:d, 'div_basic', '8', 'Забыл разделить на 2')"
+        "VALUES (:d, 'div_basic', '8', 'Забыл разделить на 2: правильный шаг даёт 4')"
     ), {"d": decomp_idx})
 
     await db_session.commit()
@@ -151,9 +163,17 @@ async def client_for_step(db_session, tmp_path, monkeypatch):
     routes_module.async_session = test_session_factory
 
     from web import app
+    from api.routes import limiter
+
+    # SlowAPI хранит счётчик между function-scoped ASGI-клиентами. Сбрасываем
+    # только in-memory test storage, чтобы кейсы не влияли друг на друга.
+    limiter._storage.reset()
 
     async with AsyncClient(
-        transport=ASGITransport(app=app),
+        transport=ASGITransport(
+            app=app,
+            client=(f"step-{tmp_path.name}", 123),
+        ),
         base_url="http://testserver",
     ) as ac:
         yield ac, STUDENT_ID, token, decomp_idx, STEP_N, pid, tmp_path
@@ -163,11 +183,11 @@ async def client_for_step(db_session, tmp_path, monkeypatch):
     await test_engine.dispose()
 
 
-def _mock_classify(verdict: str, confidence: float):
+def _mock_classify(verdict: str, confidence: float, seen_value: str | None = None):
     """Фабрика monkeypatch-функции для classify_step_photo (verdict/confidence фиксированы)."""
     async def _inner(**kwargs):
         from core.llm_openai import StepClassification
-        return StepClassification(verdict=verdict, seen_value=None, confidence=confidence)
+        return StepClassification(verdict=verdict, seen_value=seen_value, confidence=confidence)
     return _inner
 
 
@@ -200,10 +220,77 @@ async def test_step_submit_match(client_for_step, monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_step_submit_does_not_commit_when_photo_storage_fails(client_for_step, monkeypatch):
+    """Ошибка диска → 503 и ни ложного submission, ни успешного ответа."""
+    ac, student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+    monkeypatch.setattr("api.routers.trainer.classify_step_photo", _mock_classify("match", 0.9))
+
+    def _fail_write(_self: Path, _data: bytes) -> int:
+        raise OSError("disk full")
+
+    monkeypatch.setattr(Path, "write_bytes", _fail_write)
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 503
+    from db.base import async_session
+    async with async_session() as session:
+        count = (await session.execute(text(
+            "SELECT count(*) FROM step_submissions WHERE student_id = :sid"
+        ), {"sid": student_id})).scalar_one()
+    assert count == 0
+
+
+@pytest.mark.asyncio
+async def test_step_submit_rejects_decomp_from_another_problem(client_for_step, monkeypatch):
+    """Фото нельзя проверить против декомпозиции другой задачи."""
+    ac, _student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+
+    async def _must_not_call_provider(**_kwargs):
+        raise AssertionError("vision provider не должен вызываться для чужой задачи")
+
+    monkeypatch.setattr("api.routers.trainer.classify_step_photo", _must_not_call_provider)
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid + 999)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_step_submit_rejects_skipping_previous_step(client_for_step, monkeypatch):
+    """Нельзя отметить второй шаг решённым, не подтвердив первый."""
+    ac, _student_id, token, decomp_idx, _step_n, pid, _tmp_path = client_for_step
+
+    async def _must_not_call_provider(**_kwargs):
+        raise AssertionError("vision provider не должен вызываться при пропуске шага")
+
+    monkeypatch.setattr("api.routers.trainer.classify_step_photo", _must_not_call_provider)
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": "2", "problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
 async def test_step_submit_mismatch_hint(client_for_step, monkeypatch):
-    """mismatch с высокой уверенностью → hint из fingerprint, matched_micro_skill в БД."""
+    """Даже точный fingerprint не раскрывает expected_value из сырого mistake_ru."""
     ac, student_id, token, decomp_idx, step_n, pid, tmp_path = client_for_step
-    monkeypatch.setattr("api.routers.trainer.classify_step_photo", _mock_classify("mismatch", 0.9))
+    monkeypatch.setattr(
+        "api.routers.trainer.classify_step_photo",
+        _mock_classify("mismatch", 0.9, seen_value="8"),
+    )
 
     jpeg = _make_tiny_jpeg()
     resp = await ac.post(
@@ -215,7 +302,8 @@ async def test_step_submit_mismatch_hint(client_for_step, monkeypatch):
     assert resp.status_code == 200
     body = resp.json()
     assert body["verdict"] == "mismatch"
-    assert body["hint"] == "Забыл разделить на 2"
+    assert body["hint"] == "Проверь этот шаг ещё раз: Раздели 8 на 2"
+    assert "4" not in body["hint"]
 
     from db.base import async_session
     async with async_session() as session:
@@ -225,6 +313,39 @@ async def test_step_submit_mismatch_hint(client_for_step, monkeypatch):
         )).fetchone()
         assert row.verdict == "mismatch"
         assert row.matched_micro_skill == "div_basic"
+
+
+@pytest.mark.asyncio
+async def test_step_submit_unknown_mismatch_uses_step_grounded_hint(client_for_step, monkeypatch):
+    """Неизвестная ошибка не должна получать объяснение от чужого fingerprint."""
+    ac, student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+    monkeypatch.setattr(
+        "api.routers.trainer.classify_step_photo",
+        _mock_classify("mismatch", 0.9, seen_value="7"),
+    )
+
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["verdict"] == "mismatch"
+    assert body["hint"] == "Проверь этот шаг ещё раз: Раздели 8 на 2"
+
+    from db.base import async_session
+    async with async_session() as session:
+        matched_micro_skill = (await session.execute(
+            text(
+                "SELECT matched_micro_skill FROM step_submissions "
+                "WHERE student_id = :sid"
+            ),
+            {"sid": student_id},
+        )).scalar_one()
+    assert matched_micro_skill is None
 
 
 @pytest.mark.asyncio
@@ -252,6 +373,104 @@ async def test_step_submit_low_conf_becomes_unsure(client_for_step, monkeypatch)
             {"sid": student_id},
         )).fetchone()
         assert row.verdict == "unsure"
+
+
+@pytest.mark.asyncio
+async def test_step_submit_low_conf_match_becomes_unsure_and_does_not_solve(
+    client_for_step,
+    monkeypatch,
+):
+    """Неуверенный match не должен подтверждать шаг и открывать следующий."""
+    ac, student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+    monkeypatch.setattr(
+        "api.routers.trainer.classify_step_photo",
+        _mock_classify("match", 0.3),
+    )
+
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["verdict"] == "unsure"
+    state = await ac.get(
+        f"/api/trainer/drill-state?problem_id={pid}&decomp_idx={decomp_idx}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert state.status_code == 200, state.text
+    assert state.json() == {"solved_step_ns": []}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("unsafe_confidence", [float("nan"), -0.1, 1.1])
+async def test_step_submit_invalid_confidence_is_safe_unsure(
+    client_for_step,
+    monkeypatch,
+    unsafe_confidence,
+):
+    """Невалидная confidence не подтверждает шаг и не попадает как NaN в JSON/БД."""
+    ac, _student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+    monkeypatch.setattr(
+        "api.routers.trainer.classify_step_photo",
+        _mock_classify("match", unsafe_confidence),
+    )
+
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid)},
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["verdict"] == "unsure"
+    assert response.json()["confidence"] == 0.0
+    state = await ac.get(
+        f"/api/trainer/drill-state?problem_id={pid}&decomp_idx={decomp_idx}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert state.json() == {"solved_step_ns": []}
+
+
+@pytest.mark.asyncio
+async def test_step_submit_malformed_provider_types_fail_soft_to_unsure(
+    client_for_step,
+    monkeypatch,
+):
+    """no-strict Gemini JSON не роняет route и не отправляет dict в SQL."""
+    ac, _student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+
+    async def _malformed_classification(**kwargs):
+        from core.llm_openai import StepClassification
+
+        return StepClassification(
+            verdict=["mismatch"],  # type: ignore[arg-type]
+            seen_value={"value": "8"},  # type: ignore[arg-type]
+            confidence={"confidence": 1},  # type: ignore[arg-type]
+        )
+
+    monkeypatch.setattr(
+        "api.routers.trainer.classify_step_photo",
+        _malformed_classification,
+    )
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={
+            "decomp_idx": str(decomp_idx),
+            "step_n": str(step_n),
+            "problem_id": str(pid),
+        },
+        files={"photo": ("test.jpg", io.BytesIO(_make_tiny_jpeg()), "image/jpeg")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["verdict"] == "unsure"
+    assert response.json()["confidence"] == 0.0
+    assert response.json()["hint"] is None
 
 
 @pytest.mark.asyncio
@@ -335,6 +554,29 @@ async def test_step_submit_415(client_for_step, monkeypatch):
         files={"photo": ("test.txt", io.BytesIO(jpeg), "text/plain")},
     )
     assert resp.status_code == 415
+
+
+@pytest.mark.asyncio
+async def test_step_submit_rejects_corrupt_image_before_provider(client_for_step, monkeypatch):
+    """Заявленный JPEG с произвольными байтами не уходит во внешний provider."""
+    ac, _student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+    provider_called = False
+
+    async def _classify(**kwargs):
+        nonlocal provider_called
+        provider_called = True
+        return _mock_classify("match", 0.9)(**kwargs)
+
+    monkeypatch.setattr("api.routers.trainer.classify_step_photo", _classify)
+    resp = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"decomp_idx": str(decomp_idx), "step_n": str(step_n), "problem_id": str(pid)},
+        files={"photo": ("fake.jpg", io.BytesIO(b"not-an-image"), "image/jpeg")},
+    )
+
+    assert resp.status_code == 422, resp.text
+    assert provider_called is False
 
 
 @pytest.mark.asyncio
@@ -461,6 +703,58 @@ async def test_step_photo_owner_ok(client_for_step, monkeypatch):
         assert r.status_code == 200
         assert r.headers["content-type"] == "image/jpeg"
         assert r.content == jpeg
+    finally:
+        app_settings.owner_student_id = old
+
+
+@pytest.mark.asyncio
+async def test_step_photo_owner_png_round_trip(client_for_step, monkeypatch):
+    """PNG сохраняет расширение, байты и Content-Type при GET."""
+    ac, student_id, token, decomp_idx, step_n, pid, _tmp_path = client_for_step
+    monkeypatch.setattr(
+        "api.routers.trainer.classify_step_photo",
+        _mock_classify("match", 0.9),
+    )
+
+    png = _make_tiny_png()
+    response = await ac.post(
+        "/api/trainer/step-submit",
+        headers={"Authorization": f"Bearer {token}"},
+        data={
+            "decomp_idx": str(decomp_idx),
+            "step_n": str(step_n),
+            "problem_id": str(pid),
+        },
+        files={"photo": ("step.png", io.BytesIO(png), "image/png")},
+    )
+    assert response.status_code == 200, response.text
+
+    from db.base import async_session
+
+    async with async_session() as session:
+        submission = (
+            await session.execute(
+                text(
+                    "SELECT id, photo_path FROM step_submissions "
+                    "WHERE student_id = :sid"
+                ),
+                {"sid": student_id},
+            )
+        ).one()
+    assert submission.photo_path.endswith(".png")
+
+    from core.config import settings as app_settings
+
+    old = app_settings.owner_student_id
+    app_settings.owner_student_id = student_id
+    try:
+        loaded = await ac.get(
+            f"/api/trainer/step-photo/{submission.id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert loaded.status_code == 200
+        assert loaded.headers["content-type"] == "image/png"
+        assert loaded.content == png
     finally:
         app_settings.owner_student_id = old
 

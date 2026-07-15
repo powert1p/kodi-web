@@ -1,40 +1,27 @@
 interface StepModeToggleProps {
   mode: 'input' | 'tetrad'
-  onChange: (m: 'input' | 'tetrad') => void
+  onChange: (mode: 'input' | 'tetrad') => void
+  disabled?: boolean
 }
 
-const SEGMENTS: { key: 'input' | 'tetrad'; label: string }[] = [
-  { key: 'input', label: 'Ввод' },
-  { key: 'tetrad', label: 'По тетради' },
-]
+const SEGMENTS = [{ key: 'input', label: 'Ввод' }, { key: 'tetrad', label: 'По тетради' }] as const
 
-// Сегмент-контрол «Ввод / По тетради»: переключает форму сдачи активной
-// original-ступени. Активный сегмент — БЕЛЫЙ приподнятый чип (не оранж: сам
-// переключатель не «действие», §8 дисциплина акцента — оранж бережём под CTA).
-export function StepModeToggle({ mode, onChange }: StepModeToggleProps) {
+export function StepModeToggle({ mode, onChange, disabled = false }: StepModeToggleProps) {
   return (
-    <div
-      role="tablist"
-      aria-label="Способ сдачи шага"
-      className="inline-flex w-full gap-1 rounded-control border border-stroke bg-paper-3 p-1"
-    >
-      {SEGMENTS.map((seg) => {
-        const active = mode === seg.key
+    <div role="tablist" aria-label="Способ сдачи шага" className="inline-flex rounded-chip border border-ink/15 bg-paper p-1">
+      {SEGMENTS.map((segment) => {
+        const active = mode === segment.key
         return (
           <button
-            key={seg.key}
+            key={segment.key}
             type="button"
             role="tab"
             aria-selected={active}
-            onClick={() => onChange(seg.key)}
-            className={[
-              'h-12 flex-1 rounded-chip text-caption1-medium transition-colors',
-              active
-                ? 'lift-sm bg-surface text-ink'
-                : 'bg-transparent text-muted hover:text-text',
-            ].join(' ')}
+            disabled={disabled}
+            onClick={() => onChange(segment.key)}
+            className={['min-h-11 rounded-chip px-3 text-caption1-medium transition-colors disabled:cursor-not-allowed disabled:opacity-55 sm:min-h-12 sm:px-4', active ? 'bg-ink text-surface' : 'text-muted hover:bg-sage-soft hover:text-ink'].join(' ')}
           >
-            {seg.label}
+            {segment.label}
           </button>
         )
       })}

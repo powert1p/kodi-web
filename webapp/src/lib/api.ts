@@ -2,16 +2,15 @@
 // Хуки TanStack Query поверх raw-функций; mock-fallback для DEV.
 // Bearer JWT берётся из localStorage по ключу STORAGE_KEY.
 
+import { useSyncExternalStore } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO, SrezTask, StepVerdict } from './types'
+import { getToken, subscribeToken } from './auth'
+import type { WrongTask, Diagnosis, AnalyticsData, ProblemTopic, TutorChatResponse, VerificationProblemDTO, SrezTask, StepVerdict, StepAnswerVerdict, DrillState, LearningPathResponse, LearningSessionState } from './types'
 import { MOCK_WRONG_TASKS } from '../features/hub/mock'
 import { MOCK_SREZ_TASKS, MOCK_ANALYTICS, MOCK_PROBLEM_TOPICS, MOCK_VERIFICATION } from './devMocks'
 
 /** true — локальная разработка без бэка: подставляем DEV-фикстуры (НЕ в тестах). */
 const USE_DEV_MOCK = import.meta.env.DEV && import.meta.env.MODE !== 'test'
-
-/** Ключ хранилища JWT-токена. */
-const STORAGE_KEY = 'kodi.jwt'
 
 /** Базовый URL API — relative same-origin (nginx проксирует /api/ на backend). */
 const API_BASE = '/api'
@@ -24,9 +23,11 @@ const API_BASE = '/api'
 export class ApiError extends Error {
   // erasableSyntaxOnly запрещает parameter properties — объявляем поле явно.
   status: number
-  constructor(status: number, message: string) {
+  payload: unknown
+  constructor(status: number, message: string, payload: unknown = null) {
     super(message)
     this.status = status
+    this.payload = payload
     this.name = 'ApiError'
   }
 }
@@ -46,17 +47,30 @@ export class NetworkError extends Error {
 
 /** Формирует заголовки запроса: Authorization (если JWT есть) + Accept. */
 function authHeaders(): Record<string, string> {
-  let token: string | null = null
-  try {
-    token = typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function'
-      ? localStorage.getItem(STORAGE_KEY)
-      : null
-  } catch {
-    // localStorage может быть недоступен в тестовой или server-side среде
-  }
+  const token = getToken()
   const headers: Record<string, string> = { Accept: 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
   return headers
+}
+
+/** Безопасный cache-key ученика: JWT не попадает в query devtools целиком. */
+export function learningIdentity(tokenOverride?: string | null): string {
+  const token = tokenOverride === undefined ? getToken() : tokenOverride
+  if (!token) return 'anonymous'
+  try {
+    const encoded = token.split('.')[1]
+    if (!encoded) return token.slice(-16)
+    const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/'))) as { sub?: unknown }
+    return typeof payload.sub === 'string' ? payload.sub : token.slice(-16)
+  } catch {
+    return token.slice(-16)
+  }
+}
+
+/** Реактивный identity: обновляется и при login/logout, и при смене JWT в другой вкладке. */
+export function useLearningIdentity(): string {
+  const token = useSyncExternalStore(subscribeToken, getToken, () => null)
+  return learningIdentity(token)
 }
 
 /**
@@ -70,7 +84,16 @@ async function apiFetch(url: string, init?: RequestInit): Promise<Response> {
   } catch (err) {
     throw new NetworkError(err)
   }
-  if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}: ${url}`)
+  if (!res.ok) {
+    let payload: unknown = null
+    try {
+      const source = typeof res.clone === 'function' ? res.clone() : res
+      payload = await source.json()
+    } catch {
+      // Ошибка может быть HTML/plain-text: статус всё равно остаётся источником истины.
+    }
+    throw new ApiError(res.status, `HTTP ${res.status}: ${url}`, payload)
+  }
   return res
 }
 
@@ -189,19 +212,19 @@ export async function postDiagnose(params: DiagnoseParams): Promise<Diagnosis> {
 export interface StepSubmitParams {
   decomp_idx: number
   step_n: number
-  problem_id?: number
+  problem_id: number
   photo: File | Blob
 }
 
 /**
  * Отправить фото одного шага лесенки для узкой vision-проверки.
- * Тело запроса — multipart/form-data (поля: decomp_idx, step_n, problem_id?, photo).
+ * Тело запроса — multipart/form-data (поля: decomp_idx, step_n, problem_id, photo).
  */
 export async function postStepSubmit(params: StepSubmitParams): Promise<StepVerdict> {
   const form = new FormData()
   form.append('decomp_idx', String(params.decomp_idx))
   form.append('step_n', String(params.step_n))
-  if (params.problem_id !== undefined) form.append('problem_id', String(params.problem_id))
+  form.append('problem_id', String(params.problem_id))
   form.append('photo', params.photo)
 
   const res = await apiFetch(`${API_BASE}/trainer/step-submit`, {
@@ -212,14 +235,42 @@ export async function postStepSubmit(params: StepSubmitParams): Promise<StepVerd
   return res.json() as Promise<StepVerdict>
 }
 
+export interface StepAnswerParams {
+  problem_id: number
+  decomp_idx: number | null
+  step_n: number
+  answer: string
+}
+
+/** Проверить typed-answer на backend, не загружая эталон в браузер. */
+export async function postStepAnswer(params: StepAnswerParams): Promise<StepAnswerVerdict> {
+  const res = await apiFetch(`${API_BASE}/trainer/step-answer`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  })
+  return res.json() as Promise<StepAnswerVerdict>
+}
+
+/** Загрузить подтверждённые шаги для resume после reload. */
+export async function fetchDrillState(problemId: number, decompIdx: number | null): Promise<DrillState> {
+  const params = new URLSearchParams({ problem_id: String(problemId) })
+  if (decompIdx !== null) params.set('decomp_idx', String(decompIdx))
+  const res = await apiFetch(`${API_BASE}/trainer/drill-state?${params.toString()}`, {
+    headers: authHeaders(),
+  })
+  return res.json() as Promise<DrillState>
+}
+
 // ——————————————————————————————————
 // TanStack Query хуки
 // ——————————————————————————————————
 
 /** Хук: список задач с ошибками (с кэшем 60 с). */
 export function useWrongTasks(days?: number, limit?: number) {
+  const identity = useLearningIdentity()
   return useQuery({
-    queryKey: ['wrong-tasks', days, limit],
+    queryKey: ['wrong-tasks', identity, days, limit],
     queryFn: () => fetchWrongTasks(days, limit),
     staleTime: 60_000,
   })
@@ -231,8 +282,9 @@ export function useWrongTasks(days?: number, limit?: number) {
  * @returns задача или undefined (загрузка / не найдена)
  */
 export function useWrongTask(id: string) {
+  const identity = useLearningIdentity()
   return useQuery({
-    queryKey: ['wrong-tasks', undefined, undefined],
+    queryKey: ['wrong-tasks', identity, undefined, undefined],
     queryFn: () => fetchWrongTasks(),
     staleTime: 60_000,
     select: (result: WrongTasksResult) => result.tasks.find((t) => t.id === id),
@@ -241,8 +293,9 @@ export function useWrongTask(id: string) {
 
 /** Хук: аналитика тренажёра. */
 export function useAnalytics() {
+  const identity = useLearningIdentity()
   return useQuery({
-    queryKey: ['trainer-analytics'],
+    queryKey: ['trainer-analytics', identity],
     queryFn: fetchAnalytics,
     staleTime: 300_000,
   })
@@ -262,6 +315,15 @@ export function useStepSubmit() {
   })
 }
 
+export function useDrillState(problemId: number, decompIdx: number | null) {
+  const identity = useLearningIdentity()
+  return useQuery({
+    queryKey: ['drill-state', identity, problemId, decompIdx],
+    queryFn: () => fetchDrillState(problemId, decompIdx),
+    staleTime: 0,
+  })
+}
+
 // ── Проблемные темы ──
 export async function fetchProblemTopics(): Promise<ProblemTopic[]> {
   try {
@@ -275,8 +337,9 @@ export async function fetchProblemTopics(): Promise<ProblemTopic[]> {
 }
 
 export function useProblemTopics() {
+  const identity = useLearningIdentity()
   return useQuery({
-    queryKey: ['problem-topics'],
+    queryKey: ['problem-topics', identity],
     queryFn: fetchProblemTopics,
     staleTime: 60_000,
   })
@@ -362,6 +425,82 @@ export function useSrezStart() {
   return useMutation({
     mutationFn: () => startSrez(),
   })
+}
+
+// ── Учебный путь ──
+
+export interface AnswerLearningParams {
+  lessonId: string
+  activityId: string
+  activityIndex: number
+  answer: string
+  clientAttemptId: string
+  responseTimeMs?: number
+}
+
+export async function fetchLearningPath(signal?: AbortSignal): Promise<LearningPathResponse> {
+  const response = await apiFetch(`${API_BASE}/learning/path/current`, {
+    headers: authHeaders(),
+    signal,
+  })
+  return response.json() as Promise<LearningPathResponse>
+}
+
+async function postLearningState(
+  path: 'start' | 'advance',
+  lessonId: string,
+  signal?: AbortSignal,
+): Promise<LearningSessionState> {
+  const response = await apiFetch(`${API_BASE}/learning/${path}`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lesson_id: lessonId }),
+    signal,
+  })
+  return response.json() as Promise<LearningSessionState>
+}
+
+export function startLearningLesson(lessonId: string, signal?: AbortSignal): Promise<LearningSessionState> {
+  return postLearningState('start', lessonId, signal)
+}
+
+export function advanceLearningLesson(lessonId: string, signal?: AbortSignal): Promise<LearningSessionState> {
+  return postLearningState('advance', lessonId, signal)
+}
+
+export async function answerLearningActivity(
+  params: AnswerLearningParams,
+  signal?: AbortSignal,
+): Promise<LearningSessionState> {
+  try {
+    const response = await apiFetch(`${API_BASE}/learning/answer`, {
+      method: 'POST',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lesson_id: params.lessonId,
+        activity_id: params.activityId,
+        activity_index: params.activityIndex,
+        answer: params.answer,
+        client_attempt_id: params.clientAttemptId,
+        response_time_ms: params.responseTimeMs ?? null,
+      }),
+      signal,
+    })
+    return response.json() as Promise<LearningSessionState>
+  } catch (error) {
+    const detail = error instanceof ApiError && error.status === 409
+      ? (error.payload as { detail?: { code?: unknown; state?: unknown } } | null)?.detail
+      : null
+    const state = detail?.state as Partial<LearningSessionState> | undefined
+    if (
+      detail?.code === 'stale_activity'
+      && typeof state?.session_id === 'number'
+      && (state.status === 'active' || state.status === 'completed')
+    ) {
+      return state as LearningSessionState
+    }
+    throw error
+  }
 }
 
 // ── Consent (Блок 1.0) ──

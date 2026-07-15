@@ -3,6 +3,25 @@
 
 /** Ключ хранилища — должен совпадать с STORAGE_KEY в api.ts. */
 const TOKEN_KEY = 'kodi.jwt'
+const TOKEN_CHANGED_EVENT = 'kodi:token-changed'
+
+function notifyTokenChanged(): void {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(TOKEN_CHANGED_EVENT))
+}
+
+/** Подписка для useSyncExternalStore: same-tab set/clear и cross-tab storage. */
+export function subscribeToken(listener: () => void): () => void {
+  if (typeof window === 'undefined') return () => undefined
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === TOKEN_KEY) listener()
+  }
+  window.addEventListener(TOKEN_CHANGED_EVENT, listener)
+  window.addEventListener('storage', onStorage)
+  return () => {
+    window.removeEventListener(TOKEN_CHANGED_EVENT, listener)
+    window.removeEventListener('storage', onStorage)
+  }
+}
 
 /** Читает токен из localStorage. Возвращает null если нет или недоступен. */
 export function getToken(): string | null {
@@ -22,6 +41,7 @@ export function setToken(token: string): void {
   } catch {
     // Нет действий при недоступном хранилище (приватный режим браузера).
   }
+  notifyTokenChanged()
 }
 
 /** Удаляет токен из localStorage (выход из аккаунта). */
@@ -31,6 +51,7 @@ export function clearToken(): void {
   } catch {
     // Нет действий при недоступном хранилище.
   }
+  notifyTokenChanged()
 }
 
 // ——————————————————————————————————

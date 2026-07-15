@@ -1,0 +1,31 @@
+# Дополнение для управляемого online preview на VPS.
+# Запуск: docker compose -f docker-compose.yml -f docker-compose.online.yml up -d --no-build
+services:
+  app:
+    image: kodi-web:online
+    environment:
+      # Единственный внешний proxy — cloudflared в закрытой compose-сети.
+      FORWARDED_ALLOW_IPS: "*"
+
+  tunnel:
+    image: cloudflare/cloudflared@sha256:4f6655284ab3d252b7f28fedb19fe6c8fc82ee5b1295c20ac74d475e5398a52d
+    container_name: kodi-tunnel
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    command: ["tunnel", "--url", "http://app:8000"]
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - kodi-internal

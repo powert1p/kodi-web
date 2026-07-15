@@ -28,9 +28,8 @@ class _SectionCardState extends State<SectionCard>
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final s = widget.section;
-    final pctColor = s.testedCount > 0
-        ? _pctColor(s.percentage)
-        : Colors.grey[400]!;
+    final pctColor =
+        s.testedCount > 0 ? _pctColor(s.percentage) : Colors.grey[400]!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -79,7 +78,8 @@ class _SectionCardState extends State<SectionCard>
                             const SizedBox(height: 2),
                             Text(
                               s.testedCount > 0
-                                  ? l.sectionTestedOfTotal(s.testedCount, s.totalCount)
+                                  ? l.sectionTestedOfTotal(
+                                      s.testedCount, s.totalCount)
                                   : l.sectionTopicsCount(s.totalCount),
                               style: TextStyle(
                                   fontSize: 12, color: Colors.grey[500]),
@@ -129,16 +129,21 @@ class _SectionCardState extends State<SectionCard>
                   child: SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
-                      onPressed: () => Navigator.of(context).pushNamed(
-                        PracticePage.routeName,
-                        arguments: {'tag': s.tag, 'tagName': s.nameRu},
-                      ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                      onPressed: () async {
+                        await Navigator.of(context).pushNamed(
+                          PracticePage.routeName,
+                          arguments: {'tag': s.tag, 'tagName': s.nameRu},
+                        );
+                        if (!context.mounted) return;
+                        context.read<DashboardBloc>().add(DashboardLoad());
+                      },
                       icon: const Icon(Icons.play_arrow_rounded, size: 18),
                       label: Text(l.trainSection(s.nameRu),
                           style: const TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(0, 40),
-                        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+                        side: BorderSide(
+                            color: AppColors.primary.withValues(alpha: 0.3)),
                         foregroundColor: AppColors.primary,
                       ),
                     ),
@@ -228,23 +233,28 @@ class TopicsList extends StatelessWidget {
         children: [
           const Divider(height: 1),
           ...sorted.map((t) {
-            final pct = t.pMastery != null
-                ? ((t.pMastery! * 100).round())
-                : null;
+            final pct =
+                t.pMastery != null ? ((t.pMastery! * 100).round()) : null;
             final color = _dotColor(t);
 
             return InkWell(
-              onTap: () => Navigator.of(context).pushNamed(
-                PracticePage.routeName,
-                arguments: {'nodeId': t.id, 'tagName': t.name(lang)},
-              ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+              onTap: () async {
+                await Navigator.of(context).pushNamed(
+                  PracticePage.routeName,
+                  arguments: {'nodeId': t.id, 'tagName': t.name(lang)},
+                );
+                if (!context.mounted) return;
+                context.read<DashboardBloc>().add(DashboardLoad());
+              },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   children: [
                     Container(
-                      width: 10, height: 10,
-                      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+                      width: 10,
+                      height: 10,
+                      decoration:
+                          BoxDecoration(color: color, shape: BoxShape.circle),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -252,19 +262,27 @@ class TopicsList extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(t.name(lang),
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                              style: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w500)),
                           Text(pct != null ? l.tapToPractice : l.startLearning,
-                              style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.grey[400])),
                         ],
                       ),
                     ),
                     if (pct != null)
                       Text('$pct%',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color)),
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: color)),
                     if (pct == null)
-                      Text('—', style: TextStyle(fontSize: 16, color: Colors.grey[300])),
+                      Text('—',
+                          style:
+                              TextStyle(fontSize: 16, color: Colors.grey[300])),
                     const SizedBox(width: 4),
-                    Icon(Icons.chevron_right, size: 18, color: Colors.grey[300]),
+                    Icon(Icons.chevron_right,
+                        size: 18, color: Colors.grey[300]),
                   ],
                 ),
               ),

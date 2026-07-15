@@ -67,8 +67,11 @@ class _DashboardPageState extends State<DashboardPage> {
               Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: TextButton.icon(
-                  onPressed: () =>
-                      Navigator.of(context).pushNamed(GraphPage.routeName).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+                  onPressed: () async {
+                    await Navigator.of(context).pushNamed(GraphPage.routeName);
+                    if (!context.mounted) return;
+                    context.read<DashboardBloc>().add(DashboardLoad());
+                  },
                   icon: const Icon(Icons.hub_rounded, size: 18),
                   label: Text(l.graphBtn),
                 ),
@@ -80,19 +83,25 @@ class _DashboardPageState extends State<DashboardPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: OutlinedButton(
                     onPressed: () {
-                      final next = isRu ? const Locale('kk') : const Locale('ru');
+                      final next =
+                          isRu ? const Locale('kk') : const Locale('ru');
                       context.read<LocaleBloc>().add(LocaleChanged(next));
                       context.read<DashboardBloc>().add(DashboardLoad());
                     },
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       minimumSize: const Size(0, 34),
-                      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.4)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      side: BorderSide(
+                          color: AppColors.primary.withValues(alpha: 0.4)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Text(
                       isRu ? 'ҚАЗ' : 'РУС',
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.primary),
+                      style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: AppColors.primary),
                     ),
                   ),
                 );
@@ -107,14 +116,24 @@ class _DashboardPageState extends State<DashboardPage> {
           ],
         ),
         body: switch (state) {
-          DashboardLoading() || DashboardInitial() =>
+          DashboardLoading() ||
+          DashboardInitial() =>
             const Center(child: CircularProgressIndicator()),
           DashboardError(:final message) => ErrorView(
               message: localizeError(context, message),
               onRetry: () =>
                   context.read<DashboardBloc>().add(DashboardLoad())),
-          DashboardLoaded(:final student, :final stats, :final nodes, :final leaderboard) =>
-            _Body(student: student, stats: stats, nodes: nodes, leaderboard: leaderboard),
+          DashboardLoaded(
+            :final student,
+            :final stats,
+            :final nodes,
+            :final leaderboard
+          ) =>
+            _Body(
+                student: student,
+                stats: stats,
+                nodes: nodes,
+                leaderboard: leaderboard),
           _ => const SizedBox.shrink(),
         },
       ),
@@ -125,7 +144,10 @@ class _DashboardPageState extends State<DashboardPage> {
 // -- Body --
 class _Body extends StatefulWidget {
   const _Body(
-      {super.key, required this.student, required this.stats, required this.nodes, required this.leaderboard});
+      {required this.student,
+      required this.stats,
+      required this.nodes,
+      required this.leaderboard});
   final Student student;
   final Stats stats;
   final List<GraphNode> nodes;
@@ -172,11 +194,9 @@ class _BodyState extends State<_Body> {
                   100)
               .round()
           : 0;
-      final mastered =
-          topics.where((t) => (t.pMastery ?? 0) >= 0.85).length;
-      final failed = topics
-          .where((t) => t.pMastery != null && t.pMastery! < 0.85)
-          .length;
+      final mastered = topics.where((t) => (t.pMastery ?? 0) >= 0.85).length;
+      final failed =
+          topics.where((t) => t.pMastery != null && t.pMastery! < 0.85).length;
       final untested = totalCount - testedCount;
 
       final pSolved = topics.fold<int>(0, (s, t) => s + t.qTotal);
@@ -206,122 +226,144 @@ class _BodyState extends State<_Body> {
     });
 
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics:
+          const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: EdgeInsets.all(rp(context, 16)),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                HeroCard(student: student, stats: stats),
-                if (student.hasPausedDiagnostic) ...[
-                  const SizedBox(height: 12),
-                  ResumeBanner(onResume: () {
-                    Navigator.of(context)
-                        .pushNamed(DiagnosticPage.routeName)
-                        .then((_) => context.read<DashboardBloc>().add(DashboardLoad()));
-                  }),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            HeroCard(student: student, stats: stats),
+            if (student.hasPausedDiagnostic) ...[
+              const SizedBox(height: 12),
+              ResumeBanner(onResume: () async {
+                await Navigator.of(context).pushNamed(DiagnosticPage.routeName);
+                if (!context.mounted) return;
+                context.read<DashboardBloc>().add(DashboardLoad());
+              }),
+            ],
+            const SizedBox(height: 16),
+            StatsRow(stats: stats),
+            const SizedBox(height: 16),
+            LayoutBuilder(builder: (context, constraints) {
+              final small = constraints.maxWidth < 360;
+              final btnFontSize = rs(context, small ? 12 : 14);
+              final iconSize = rs(context, small ? 18 : 20);
+              final btnHeight = rs(context, 48);
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  SizedBox(
+                    width: small
+                        ? constraints.maxWidth
+                        : (constraints.maxWidth - 16) / 3,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        await Navigator.of(context)
+                            .pushNamed(DiagnosticPage.routeName);
+                        if (!context.mounted) return;
+                        context.read<DashboardBloc>().add(DashboardLoad());
+                      },
+                      icon: Icon(Icons.psychology_rounded, size: iconSize),
+                      label: Text(l.dashboardDiagnostic,
+                          style: TextStyle(
+                              fontSize: btnFontSize,
+                              fontWeight: FontWeight.w600)),
+                      style: FilledButton.styleFrom(
+                          minimumSize: Size(0, btnHeight),
+                          backgroundColor: AppColors.purple),
+                    ),
+                  ),
+                  SizedBox(
+                    width: small
+                        ? constraints.maxWidth
+                        : (constraints.maxWidth - 16) / 3,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        await Navigator.of(context)
+                            .pushNamed(PracticePage.routeName);
+                        if (!context.mounted) return;
+                        context.read<DashboardBloc>().add(DashboardLoad());
+                      },
+                      icon: Icon(Icons.play_arrow_rounded, size: iconSize),
+                      label: Text(l.dashboardPractice,
+                          style: TextStyle(
+                              fontSize: btnFontSize,
+                              fontWeight: FontWeight.w600)),
+                      style: FilledButton.styleFrom(
+                          minimumSize: Size(0, btnHeight),
+                          backgroundColor: AppColors.primary),
+                    ),
+                  ),
+                  SizedBox(
+                    width: small
+                        ? constraints.maxWidth
+                        : (constraints.maxWidth - 16) / 3,
+                    child: FilledButton.icon(
+                      onPressed: () async {
+                        await Navigator.of(context).pushNamed(
+                          LeaderboardPage.routeName,
+                          arguments: leaderboard,
+                        );
+                        if (!context.mounted) return;
+                        context.read<DashboardBloc>().add(DashboardLoad());
+                      },
+                      icon: Icon(Icons.emoji_events_rounded, size: iconSize),
+                      label: Text(l.dashboardLeaderboard,
+                          style: TextStyle(
+                              fontSize: btnFontSize,
+                              fontWeight: FontWeight.w600)),
+                      style: FilledButton.styleFrom(
+                          minimumSize: Size(0, btnHeight),
+                          backgroundColor: AppColors.comboEnd),
+                    ),
+                  ),
                 ],
-                const SizedBox(height: 16),
-                StatsRow(stats: stats),
-                const SizedBox(height: 16),
-                LayoutBuilder(builder: (context, constraints) {
-                  final small = constraints.maxWidth < 360;
-                  final btnFontSize = rs(context, small ? 12 : 14);
-                  final iconSize = rs(context, small ? 18 : 20);
-                  final btnHeight = rs(context, 48);
-                  return Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+              );
+            }),
+            const SizedBox(height: 24),
+            // -- Tab switcher --
+            Row(
+              children: [
+                Text(l.sectionsHeader,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[500],
+                        letterSpacing: 1.2)),
+                const Spacer(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      SizedBox(
-                        width: small ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
-                        child: FilledButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(DiagnosticPage.routeName)
-                              .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                          icon: Icon(Icons.psychology_rounded, size: iconSize),
-                          label: Text(l.dashboardDiagnostic,
-                              style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
-                          style: FilledButton.styleFrom(
-                              minimumSize: Size(0, btnHeight),
-                              backgroundColor: AppColors.purple),
-                        ),
+                      TabChip(
+                        label: l.tabTopics,
+                        selected: _tabIndex == 0,
+                        onTap: () => setState(() => _tabIndex = 0),
                       ),
-                      SizedBox(
-                        width: small ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
-                        child: FilledButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(PracticePage.routeName)
-                              .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                          icon: Icon(Icons.play_arrow_rounded, size: iconSize),
-                          label: Text(l.dashboardPractice,
-                              style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
-                          style: FilledButton.styleFrom(
-                              minimumSize: Size(0, btnHeight),
-                              backgroundColor: AppColors.primary),
-                        ),
-                      ),
-                      SizedBox(
-                        width: small ? constraints.maxWidth : (constraints.maxWidth - 16) / 3,
-                        child: FilledButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(LeaderboardPage.routeName,
-                                  arguments: leaderboard)
-                              .then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
-                          icon: Icon(Icons.emoji_events_rounded, size: iconSize),
-                          label: Text(l.dashboardLeaderboard,
-                              style: TextStyle(fontSize: btnFontSize, fontWeight: FontWeight.w600)),
-                          style: FilledButton.styleFrom(
-                              minimumSize: Size(0, btnHeight),
-                              backgroundColor: AppColors.comboEnd),
-                        ),
+                      TabChip(
+                        label: l.tabProblems,
+                        selected: _tabIndex == 1,
+                        onTap: () => setState(() => _tabIndex = 1),
                       ),
                     ],
-                  );
-                }),
-                const SizedBox(height: 24),
-                // -- Tab switcher --
-                Row(
-                  children: [
-                    Text(l.sectionsHeader,
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[500],
-                            letterSpacing: 1.2)),
-                    const Spacer(),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.all(2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TabChip(
-                            label: l.tabTopics,
-                            selected: _tabIndex == 0,
-                            onTap: () => setState(() => _tabIndex = 0),
-                          ),
-                          TabChip(
-                            label: l.tabProblems,
-                            selected: _tabIndex == 1,
-                            onTap: () => setState(() => _tabIndex = 1),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-                const SizedBox(height: 12),
-                if (_tabIndex == 0)
-                  ...sections.map((s) => SectionCard(section: s))
-                else
-                  ...sections.map((s) => ProblemSectionCard(section: s)),
-              ]),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_tabIndex == 0)
+              ...sections.map((s) => SectionCard(section: s))
+            else
+              ...sections.map((s) => ProblemSectionCard(section: s)),
+          ]),
         ),
       ),
     );

@@ -1,52 +1,33 @@
-import { Mascot } from '../../components/Mascot'
-import { RouteMeter } from '../../components/route/RouteMeter'
-import campStart from '../../assets/camp-start.jpg'
+interface SrezHeaderProps { current: number; total: number }
 
-interface SrezHeaderProps {
-  /** Позиция текущей задачи (1-based, приходит с сервера). */
-  current: number
-  total: number
-}
-
-// Шапка среза (§2/§7): тёплая полоса-иллюстрация мастерской (маркер + мандарины на
-// клетке — снаряжение маршрута) со сплошным scrim держит первый вьюпорт (R3 §4 «дать
-// якорь, сжать пустоту»); поверх — присутствие Кёди (18px, R3 §6) и ЧИСЛО-АЛЬТИМЕТР
-// «N / 12». Ниже — горизонтальный участок маршрута RouteMeter с честными 12 отметками.
 export function SrezHeader({ current, total }: SrezHeaderProps) {
   return (
-    <header className="flex flex-col gap-4 pt-1">
-      <section className="relative overflow-hidden rounded-card border border-stroke">
-        {/* Иллюстрация-снаряжение + сплошной scrim под текстом (AA §10) */}
-        <img
-          src={campStart}
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
-        <div className="hero-scrim pointer-events-none absolute inset-0" />
-
-        {/* Число-альтиметр — СВОЙ ряд (эйбров+Кёди слева, «N/12» справа), реплика Кёди
-            ниже во ВСЮ ширину, а не сдавленной 5-строчной колонкой рядом с числом (R4 §3). */}
-        <div className="relative flex flex-col gap-3 p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-2 pt-1">
-              <Mascot mood="hi" size="s" className="mascot-shadow shrink-0" />
-              <p className="font-display text-caption1-medium uppercase tracking-[0.12em] text-brand-ink">
-                Мини-срез
-              </p>
-            </div>
-            <span className="text-frac shrink-0 text-ink" aria-hidden>
-              {current}
-              <span className="den">/{total}</span>
-            </span>
-          </div>
-          <p className="text-study text-text">
-            Двенадцать коротких вопросов — по одному за раз, спокойно.
-          </p>
+    <section className="mb-4" aria-label={`Вопрос ${current} из ${total}`}>
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-mark text-brand-deep">Мини-срез</p>
+          <p className="mt-1 text-caption2 text-muted">Один вопрос за раз · без подсказок</p>
         </div>
-      </section>
-
-      <RouteMeter current={current} total={total} ariaLabel={`Срез: вопрос ${current} из ${total}`} />
-    </header>
+        <p className="font-display rounded-chip bg-brand-soft px-3 py-2 text-caption1-medium text-brand-ink">
+          {String(current).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </p>
+      </div>
+      <ol className="flex items-center gap-1" role="progressbar" aria-label={`Вопрос ${current} из ${total}`} aria-valuemin={1} aria-valuemax={total} aria-valuenow={current}>
+        {Array.from({ length: total }, (_, index) => {
+          const number = index + 1
+          return (
+            <li
+              key={number}
+              className={[
+                'h-2 min-w-1 flex-1 rounded-full',
+                number < current ? 'bg-success' : number === current ? 'bg-brand ring-2 ring-brand-soft' : 'bg-ink/15',
+              ].join(' ')}
+            >
+              <span className="sr-only">Вопрос {number}: {number < current ? 'пройден' : number === current ? 'текущий' : 'впереди'}</span>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
   )
 }

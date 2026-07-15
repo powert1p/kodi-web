@@ -10,7 +10,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-kodi}
       POSTGRES_USER: ${POSTGRES_USER:-kodi}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     # Только localhost — порт 5435 (5432 системный, 5434 занят CDP). Проверить ss -ltn перед up.
@@ -35,28 +35,33 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-kodi}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-kodi}
-      JWT_SECRET: ${JWT_SECRET}
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: ${POSTGRES_DB:-kodi}
+      DB_USER: ${POSTGRES_USER:-kodi}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
       BOT_TOKEN: ${BOT_TOKEN:-}
       ADMIN_ID: ${ADMIN_ID:-0}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       VISION_PROVIDER: ${VISION_PROVIDER:-gemini}
       # owner-гейт выгрузки телеметрии (/api/trainer/events/export); 0 = выгрузка никому
       OWNER_STUDENT_ID: ${OWNER_STUDENT_ID:-0}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
-      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}
+      # Порт приложения опубликован только на loopback, поэтому единственный
+      # допустимый внешний источник — локальный ingress; доверяем его XFF.
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-*}
       PORT: "8000"
     # Фото-датасет (детские работы) должен переживать rebuild контейнера
     volumes:
       - ./error_photos:/app/data/error_photos
-    # Публично на 0.0.0.0:8300 (прямой биндинг, как kodi-cabinet:8301) — без nginx/root.
-    # ⚠️ FastAPI смотрит в интернет напрямую: личные данные защищены JWT, регистрация публична by design.
-    # TODO: убрать наружу за host nginx + SSL, когда будет домен/root.
+    # Только loopback: наружу приложение отдаёт TLS ingress (nginx или cloudflared).
     ports:
-      - "0.0.0.0:8300:8000"
+      - "127.0.0.1:8300:8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health',timeout=8).status==200 else 1)"]
+      test: ["CMD", "python", "-c", "import json,urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/ready',timeout=8); d=json.load(r); c=d.get('checks'); sys.exit(0 if r.status==200 and d.get('status')=='ready' and isinstance(c,dict) and bool(c) and all(v is True for v in c.values()) else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3

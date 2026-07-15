@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { MathText } from '../../components/MathText'
 import { ApButton } from '../../components/ApButton'
-import { ApCard } from '../../components/ApCard'
 import { HintBanner } from './HintBanner'
 import type { Rung } from '../../lib/ladder'
 import { STEP3_OPTIONS } from './mock'
@@ -11,152 +9,126 @@ import { track } from '../../lib/telemetry'
 
 interface RungActiveProps {
   rung: Rung
-  /** Номер ступени для метки (1-based, по оригинальным шагам). */
   index: number
-  /** Показать подсказку (ladder.hint). */
   hint: boolean
-  /** Показать «было сложно» reveal как последнюю опору. */
+  hintText?: string | null
   showReveal: boolean
-  /** Климб-даун только что вставил эту ступень (другой тон баннера). */
   justInserted: boolean
-  /** Режим «По тетради»: ввод замещён панелью сдачи фото ниже (только original-ступени). */
+  focusOnMount: boolean
   photoMode?: boolean
-  /** Сабмит ответа — драйвит ladder.submit. */
-  onSubmit: (value: string) => void
+  checking?: boolean
+  onSubmit: (value: string) => void | Promise<void>
 }
 
-// Активная ступень — единственная выделенная карточка лесенки (ApCard tone=brand-soft:
-// это ТЕКУЩИЙ фокус действия, законный второй «активный» акцент экрана — не декоративный).
-// compute → поле ввода, choose → outlined-кнопки-варианты. Подсказка/reveal растут под формой.
 export function RungActive({
   rung,
   index,
   hint,
+  hintText,
   showReveal,
   justInserted,
+  focusOnMount,
   photoMode = false,
+  checking = false,
   onSubmit,
 }: RungActiveProps) {
   const [value, setValue] = useState('')
-  const isChoose = rung.kind === 'original' && rung.expected_value === 'новая'
+  const isChoose = rung.answerKind === 'choose'
   const label = skillLabel(rung.microSkill)
   const stepWord = rung.kind === 'easier' ? 'Разминка' : `Шаг ${index}`
-
-  // Сократическая подсказка (не easier-баннер разогрева) — телеметрия hint_shown
-  // на переход false→true, не на каждый рендер. В photoMode эту подсказку НЕ
-  // показываем: mismatch/unsure уже приносят свою (специфичную для фото) HintBanner
-  // в StepSubmitPanel — два одинаково озаглавленных баннера подряд читались бы
-  // как дублирование, а не как две независимые подсказки.
   const isSocraticHint = hint && !(rung.kind === 'easier' && justInserted) && !photoMode
   const prevSocraticHintRef = useRef(false)
+  const headingRef = useRef<HTMLHeadingElement>(null)
+
+  useEffect(() => {
+    if (focusOnMount) headingRef.current?.focus()
+  }, [focusOnMount, rung.key])
+
   useEffect(() => {
     if (isSocraticHint && !prevSocraticHintRef.current) void track('hint_shown')
     prevSocraticHintRef.current = isSocraticHint
   }, [isSocraticHint])
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
+  function submit(event: FormEvent) {
+    event.preventDefault()
     if (!value.trim()) return
-    onSubmit(value)
-    setValue('')
-  }
-
-  const handleChoose = (opt: string) => {
-    onSubmit(opt)
-    setValue('')
+    void onSubmit(value)
   }
 
   return (
-    <ApCard tone="brand-soft" padding="m" className="lift flex flex-col gap-3 border-brand/40">
-      {/* Эйбров: читаемый label шага (никогда код) + позиция */}
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-display text-caption2-medium uppercase tracking-[0.1em] text-brand-ink">
-          {label ?? stepWord}
-        </span>
-        {label && (
-          <span className="font-num text-caption2 tabular-nums text-muted">
-            {stepWord.toLowerCase()}
-          </span>
-        )}
+    <article className="tape-stage reveal px-5 py-6 md:px-8 md:py-8" aria-current="step">
+      <div className="relative flex items-center justify-between gap-3">
+        <span className="text-mark text-brand-deep">{label ?? stepWord}</span>
+        <span className="font-display text-caption1 text-muted">{stepWord.toLowerCase()}</span>
       </div>
 
-      {/* Инструкция шага — учебный текст (canon §1: минимум 18px), формулы-чипами */}
-      <p className="formula-body text-study text-ink">
+      <h2 ref={headingRef} tabIndex={-1} className="formula-body relative mt-5 max-w-4xl text-[clamp(27px,5vw,44px)] font-semibold leading-[1.08] tracking-[-0.045em] text-ink md:mt-6">
         <MathText text={rung.instruction} />
-      </p>
+      </h2>
 
-      {/* Ввод: число или варианты. photoMode — ввод замещён панелью сдачи фото
-          ниже (StepSubmitPanel); инструкция шага выше остаётся видимой. */}
       {!photoMode && (
         isChoose ? (
-          <div className="grid grid-cols-2 gap-3">
-            {STEP3_OPTIONS.map((opt) => (
-              <ApButton
-                key={opt}
-                variant="secondary"
-                size="m"
-                onClick={() => handleChoose(opt)}
-                className="capitalize"
-              >
-                {opt} цена
+          <div className="relative mt-8 grid grid-cols-2 gap-3">
+            {STEP3_OPTIONS.map((option) => (
+              <ApButton key={option} variant="secondary" size="l" disabled={checking} onClick={() => void onSubmit(option)} className="capitalize">
+                {option} цена
               </ApButton>
             ))}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
-            <input
-              inputMode={inputModeFor(rung.expected_value)}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Твой ответ"
-              aria-label="Введите ответ"
-              autoComplete="off"
-              className="font-num min-w-0 flex-1 rounded-control border border-stroke bg-surface px-4 text-body tabular-nums text-text placeholder:text-muted outline-none focus:border-[1.5px] focus:border-brand"
-              style={{ fontSize: '16px' }}
-            />
-            <ApButton type="submit" variant="primary" size="m" disabled={!value.trim()}>
-              Проверить
+          <form onSubmit={submit} className="relative mt-6 md:mt-8">
+            <label className="block text-caption1-medium text-muted" htmlFor={`answer-${rung.key}`}>
+              Твой следующий шаг
+            </label>
+            <div className="answer-panel math-viewport mt-3 pb-3">
+              <div className="font-display inline-flex min-w-max items-center gap-[0.22em] text-[clamp(34px,9vw,62px)] font-semibold leading-none tracking-[-0.055em]">
+                <span className="text-muted">Ответ</span>
+                <span className="text-muted">=</span>
+                <span className="bracket-slot" data-state={hint ? 'wrong' : 'active'}>
+                  <input
+                    id={`answer-${rung.key}`}
+                    inputMode="text"
+                    value={value}
+                    onChange={(event) => setValue(event.target.value)}
+                    placeholder="?"
+                    aria-label="Введите ответ"
+                    aria-invalid={hint || undefined}
+                    autoComplete="off"
+                    maxLength={64}
+                    className="equation-input"
+                  />
+                </span>
+              </div>
+            </div>
+            <ApButton type="submit" size="l" full disabled={!value.trim() || checking} className="mt-4 sm:w-auto sm:min-w-56 md:mt-5">
+              {checking ? 'Проверяем…' : 'Проверить шаг'}
             </ApButton>
           </form>
         )
       )}
 
-      {/* Подсказка (наводящий вопрос, не ответ) */}
-      {hint && rung.kind === 'easier' && justInserted && (
-        <HintBanner text="Маленький разогрев перед основным шагом — у тебя получится!" variant="easier" />
-      )}
-      {isSocraticHint && <HintBanner text={socraticHint(rung)} variant="hint" />}
-
-      {/* Reveal — разобранный шаг как последняя опора (НЕ финальный ответ задачи) */}
-      {showReveal && rung.reveal && (
-        <details className="rounded-control border border-stroke bg-surface p-3" open>
-          <summary className="cursor-pointer text-caption1-medium text-brand-ink">
-            Покажу, как делается этот шаг
-          </summary>
-          <p className="formula-body mt-2 text-study text-text">
-            <MathText text={rung.reveal} />
-          </p>
-        </details>
-      )}
-    </ApCard>
+      <div className="relative mt-5" aria-live="polite">
+        {hint && rung.kind === 'easier' && justInserted && (
+          <HintBanner text="Сначала маленький разогрев — потом вернёмся к основному шагу." variant="easier" />
+        )}
+        {isSocraticHint && <HintBanner text={hintText ?? socraticHint(rung)} variant="hint" />}
+        {showReveal && rung.reveal && (
+          <details className="mt-4 rounded-control border border-brand/25 border-l-4 border-l-brand bg-brand-soft/50 p-4 text-ink">
+            <summary className="flex min-h-11 cursor-pointer items-center text-caption1-medium text-brand-ink">Разобрать этот шаг</summary>
+            <p className="formula-body mt-3 text-study text-text"><MathText text={rung.reveal} /></p>
+          </details>
+        )}
+      </div>
+    </article>
   )
 }
 
-// inputmode по ТИПУ ответа (directive §4), НЕ по значению-утечке: целое → numeric,
-// десятичное → decimal, дробь/выражение/слово → text (клавиатура с «/», «−»).
-function inputModeFor(expected: string): 'numeric' | 'decimal' | 'text' {
-  if (/^-?\d+$/.test(expected)) return 'numeric'
-  if (/^-?\d*[.,]\d+$/.test(expected)) return 'decimal'
-  return 'text'
-}
-
-// Сократическая подсказка по микро-навыку: наводит, но НЕ даёт ответ.
 function socraticHint(rung: Rung): string {
   const bySkill: Record<string, string> = {
-    'Процент от числа': 'Чтобы найти процент от числа — умножь число на долю. А $15\\%$ это сколько в виде дроби?',
-    'Прибавить процент': 'Рост означает прибавку. К исходной цене прибавь то, что насчитал на прошлом шаге.',
-    'База процента': 'Подумай: после подорожания товар уже стоит дороже. От какой суммы логично считать скидку?',
-    'Вычесть процент': 'Снижение — это вычитание. Сначала найди $10\\%$ от текущей цены, потом отними.',
+    'Процент от числа': 'Чтобы найти процент от числа, умножь число на долю. Во что превращается $15\\%$?',
+    'Прибавить процент': 'Рост означает прибавку. Что нужно прибавить к исходной цене?',
+    'База процента': 'После подорожания цена уже изменилась. От какой суммы теперь считаем процент?',
+    'Вычесть процент': 'Сначала найди $10\\%$ от текущей цены, затем вычти эту часть.',
   }
-  return bySkill[rung.microSkill] ?? 'Загляни на прошлый шаг — ответ оттуда подскажет, что делать здесь.'
+  return bySkill[rung.microSkill] ?? 'Посмотри на предыдущий шаг: какое число оттуда нужно использовать здесь?'
 }

@@ -1,35 +1,22 @@
 import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
-import { ApCard } from '../../components/ApCard'
 import { ApButton } from '../../components/ApButton'
 
-// Пустой hub для НОВИЧКА (has_activity=false): онбординг, БЕЗ праздника.
-// Кёди-протокол §5 «Вход / пустой хаб» — mood hi, тёплое знакомство по имени
-// (единственный экран, где Кёди представляется) + единственный primary-CTA на срез.
-// tone brand-soft: эта карточка — единственный активный фокус экрана (§4), поэтому
-// берёт тёплый бренд-тон (как HubHero), а не нейтральный surface — так новичок
-// визуально отличается от ветерана «всё разобрано».
 export function HubOnboarding() {
   const navigate = useNavigate()
-
   return (
-    <ApCard
-      as="section"
-      tone="brand-soft"
-      padding="l"
-      className="flex flex-col items-center gap-5 text-center"
-    >
-      <Mascot mood="hi" size="l" className="bob" />
-      <div className="flex flex-col gap-2">
-        <h1 className="text-h2 text-ink">Привет! Я Кёди</h1>
-        <p className="mx-auto max-w-[17rem] text-study text-text">
-          Помогаю разбирать ошибки по математике. Сначала узнаем, с чего начать:
-          короткий срез — 12 задач, минут десять.
+    <section className="tape-card grid overflow-hidden md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.56fr)]">
+      <div className="flex flex-col justify-center px-6 py-10 md:px-10 md:py-14">
+        <p className="text-mark text-brand-deep">Первый шаг</p>
+        <h1 className="mt-5 text-h1 text-ink">Узнаем, с чего начать.</h1>
+        <p className="mt-5 max-w-xl text-study text-text">
+          Ответь на несколько вопросов в своём темпе. После появится точный план разбора — без оценок и случайных задач.
         </p>
+        <ApButton className="mt-7 w-full sm:w-auto sm:self-start" size="l" onClick={() => navigate('/srez')}>
+          Начать мини-срез
+        </ApButton>
       </div>
-      <ApButton variant="primary" size="l" full onClick={() => navigate('/srez')}>
-        Начать мини-срез
-      </ApButton>
-    </ApCard>
+      <Mascot mood="hi" size="xl" eager className="min-h-72 bg-sage-soft/60 md:min-h-full" />
+    </section>
   )
 }

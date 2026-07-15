@@ -59,9 +59,10 @@ class _ProblemSectionCardState extends State<ProblemSectionCard> {
                         const SizedBox(height: 2),
                         Text(
                           s.problemsSolved > 0
-                              ? '✅ ${ s.problemsCorrect}  ❌ $incorrect'
+                              ? '✅ ${s.problemsCorrect}  ❌ $incorrect'
                               : l.noSolvedProblems,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
                       ],
                     ),
@@ -72,10 +73,12 @@ class _ProblemSectionCardState extends State<ProblemSectionCard> {
                       children: [
                         Text('${s.problemsSolved}',
                             style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                                 color: AppColors.primary)),
                         Text('$accuracy%',
-                            style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey[500])),
                       ],
                     ),
                     const SizedBox(width: 8),
@@ -122,16 +125,19 @@ class ProblemTopicsList extends StatelessWidget {
         children: [
           const Divider(height: 1),
           ...sorted.map((t) {
-            final accuracy = t.qTotal > 0
-                ? (t.qCorrect / t.qTotal * 100).round()
-                : 0;
+            final accuracy =
+                t.qTotal > 0 ? (t.qCorrect / t.qTotal * 100).round() : 0;
             final incorrect = t.qTotal - t.qCorrect;
 
             return InkWell(
-              onTap: () => Navigator.of(context).pushNamed(
-                PracticePage.routeName,
-                arguments: {'nodeId': t.id, 'tagName': t.name(lang)},
-              ).then((_) => context.read<DashboardBloc>().add(DashboardLoad())),
+              onTap: () async {
+                await Navigator.of(context).pushNamed(
+                  PracticePage.routeName,
+                  arguments: {'nodeId': t.id, 'tagName': t.name(lang)},
+                );
+                if (!context.mounted) return;
+                context.read<DashboardBloc>().add(DashboardLoad());
+              },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
@@ -141,13 +147,16 @@ class ProblemTopicsList extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(t.name(lang),
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                              style: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w500)),
                           if (t.qTotal > 0)
                             Text('✅ ${t.qCorrect}  ❌ $incorrect  ·  $accuracy%',
-                                style: TextStyle(fontSize: 11, color: Colors.grey[400]))
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey[400]))
                           else
                             Text(l.notSolvedYet,
-                                style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+                                style: TextStyle(
+                                    fontSize: 11, color: Colors.grey[400])),
                         ],
                       ),
                     ),
@@ -155,9 +164,12 @@ class ProblemTopicsList extends StatelessWidget {
                         style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: t.qTotal > 0 ? AppColors.primary : Colors.grey[300])),
+                            color: t.qTotal > 0
+                                ? AppColors.primary
+                                : Colors.grey[300])),
                     const SizedBox(width: 4),
-                    Icon(Icons.chevron_right, size: 18, color: Colors.grey[300]),
+                    Icon(Icons.chevron_right,
+                        size: 18, color: Colors.grey[300]),
                   ],
                 ),
               ),

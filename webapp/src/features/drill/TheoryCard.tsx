@@ -46,7 +46,7 @@ export function TheoryCard({ nodeId, theory }: TheoryCardProps) {
         <ApCard
           as="section"
           padding="m"
-          className="reveal flex flex-col"
+          className="reveal flex flex-col rounded-none"
           style={{ '--reveal-delay': '0ms' } as CSSProperties}
           aria-label="Как решать"
         >

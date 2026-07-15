@@ -65,6 +65,9 @@ class Problem(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Stable 0-based index in problems_v10.json / full_decomposition_v1.json.
+    # Nullable only for non-canonical/manual rows; canonical bank rows are unique.
+    content_idx: Mapped[int | None] = mapped_column(Integer, nullable=True, unique=True, index=True)
     node_id: Mapped[str] = mapped_column(String(10), ForeignKey("nodes.id"))
     text_ru: Mapped[str] = mapped_column(Text, nullable=False)
     text_kz: Mapped[str | None] = mapped_column(Text)
@@ -431,6 +434,103 @@ class StepSubmission(Base):
     confidence: Mapped[float | None] = mapped_column(Float)
     matched_micro_skill: Mapped[str | None] = mapped_column(String(50))
     photo_path: Mapped[str] = mapped_column(Text, nullable=False)     # относительно photo_dir
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
+class DrillStepAttempt(Base):
+    """Серверный вердикт typed-answer на одном шаге лесенки.
+
+    Эталон ответа не сохраняется и не возвращается клиенту: таблица нужна для
+    аудита результата и последующего восстановления прогресса.
+    """
+
+    __tablename__ = "drill_step_attempts"
+    __table_args__ = (
+        Index(
+            "idx_drill_step_attempts_student_problem",
+            "student_id",
+            "problem_id",
+            "created_at",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    problem_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="CASCADE"), nullable=False
+    )
+    decomp_idx: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    step_n: Mapped[int] = mapped_column(Integer, nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    source: Mapped[str] = mapped_column(String(16), nullable=False, default="input")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
+class LearningSession(Base):
+    """Persistent student position inside one versioned learning path."""
+
+    __tablename__ = "learning_sessions"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "lesson_id",
+            "manifest_version",
+            name="uq_learning_session_student_lesson_version",
+        ),
+        Index("idx_learning_sessions_student_status", "student_id", "status"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    lesson_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    manifest_version: Mapped[str] = mapped_column(String(80), nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="active", server_default="active")
+    current_activity_idx: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class LearningAttempt(Base):
+    """One idempotent answer submission inside a learning session."""
+
+    __tablename__ = "learning_attempts"
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "client_attempt_id",
+            name="uq_learning_attempt_session_client",
+        ),
+        Index("idx_learning_attempts_session_activity", "session_id", "activity_id"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    session_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("learning_sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    client_attempt_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    activity_id: Mapped[str] = mapped_column(String(80), nullable=False)
+    content_idx: Mapped[int] = mapped_column(Integer, nullable=False)
+    problem_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="SET NULL"), nullable=True
+    )
+    answer_given: Mapped[str] = mapped_column(Text, nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    support_level: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=0, server_default="0")
+    counts_for_mastery: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    response_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
     )

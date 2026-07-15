@@ -299,7 +299,7 @@ async def test_build_wrong_tasks_main(db_session) -> None:
     Основной сценарий build_wrong_tasks:
 
     - Проблема #1: привязана к decomp (linked) → steps из linked decomp.
-    - Проблема #2: нет linked decomp, но есть same-node verified → steps из него.
+    - Проблема #2: нет exact identity → fail closed без чужих steps.
     - Дубль попытки на задачу #1: оставляем только одну (latest).
     - Возвращаются ровно 2 WrongTask.
     """
@@ -321,7 +321,7 @@ async def test_build_wrong_tasks_main(db_session) -> None:
         answer="108", problems_db_id=pid1, verified=True,
     )
 
-    # Задача 2 — узел B, нет linked decomp, но есть same-node verified decomp
+    # Задача 2 — узел B, нет exact identity, рядом есть чужая verified decomp
     pid2 = await _seed_problem(db_session, NODE_B, "Задача 2", "64")
     await _seed_decomp_with_steps(
         db_session, decomp_idx=501, node_id=NODE_B,
@@ -361,14 +361,14 @@ async def test_build_wrong_tasks_main(db_session) -> None:
     assert t1.decomp_idx == 500
     assert t1.state == "almost"   # mastery=0.55 → "almost"
 
-    # Задача 2: same-node verified decomp → steps заполнены
+    # Задача 2: same-node/answer недостаточно для identity → steps не публикуются
     t2 = by_pid[pid2]
     assert t2.wrong_answer == "60"
     assert t2.statement == "Задача 2"
     assert t2.answer == "64"
     assert t2.topic_label == "Арифметика Б"
-    assert len(t2.steps) == 1, "Задача 2 должна иметь 1 шаг из same-node decomp"
-    assert t2.decomp_idx == 501
+    assert t2.steps == []
+    assert t2.decomp_idx is None
     assert t2.state == "revisit"  # mastery=0.30 → "revisit"
 
 
@@ -668,14 +668,12 @@ async def test_resolve_decomp_linked_preferred(db_session) -> None:
     assert result.idx == 800, f"Ожидался linked decomp idx=800, получен {result.idx}"
 
 
-# ─── resolve_decomp: same-node fallback — answer-match > any-verified ────────
+# ─── resolve_decomp: same-node/answer не заменяет exact identity ─────────────
 
 @pytest.mark.asyncio
-async def test_resolve_decomp_same_node_prefers_answer_match(db_session) -> None:
-    """Когда linked decomp нет, same-node fallback предпочитает запись с совпадающим answer,
-    а не первую по idx.
-    """
-    from core.trainer import resolve_decomp, DecompRow
+async def test_resolve_decomp_same_node_answer_match_still_fails_closed(db_session) -> None:
+    """Даже совпавший answer не доказывает, что шаги принадлежат этой задаче."""
+    from core.trainer import resolve_decomp
 
     NODE = "RD02"
     await db_session.execute(
@@ -711,18 +709,15 @@ async def test_resolve_decomp_same_node_prefers_answer_match(db_session) -> None
     await db_session.commit()
 
     result = await resolve_decomp(db_session, problem_id=pid, node_id=NODE, answer="64")
-    assert result is not None
-    assert isinstance(result, DecompRow)
-    # Должен выбрать 902 (совпадает answer), а не 901 (меньший idx, но другой answer)
-    assert result.idx == 902, f"Ожидался decomp с совпадающим answer idx=902, получен {result.idx}"
+    assert result is None
 
 
-# ─── resolve_decomp: same-node fallback — any-verified когда нет answer-match ─
+# ─── resolve_decomp: same-node fallback не подменяет задачу ────────────────
 
 @pytest.mark.asyncio
-async def test_resolve_decomp_same_node_fallback_any_verified(db_session) -> None:
-    """Когда нет ни linked, ни совпадающего answer, возвращается любая verified-запись (первая по idx)."""
-    from core.trainer import resolve_decomp, DecompRow
+async def test_resolve_decomp_same_node_does_not_borrow_another_problem(db_session) -> None:
+    """Без stable link/точного ответа нельзя показывать шаги соседней задачи узла."""
+    from core.trainer import resolve_decomp
 
     NODE = "RD03"
     await db_session.execute(
@@ -749,10 +744,7 @@ async def test_resolve_decomp_same_node_fallback_any_verified(db_session) -> Non
     await db_session.commit()
 
     result = await resolve_decomp(db_session, problem_id=pid, node_id=NODE, answer="77")
-    assert result is not None
-    assert isinstance(result, DecompRow)
-    # Единственная verified → возвращается, несмотря на несовпадение answer
-    assert result.idx == 950
+    assert result is None
 
 
 # ─── match_fingerprint: problem_id не существует → None (warning path) ───────

@@ -1,88 +1,49 @@
 import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
-import { ApCard } from '../../components/ApCard'
-import { StarFilledIcon, LongArrowRightIcon } from '../../icons'
-import { Confetti } from './Confetti'
+import { MathText } from '../../components/MathText'
+import { LongArrowRightIcon } from '../../icons'
 
 interface ClosureCelebrationProps {
-  /** XP-награда за закрытие. */
-  xp: number
+  statement: string | null
+  answer: string | null
+  topic: string
 }
 
-// Пик закрытия (§7 celebrate = флаг на вершине маршрута): рукописная кривая
-// дорисована до флажка-вершины + маскот празднует + штамп «ЗАКРЫТО» + XP +
-// primary-CTA «Дальше →» на Hub. Конфетти за карточкой.
-export function ClosureCelebration({ xp }: ClosureCelebrationProps) {
+export function ClosureCelebration({ statement, answer, topic }: ClosureCelebrationProps) {
   const navigate = useNavigate()
-
   return (
-    <div className="relative">
-      <Confetti />
-
-      <ApCard as="article" padding="l" className="lift relative flex flex-col items-center gap-4 overflow-hidden text-center">
-        {/* Штамп-печать «ЗАКРЫТО» — success-тон */}
-        <span
-          className="stamp absolute right-3 top-3 select-none rounded-chip border-2 border-success px-3 py-1 font-display text-caption2-medium uppercase tracking-[0.14em] text-success-ink"
-          aria-hidden
-        >
-          Закрыто
-        </span>
-
-        {/* Флаг на вершине маршрута — линия дорисована до финиша */}
-        <SummitFlag />
-
-        <Mascot mood="celebrate" size="l" className="bob mascot-shadow" />
-
-        <div className="flex flex-col gap-2">
-          <h1 className="text-h2 text-ink">Ошибка закрыта!</h1>
-          <p className="max-w-[17rem] text-study text-text">
-            Ты разобрался сам, без подсказок — вершина взята.
-          </p>
+    <section className="equation-commit mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-6xl items-center gap-6 px-4 py-5 md:px-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(19rem,0.7fr)] lg:py-8">
+      <div className="tape-card min-w-0 px-6 py-8 md:px-10 md:py-10">
+        <p className="text-mark text-success-ink">Подтверждено на новой задаче · {topic}</p>
+        {statement && (
+          <div className="math-prose mt-5 pb-2">
+            <p className="formula-body max-w-4xl text-[clamp(27px,4vw,42px)] font-semibold leading-[1.12] tracking-[-0.04em] text-ink">
+              <MathText text={statement} />
+            </p>
+          </div>
+        )}
+        <p className="font-display mt-7 text-[clamp(42px,9vw,76px)] font-semibold leading-none text-ink">
+          Ответ = <span className="bracket-slot" data-state="done">{answer ?? '✓'}</span>
+        </p>
+        <div className="mt-7 flex items-center gap-3" aria-hidden>
+          <span className="grid size-8 place-items-center rounded-full bg-success text-surface">✓</span>
+          <span className="h-1 flex-1 rounded-full bg-success" />
+          <span className="grid size-8 place-items-center rounded-full bg-brand text-ink">→</span>
         </div>
+      </div>
 
-        {/* Награда: один акцент, на родном языке (R4 §5: «XP» → «очков») */}
-        <div className="flex items-center gap-2 rounded-full bg-paper-2 px-4 py-2">
-          <span className="text-attn-ink">
-            <StarFilledIcon size={18} />
-          </span>
-          <span className="font-num text-title tabular-nums text-ink">+{xp} {pointsWord(xp)}</span>
+      <div className="grid overflow-hidden rounded-card border border-ink/10 bg-sage-soft/60 shadow-lift-sm">
+        <div className="px-6 pt-7 md:px-8">
+          <p className="text-mark text-success-ink">Ход решения восстановлен</p>
+          <h1 className="mt-3 text-h2 text-ink">Получилось самостоятельно.</h1>
+          <p className="mt-3 text-body text-text">Это уже не память ответа — ты перенёс способ на новую задачу.</p>
+          <ApButton className="mt-5 w-full" size="l" onClick={() => navigate('/')}>
+            К моему пути <LongArrowRightIcon size={18} />
+          </ApButton>
         </div>
-
-        <ApButton variant="primary" size="m" full onClick={() => navigate('/')}>
-          Дальше
-          <LongArrowRightIcon size={18} />
-        </ApButton>
-      </ApCard>
-    </div>
-  )
-}
-
-// Склонение «очко/очка/очков» для награды (родной язык вместо гейм-аббревиатуры «XP»).
-function pointsWord(n: number): string {
-  const mod10 = n % 10
-  const mod100 = n % 100
-  if (mod10 === 1 && mod100 !== 11) return 'очко'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'очка'
-  return 'очков'
-}
-
-// Мини-маршрут к флажку-вершине: solid-кривая от подножия к флагу (сигнатура в финале).
-function SummitFlag() {
-  return (
-    <svg viewBox="0 0 128 56" width={128} height={56} aria-hidden className="mt-1">
-      <path
-        d="M8 50 Q38 48 58 30 T112 14"
-        fill="none"
-        stroke="var(--brand)"
-        strokeWidth={4}
-        strokeLinecap="round"
-      />
-      <circle cx="8" cy="50" r="4" fill="var(--brand)" />
-      <g stroke="var(--brand-ink)" strokeWidth={2.6} strokeLinecap="round">
-        <path d="M112 14V2" fill="none" />
-        <path d="M113 3h11l-3 4 3 4h-11z" fill="var(--brand)" stroke="none" />
-      </g>
-    </svg>
+        <Mascot mood="celebrate" size="xl" className="mt-3 h-52" />
+      </div>
+    </section>
   )
 }

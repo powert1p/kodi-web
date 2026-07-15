@@ -1,7 +1,6 @@
 import { useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { ApButton } from '../../components/ApButton'
-import { Mascot } from '../../components/Mascot'
 import { CameraUploadIcon } from '../../icons'
 import { HintBanner } from './HintBanner'
 import { track } from '../../lib/telemetry'
@@ -73,12 +72,12 @@ export function StepSubmitPanel({ stepN, status, verdict, onPhoto, onRetry }: St
   if (status === 'uploading' || status === 'submitting') {
     return (
       <div
-        className="reveal flex items-center gap-3 rounded-control border border-stroke bg-surface p-3"
+        className="reveal border-l-4 border-blue bg-surface p-4"
         aria-busy="true"
         aria-label="Кёди смотрит фото шага"
       >
-        <Mascot mood="thinking" size="s" className="bob shrink-0" />
-        <span className="text-title text-ink">Кёди смотрит…</span>
+        <p className="text-mark text-blue-deep">Проверяем фото</p>
+        <span className="mt-2 block text-title text-ink">Сверяем только этот шаг…</span>
       </div>
     )
   }

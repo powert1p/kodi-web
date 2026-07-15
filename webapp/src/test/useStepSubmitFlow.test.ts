@@ -57,7 +57,7 @@ describe('useStepSubmitFlow', () => {
     const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
 
     await act(async () => {
-      await result.current.start(FILE, { decomp_idx: 0, step_n: 1 })
+      await result.current.start(FILE, { decomp_idx: 0, step_n: 1, problem_id: 42 })
     })
 
     expect(result.current.status).toBe('result')
@@ -72,7 +72,7 @@ describe('useStepSubmitFlow', () => {
     const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
 
     await act(async () => {
-      await result.current.start(FILE, { decomp_idx: 0, step_n: 1 })
+      await result.current.start(FILE, { decomp_idx: 0, step_n: 1, problem_id: 42 })
     })
 
     expect(result.current.status).toBe('result')
@@ -87,7 +87,7 @@ describe('useStepSubmitFlow', () => {
     const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
 
     await act(async () => {
-      await result.current.start(FILE, { decomp_idx: 0, step_n: 1 })
+      await result.current.start(FILE, { decomp_idx: 0, step_n: 1, problem_id: 42 })
     })
 
     expect(result.current.needsConsent).toBe(true)
@@ -100,10 +100,49 @@ describe('useStepSubmitFlow', () => {
     const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
 
     await act(async () => {
-      await result.current.start(FILE, { decomp_idx: 0, step_n: 1 })
+      await result.current.start(FILE, { decomp_idx: 0, step_n: 1, problem_id: 42 })
     })
 
     expect(result.current.is503).toBe(true)
     expect(result.current.status).toBe('error')
+  })
+
+  it('сетевая ошибка не превращается в fake-success даже в UI-потоке', async () => {
+    vi.mocked(postStepSubmit).mockRejectedValue(new TypeError('Failed to fetch'))
+
+    const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
+    await act(async () => {
+      await result.current.start(FILE, { decomp_idx: 0, step_n: 1, problem_id: 42 })
+    })
+
+    expect(result.current.status).toBe('error')
+    expect(result.current.verdict).toBeNull()
+    expect(result.current.is503).toBe(false)
+    expect(result.current.needsConsent).toBe(false)
+  })
+
+  it('игнорирует поздний photo-verdict после reset/смены шага', async () => {
+    let resolveRequest!: (value: StepVerdict) => void
+    vi.mocked(postStepSubmit).mockImplementation(() => new Promise((resolve) => {
+      resolveRequest = resolve
+    }))
+
+    const { result } = renderHook(() => useStepSubmitFlow(), { wrapper })
+    let pending!: Promise<void>
+    await act(async () => {
+      pending = result.current.start(FILE, { decomp_idx: 0, step_n: 1, problem_id: 42 })
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(result.current.status).toBe('submitting')
+    act(() => result.current.reset())
+
+    resolveRequest({ verdict: 'match', hint: null, confidence: 0.99, step_n: 1 })
+    await act(async () => pending)
+
+    expect(result.current.status).toBe('idle')
+    expect(result.current.verdict).toBeNull()
+    expect(result.current.submittedArgs).toBeNull()
   })
 })

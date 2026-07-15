@@ -268,28 +268,41 @@ async def resolve_decomp(
     """Ищет подходящую декомпозицию для задачи.
 
     Приоритет выбора:
-      1. Linked: decomposition_problems.problems_db_id == problem_id.
-      2. Same-node verified: all_steps_verified=true + node_id совпадает,
-         предпочитая запись с answer = задачи (нормализованное сравнение).
-      3. None — декомпозиция недоступна.
+      1. Canonical: problems.content_idx == decomposition_problems.idx.
+      2. Linked legacy: decomposition_problems.problems_db_id == problem_id, только если
+         node/answer совпадают, все шаги verified и запись не needs_review.
+      3. None — без canonical identity или validated explicit link
+         декомпозиция не публикуется.
 
     Возвращает DecompRow или None.
     """
-    # ── Шаг 1: linked decomp ─────────────────────────────────────────────────
-    # LEFT JOIN micro_skills — человеческая подпись умения вместо голого кода (§2.2)
-    linked = await session.execute(
+    # ── Шаг 1: canonical content_idx ─────────────────────────────────────────
+    canonical = await session.execute(
         text(
             "SELECT dp.idx, dp.node_id, dp.answer, dp.primary_micro_skill, "
-            "       dp.all_steps_verified, ms.label_ru AS primary_micro_skill_label "
-            "FROM decomposition_problems dp "
+            "       dp.all_steps_verified, dp.needs_review, "
+            "       ms.label_ru AS primary_micro_skill_label "
+            "FROM problems p "
+            "JOIN decomposition_problems dp ON dp.idx = p.content_idx "
             "LEFT JOIN micro_skills ms ON ms.code = dp.primary_micro_skill "
-            "WHERE dp.problems_db_id = :pid "
+            "WHERE p.id = :pid "
+            "  AND p.content_idx IS NOT NULL "
+            "  AND dp.node_id = p.node_id "
+            "  AND dp.answer = p.answer "
+            "  AND dp.all_steps_verified = true "
+            "  AND dp.needs_review = false "
             "LIMIT 1"
         ),
         {"pid": problem_id},
     )
-    row = linked.fetchone()
-    if row is not None:
+    row = canonical.fetchone()
+    if (
+        row is not None
+        and row.all_steps_verified
+        and not row.needs_review
+        and row.node_id == node_id
+        and _normalise(row.answer) == _normalise(answer)
+    ):
         return DecompRow(
             idx=row.idx,
             node_id=row.node_id,
@@ -299,45 +312,40 @@ async def resolve_decomp(
             primary_micro_skill_label=row.primary_micro_skill_label,
         )
 
-    # ── Шаг 2: same-node all_steps_verified decomp ────────────────────────────
-    same_node = await session.execute(
+    # ── Шаг 2: linked legacy decomp ──────────────────────────────────────────
+    # LEFT JOIN micro_skills — человеческая подпись умения вместо голого кода (§2.2)
+    linked = await session.execute(
         text(
             "SELECT dp.idx, dp.node_id, dp.answer, dp.primary_micro_skill, "
-            "       dp.all_steps_verified, ms.label_ru AS primary_micro_skill_label "
+            "       dp.all_steps_verified, dp.needs_review, "
+            "       ms.label_ru AS primary_micro_skill_label "
             "FROM decomposition_problems dp "
             "LEFT JOIN micro_skills ms ON ms.code = dp.primary_micro_skill "
-            "WHERE dp.node_id = :nid AND dp.all_steps_verified = true "
-            "ORDER BY dp.idx"
+            "WHERE dp.problems_db_id = :pid "
+            "LIMIT 1"
         ),
-        {"nid": node_id},
+        {"pid": problem_id},
     )
-    candidates = same_node.fetchall()
-    if not candidates:
-        return None
+    row = linked.fetchone()
+    if (
+        row is not None
+        and row.all_steps_verified
+        and not row.needs_review
+        and row.node_id == node_id
+        and _normalise(row.answer) == _normalise(answer)
+    ):
+        return DecompRow(
+            idx=row.idx,
+            node_id=row.node_id,
+            answer=row.answer,
+            primary_micro_skill=row.primary_micro_skill,
+            all_steps_verified=row.all_steps_verified,
+            primary_micro_skill_label=row.primary_micro_skill_label,
+        )
 
-    # Предпочитаем запись с нормализованно совпадающим answer
-    norm_answer = _normalise(answer)
-    for c in candidates:
-        if _normalise(c.answer) == norm_answer:
-            return DecompRow(
-                idx=c.idx,
-                node_id=c.node_id,
-                answer=c.answer,
-                primary_micro_skill=c.primary_micro_skill,
-                all_steps_verified=c.all_steps_verified,
-                primary_micro_skill_label=c.primary_micro_skill_label,
-            )
-
-    # Любая verified-запись на том же узле
-    c = candidates[0]
-    return DecompRow(
-        idx=c.idx,
-        node_id=c.node_id,
-        answer=c.answer,
-        primary_micro_skill=c.primary_micro_skill,
-        all_steps_verified=c.all_steps_verified,
-        primary_micro_skill_label=c.primary_micro_skill_label,
-    )
+    # Совпадение node/answer не доказывает identity задачи. Fail closed:
+    # чужая verified-декомпозиция хуже отсутствия декомпозиции.
+    return None
 
 
 async def build_wrong_tasks(
@@ -513,7 +521,7 @@ async def pick_easier_decomp(
 
     Условия:
       - primary_micro_skill == micro_skill
-      - all_steps_verified = true
+      - all_steps_verified = true и needs_review = false
       - exclude_idx исключается (поддержка climb-down: не возвращать текущий rung)
 
     Сортировка: число шагов по возрастанию (COUNT(ps.id)), тай-брейк по idx.
@@ -531,6 +539,7 @@ async def pick_easier_decomp(
                 "LEFT JOIN problem_steps ps ON ps.decomp_idx = dp.idx "
                 "WHERE dp.primary_micro_skill = :ms "
                 "  AND dp.all_steps_verified = true "
+                "  AND dp.needs_review = false "
                 "  AND dp.idx != :excl "
                 "GROUP BY dp.idx "
                 "ORDER BY step_count ASC, dp.idx ASC "
@@ -548,6 +557,7 @@ async def pick_easier_decomp(
                 "LEFT JOIN problem_steps ps ON ps.decomp_idx = dp.idx "
                 "WHERE dp.primary_micro_skill = :ms "
                 "  AND dp.all_steps_verified = true "
+                "  AND dp.needs_review = false "
                 "GROUP BY dp.idx "
                 "ORDER BY step_count ASC, dp.idx ASC "
                 "LIMIT 1"

@@ -11,15 +11,18 @@ import csv
 import io
 import json
 import logging
+import math
 from pathlib import Path
+import re
 from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Form, HTTPException, Query, Request, UploadFile
 from fastapi import File as FastApiFile
 from fastapi.responses import Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.routes import _get_current_student, limiter
 from core.agent_context import build_agent_context
@@ -27,6 +30,7 @@ from core.config import settings
 from core.grading import check_answer
 from core.llm_openai import LlmUnavailable, StepClassification, classify_step_photo, diagnose_photo
 from core.srez import pick_srez_problems
+from core.step_content import safe_step_instruction
 from core.trainer import (
     StepDTO,
     WrongTask,
@@ -36,11 +40,28 @@ from core.trainer import (
     pick_easier_decomp,
     pick_verification_problem,
 )
-from core.tutor import generate_tutor_reply
+from core.tutor import (
+    generate_tutor_reply,
+    sanitize_tutor_output,
+    tutor_unavailable_fallback,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/trainer", tags=["trainer"])
+
+_SAFE_DIAGNOSIS_CAUSE = (
+    "На этом шаге решение расходится с правилом. "
+    "Сравни действие с предыдущей строкой и проверь, что изменилось."
+)
+_SAFE_DIAGNOSIS_TRANSCRIPTION = "Фото решения распознано."
+
+
+def _sanitise_diagnosis_cause(value: object) -> str | None:
+    """Закрывает legacy free-form cause_text на любом child-visible read."""
+    if value is None:
+        return None
+    return _SAFE_DIAGNOSIS_CAUSE
 
 
 # ── Pydantic v2 response-схемы ────────────────────────────────────────────────
@@ -55,7 +76,6 @@ class StepOut(BaseModel):
     # Человеческая подпись умения (micro_skills.label_ru); None — код не найден в
     # каталоге. Фронт обязан показывать её вместо micro_skill (запрет §2.2).
     micro_skill_label: str | None
-    expected_value: str
     kind: str
     reveal: Any  # None или строка — оставляем гибким
 
@@ -68,7 +88,6 @@ class WrongTaskOut(BaseModel):
     node_id: str
     topic_label: str
     statement: str
-    answer: str
     primary_micro_skill: str | None
     # Человеческая подпись primary_micro_skill (micro_skills.label_ru); см. §2.2
     primary_micro_skill_label: str | None
@@ -139,14 +158,17 @@ class ProblemTopicsResponse(BaseModel):
 # ── Маппинг dataclass → Pydantic ─────────────────────────────────────────────
 
 
-def _step_to_out(step: StepDTO) -> StepOut:
+def _step_to_out(step: StepDTO, *, correct_answer: object | None = None) -> StepOut:
     """Конвертирует StepDTO → StepOut."""
     return StepOut(
         n=step.n,
-        instruction_ru=step.instruction_ru,
+        instruction_ru=safe_step_instruction(
+            step.instruction_ru,
+            expected_value=step.expected_value,
+            correct_answer=correct_answer,
+        ),
         micro_skill=step.micro_skill,
         micro_skill_label=step.micro_skill_label,
-        expected_value=step.expected_value,
         kind=step.kind,
         reveal=step.reveal,
     )
@@ -160,11 +182,10 @@ def _task_to_out(task: WrongTask) -> WrongTaskOut:
         node_id=task.node_id,
         topic_label=task.topic_label,
         statement=task.statement,
-        answer=task.answer,
         primary_micro_skill=task.primary_micro_skill,
         primary_micro_skill_label=task.primary_micro_skill_label,
         decomp_idx=task.decomp_idx,
-        steps=[_step_to_out(s) for s in task.steps],
+        steps=[_step_to_out(s, correct_answer=task.answer) for s in task.steps],
         state=task.state,
         wrong_answer=task.wrong_answer,
         mastery=task.mastery,
@@ -214,6 +235,246 @@ async def get_wrong_tasks(
     )
 
 
+# ── Серверная проверка typed-answer одного шага ──────────────────────────────
+
+class StepAnswerIn(BaseModel):
+    problem_id: int = Field(ge=1)
+    decomp_idx: int | None = Field(default=None, ge=0)
+    step_n: int = Field(ge=1)
+    answer: str = Field(min_length=1, max_length=256)
+
+    @field_validator("answer")
+    @classmethod
+    def answer_must_not_be_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("answer must not be blank")
+        return value
+
+
+class StepAnswerOut(BaseModel):
+    correct: bool
+    hint: str | None
+    step_n: int
+
+
+class DrillStateOut(BaseModel):
+    solved_step_ns: list[int]
+
+
+async def _previous_drill_steps_solved(
+    session: AsyncSession,
+    *,
+    student_id: int,
+    problem_id: int,
+    decomp_idx: int,
+    step_n: int,
+) -> bool:
+    """Проверяет, что все предыдущие canonical-шаги подтверждены сервером."""
+    if step_n <= 1:
+        return True
+
+    result = await session.execute(
+        text(
+            "SELECT NOT EXISTS ("
+            "  SELECT 1 FROM problem_steps previous "
+            "  WHERE previous.decomp_idx = :didx AND previous.n < :step_n "
+            "    AND NOT ("
+            "      EXISTS ("
+            "        SELECT 1 FROM drill_step_attempts typed "
+            "        WHERE typed.student_id = :sid AND typed.problem_id = :pid "
+            "          AND typed.decomp_idx = :didx AND typed.step_n = previous.n "
+            "          AND typed.is_correct = true"
+            "      ) OR EXISTS ("
+            "        SELECT 1 FROM step_submissions photo "
+            "        WHERE photo.student_id = :sid AND photo.problem_id = :pid "
+            "          AND photo.decomp_idx = :didx AND photo.step_n = previous.n "
+            "          AND photo.verdict = 'match'"
+            "      )"
+            "    )"
+            ")"
+        ),
+        {
+            "sid": student_id,
+            "pid": problem_id,
+            "didx": decomp_idx,
+            "step_n": step_n,
+        },
+    )
+    return bool(result.scalar())
+
+
+def _contiguous_step_numbers(values: list[int]) -> list[int]:
+    """Не позволяет старым разрозненным submission перескочить пропущенный шаг."""
+    contiguous: list[int] = []
+    for value in sorted(set(values)):
+        if value != len(contiguous) + 1:
+            break
+        contiguous.append(value)
+    return contiguous
+
+
+@router.post("/step-answer", response_model=StepAnswerOut)
+@limiter.limit("60/minute")
+async def post_step_answer(request: Request, payload: StepAnswerIn) -> StepAnswerOut:
+    """Проверяет введённый шаг на сервере и не возвращает скрытый эталон.
+
+    Для canonical decomposition проверяем строгую identity-связь с задачей.
+    Если у задачи нет опубликованной декомпозиции, единственный fallback-шаг
+    проверяется по финальному ответу самой задачи.
+    """
+    session, student = await _get_current_student(request)
+    try:
+        if payload.decomp_idx is None:
+            if payload.step_n != 1:
+                raise HTTPException(status_code=404, detail="Шаг не найден")
+            step = (await session.execute(
+                text(
+                    "SELECT p.answer AS expected_value, p.answer_type, "
+                    "       NULL::varchar AS micro_skill, "
+                    "       NULL::text AS instruction_ru, "
+                    "       EXISTS ("
+                    "         SELECT 1 FROM decomposition_problems dp "
+                    "         WHERE dp.node_id = p.node_id "
+                    "           AND dp.answer = p.answer "
+                    "           AND dp.all_steps_verified = true "
+                    "           AND dp.needs_review = false "
+                    "           AND (p.content_idx = dp.idx OR dp.problems_db_id = p.id) "
+                    "           AND EXISTS ("
+                    "             SELECT 1 FROM problem_steps ps WHERE ps.decomp_idx = dp.idx"
+                    "           )"
+                    "       ) AS has_published_decomposition "
+                    "FROM problems p WHERE p.id = :pid"
+                ),
+                {"pid": payload.problem_id},
+            )).fetchone()
+        else:
+            step = (await session.execute(
+                text(
+                    "SELECT ps.expected_value, p.answer_type, ps.micro_skill, "
+                    "       ps.instruction_ru, p.answer AS correct_answer "
+                    "FROM problems p "
+                    "JOIN decomposition_problems dp ON dp.idx = :didx "
+                    "JOIN problem_steps ps ON ps.decomp_idx = dp.idx AND ps.n = :step_n "
+                    "WHERE p.id = :pid "
+                    "  AND dp.node_id = p.node_id "
+                    "  AND dp.answer = p.answer "
+                    "  AND dp.all_steps_verified = true "
+                    "  AND dp.needs_review = false "
+                    "  AND (p.content_idx = dp.idx OR dp.problems_db_id = p.id) "
+                    "LIMIT 1"
+                ),
+                {
+                    "pid": payload.problem_id,
+                    "didx": payload.decomp_idx,
+                    "step_n": payload.step_n,
+                },
+            )).fetchone()
+
+        if step is None:
+            raise HTTPException(status_code=404, detail="Шаг не найден")
+        if payload.decomp_idx is None and step.has_published_decomposition:
+            raise HTTPException(
+                status_code=409,
+                detail="Для задачи доступно пошаговое решение",
+            )
+
+        if payload.decomp_idx is not None and not await _previous_drill_steps_solved(
+            session,
+            student_id=student.id,
+            problem_id=payload.problem_id,
+            decomp_idx=payload.decomp_idx,
+            step_n=payload.step_n,
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="Сначала заверши предыдущий шаг",
+            )
+
+        correct = check_answer(payload.answer, step.expected_value, step.answer_type)
+        hint: str | None = None
+        if not correct and payload.decomp_idx is not None:
+            # mistake_ru может содержать скрытый expected_value и не доказывает,
+            # что ребёнок совершил именно эту ошибку. Возвращаем только уже
+            # показанную инструкцию текущего шага.
+            safe_instruction = safe_step_instruction(
+                step.instruction_ru,
+                expected_value=step.expected_value,
+                correct_answer=step.correct_answer,
+            )
+            hint = f"Проверь этот шаг ещё раз: {safe_instruction}"
+
+        await session.execute(
+            text(
+                "INSERT INTO drill_step_attempts "
+                "(student_id, problem_id, decomp_idx, step_n, is_correct, source, created_at) "
+                "VALUES (:sid, :pid, :didx, :step_n, :correct, 'input', NOW())"
+            ),
+            {
+                "sid": student.id,
+                "pid": payload.problem_id,
+                "didx": payload.decomp_idx,
+                "step_n": payload.step_n,
+                "correct": correct,
+            },
+        )
+        await session.commit()
+    finally:
+        await session.close()
+
+    return StepAnswerOut(correct=correct, hint=hint, step_n=payload.step_n)
+
+
+@router.get("/drill-state", response_model=DrillStateOut)
+async def get_drill_state(
+    request: Request,
+    problem_id: int = Query(..., ge=1),
+    decomp_idx: int | None = Query(default=None, ge=0),
+) -> DrillStateOut:
+    """Возвращает только подтверждённые сервером шаги текущего ученика."""
+    session, student = await _get_current_student(request)
+    try:
+        problem_exists = (await session.execute(
+            text("SELECT 1 FROM problems WHERE id = :pid"),
+            {"pid": problem_id},
+        )).scalar()
+        if not problem_exists:
+            raise HTTPException(status_code=404, detail="Задача не найдена")
+
+        if decomp_idx is None:
+            rows = await session.execute(
+                text(
+                    "SELECT DISTINCT step_n FROM drill_step_attempts "
+                    "WHERE student_id = :sid AND problem_id = :pid "
+                    "  AND decomp_idx IS NULL AND is_correct = true "
+                    "ORDER BY step_n"
+                ),
+                {"sid": student.id, "pid": problem_id},
+            )
+        else:
+            rows = await session.execute(
+                text(
+                    "SELECT step_n FROM ("
+                    "  SELECT step_n FROM drill_step_attempts "
+                    "  WHERE student_id = :sid AND problem_id = :pid "
+                    "    AND decomp_idx = :didx AND is_correct = true "
+                    "  UNION "
+                    "  SELECT step_n FROM step_submissions "
+                    "  WHERE student_id = :sid AND problem_id = :pid "
+                    "    AND decomp_idx = :didx AND verdict = 'match'"
+                    ") solved ORDER BY step_n"
+                ),
+                {"sid": student.id, "pid": problem_id, "didx": decomp_idx},
+            )
+        solved_step_ns = _contiguous_step_numbers(
+            [int(value) for value in rows.scalars().all()]
+        )
+    finally:
+        await session.close()
+
+    return DrillStateOut(solved_step_ns=solved_step_ns)
+
+
 @router.get("/analytics", response_model=AnalyticsResponse)
 async def get_analytics(request: Request) -> AnalyticsResponse:
     """Аналитика повторяющихся ошибок для текущего студента.
@@ -244,7 +505,7 @@ async def get_analytics(request: Request) -> AnalyticsResponse:
                 micro_skill=row.micro_skill,
                 label_ru=row.label_ru,
                 error_count=row.error_count,
-                last_cause_text=row.last_cause_text,
+                last_cause_text=_sanitise_diagnosis_cause(row.last_cause_text),
                 node_id=row.node_id,
             )
             for row in my_rows
@@ -348,9 +609,51 @@ class DiagnosisOut(BaseModel):
 # ── Ограничение размера загружаемого фото ────────────────────────────────────
 
 _MAX_PHOTO_BYTES = 8 * 1024 * 1024  # 8 МБ
+_ALLOWED_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+}
+_EXPECTED_IMAGE_FORMATS = {
+    "image/jpeg": {"JPEG"},
+    "image/png": {"PNG"},
+    "image/webp": {"WEBP"},
+    "image/heic": {"HEIF", "HEIC"},
+    "image/heif": {"HEIF", "HEIC"},
+}
+_IMAGE_EXTENSIONS = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/heic": ".heic",
+    "image/heif": ".heif",
+}
+_IMAGE_MEDIA_TYPES_BY_SUFFIX = {
+    suffix: content_type for content_type, suffix in _IMAGE_EXTENSIONS.items()
+}
+
+
+def _is_valid_image_payload(image_bytes: bytes, content_type: str) -> bool:
+    """Декодирует upload и сверяет реальный формат с заявленным MIME."""
+    try:
+        if content_type in {"image/heic", "image/heif"}:
+            import pillow_heif  # noqa: PLC0415
+
+            pillow_heif.register_heif_opener()
+        from PIL import Image  # noqa: PLC0415
+
+        with Image.open(io.BytesIO(image_bytes)) as image:
+            actual_format = (image.format or "").upper()
+            image.verify()
+        return actual_format in _EXPECTED_IMAGE_FORMATS[content_type]
+    except (KeyError, OSError, ValueError):
+        return False
 
 
 @router.post("/diagnose", response_model=DiagnosisOut)
+@limiter.limit("10/minute")
 async def post_diagnose(
     request: Request,
     problem_id: int = Form(..., description="ID задачи из таблицы problems"),
@@ -372,6 +675,8 @@ async def post_diagnose(
       10. Возвращаем DiagnosisOut.
     """
     session, student = await _get_current_student(request)
+    file_path: Path | None = None
+    db_committed = False
     try:
         # Сбор фото гейтится согласием родителя (Блок 1.0). Проверяем ДО любой работы.
         if student.photo_consent is not True:
@@ -404,13 +709,6 @@ async def post_diagnose(
             )
 
         # Проверка content_type: только допустимые форматы изображений
-        _ALLOWED_CONTENT_TYPES = {
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/heic",
-            "image/heif",
-        }
         if photo.content_type is None:
             # Если content_type не передан — считаем JPEG (мобильные клиенты)
             content_type: str = "image/jpeg"
@@ -423,17 +721,26 @@ async def post_diagnose(
             content_type = photo.content_type
 
         image_bytes = await photo.read()
+        if not image_bytes:
+            raise HTTPException(status_code=422, detail="Фото не должно быть пустым")
         # Постчтение-проверка: Content-Length может лгать, сверяемся по факту
         if len(image_bytes) > _MAX_PHOTO_BYTES:
             raise HTTPException(
                 status_code=413,
                 detail=f"Фото превышает лимит {_MAX_PHOTO_BYTES // (1024 * 1024)} МБ",
             )
+        if not _is_valid_image_payload(image_bytes, content_type):
+            raise HTTPException(
+                status_code=422,
+                detail="Файл не является корректным изображением выбранного формата",
+            )
 
         # ── 3. Определяем wrong_answer ────────────────────────────────────────
         wrong_answer: str | None = None
+        persisted_attempt_id: int | None = None
         if attempt_id is not None:
-            # Берём answer_given из конкретной попытки (если принадлежит студенту)
+            # Явный attempt_id обязан принадлежать текущему ученику и задаче.
+            # Иначе не запускаем дорогой Vision и не сохраняем чужой FK.
             att_row = await session.execute(
                 text(
                     "SELECT answer_given FROM attempts "
@@ -442,8 +749,10 @@ async def post_diagnose(
                 {"aid": attempt_id, "sid": student.id, "pid": problem_id},
             )
             att = att_row.fetchone()
-            if att is not None:
-                wrong_answer = att.answer_given
+            if att is None:
+                raise HTTPException(status_code=404, detail="Попытка для этой задачи не найдена")
+            persisted_attempt_id = attempt_id
+            wrong_answer = att.answer_given
         else:
             # Последняя неверная попытка этого студента на этой задаче
             latest_row = await session.execute(
@@ -472,9 +781,19 @@ async def post_diagnose(
             session, student_id=student.id, problem_id=problem_id
         )
         canonical_steps: list[dict] = [
-            {"n": s["n"], "instruction_ru": s["instruction_ru"], "expected_value": s["expected_value"]}
+            {
+                "n": s["n"],
+                "instruction_ru": s["instruction_ru"],
+                "expected_value": s["expected_value"],
+                "micro_skill": s.get("micro_skill"),
+            }
             for s in agent_ctx.canonical_steps
         ]
+        canonical_micro_skills = {
+            str(step["micro_skill"])
+            for step in canonical_steps
+            if step.get("micro_skill")
+        }
 
         # ── 6. Вызываем vision-диагностику (LlmUnavailable → 503) ────────────
         try:
@@ -494,21 +813,54 @@ async def post_diagnose(
                 detail="Сервис анализа фото временно недоступен. Попробуйте позже.",
             ) from exc
 
-        # ── 7. Вычисляем image_ref заранее (путь относительно photo_dir) ────────
-        # Вычисляем до коммита; запись файла — после коммита (во избежание orphan-файлов)
-        file_name = f"{uuid4().hex}.jpg"
-        image_ref = f"{student.id}/{file_name}"
+        try:
+            confidence = float(result.confidence)
+        except (TypeError, ValueError, OverflowError):
+            confidence = 0.0
+        if not math.isfinite(confidence) or not 0.0 <= confidence <= 1.0:
+            confidence = 0.0
+        result.confidence = confidence
 
-        # ── 8. INSERT INTO error_captures ─────────────────────────────────────
-        # model берём из первого элемента цепочки (именно та, что используется first-in-chain)
-        model_name: str = settings.openai_model_chain[0] if settings.openai_model_chain else "unknown"
-        # Используем micro_skill из vision-результата; fallback — из fingerprint
-        failed_micro_skill: str | None = result.micro_skill or fallback_micro_skill
+        valid_steps = {int(step["n"]) for step in canonical_steps}
+        if (
+            isinstance(result.failed_step, bool)
+            or not isinstance(result.failed_step, int)
+            or result.failed_step not in valid_steps
+        ):
+            result.failed_step = None
 
-        # Человеческая подпись умения для клиента (§2.2 — запрет голых кодов в UI).
-        # Подпись строим для result.micro_skill — того же кода, что уходит в ответ
-        # (DiagnosisOut.micro_skill), а не для failed_micro_skill (может включать
-        # fallback-код из fingerprint, который клиенту не отдаётся).
+        try:
+            level = int(result.level)
+        except (TypeError, ValueError, OverflowError):
+            level = 2
+        result.level = level if level in {1, 2, 3} else 2
+
+        # OCR и cause_text — свободный model output: semantic post-filter не
+        # способен доказать отсутствие перефразированного ответа. Сохраняем и
+        # возвращаем только серверные строки; Gemini влияет лишь на bounded
+        # metadata (failed_step/micro_skill/confidence/level).
+        result.transcription = _SAFE_DIAGNOSIS_TRANSCRIPTION
+
+        micro_skill = result.micro_skill if isinstance(result.micro_skill, str) else None
+        micro_skill = micro_skill.strip() if micro_skill else None
+        if micro_skill is not None and re.fullmatch(r"[a-z0-9_]{1,50}", micro_skill) is None:
+            micro_skill = None
+        result.micro_skill = micro_skill
+
+        # Vision не может придумывать durable-навыки: код обязан одновременно
+        # существовать в каталоге и быть привязан к шагам/grounded fingerprint
+        # именно этой задачи.
+        failed_step_micro_skill: str | None = None
+        if result.failed_step is not None:
+            failed_step_micro_skill = next(
+                (
+                    str(step["micro_skill"])
+                    for step in canonical_steps
+                    if step["n"] == result.failed_step and step.get("micro_skill")
+                ),
+                None,
+            )
+
         result_micro_skill_label: str | None = None
         if result.micro_skill:
             result_micro_skill_label = (
@@ -517,6 +869,66 @@ async def post_diagnose(
                     {"ms": result.micro_skill},
                 )
             ).scalar()
+            if (
+                result_micro_skill_label is None
+                or result.micro_skill != failed_step_micro_skill
+            ):
+                logger.warning(
+                    "Vision micro_skill отброшен как не-grounded для failed_step "
+                    "(problem_id=%s, failed_step=%s, micro_skill=%s)",
+                    problem_id,
+                    result.failed_step,
+                    result.micro_skill,
+                )
+                result.micro_skill = None
+                result_micro_skill_label = None
+
+        validated_fallback_micro_skill: str | None = None
+        if fallback_micro_skill:
+            fallback_exists = (
+                await session.execute(
+                    text("SELECT 1 FROM micro_skills WHERE code = :ms"),
+                    {"ms": fallback_micro_skill},
+                )
+            ).scalar()
+            if (
+                fallback_exists is not None
+                and fallback_micro_skill in canonical_micro_skills
+                and (
+                    result.failed_step is None
+                    or fallback_micro_skill == failed_step_micro_skill
+                )
+            ):
+                validated_fallback_micro_skill = fallback_micro_skill
+
+        result.cause_text = _SAFE_DIAGNOSIS_CAUSE
+
+        # ── 7. Сохраняем фото до записи истории ────────────────────────────────
+        # Запись в БД не должна ссылаться на отсутствующий файл. Если последующая
+        # транзакция не завершится, finally удалит сохранённый артефакт.
+        file_name = f"{uuid4().hex}{_IMAGE_EXTENSIONS[content_type]}"
+        image_ref = f"{student.id}/{file_name}"
+        file_path = Path(settings.photo_dir) / image_ref
+        try:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_bytes(image_bytes)
+        except OSError as exc:
+            logger.error("Не удалось сохранить фото (image_ref=%s): %s", image_ref, exc)
+            raise HTTPException(
+                status_code=503,
+                detail="Не удалось сохранить фото. Попробуйте ещё раз.",
+            ) from exc
+
+        # ── 8. INSERT INTO error_captures ─────────────────────────────────────
+        # Provenance приходит от реально успешной итерации provider fallback-chain.
+        provider_name = result.provider if isinstance(result.provider, str) else "unknown"
+        used_model = result.model if isinstance(result.model, str) else "unknown"
+        model_name = f"{provider_name.strip() or 'unknown'}:{used_model.strip() or 'unknown'}"[:50]
+        # Нулевая уверенность сохраняется для аудита, но не должна загрязнять
+        # adaptive memory и менять будущий маршрут ученика.
+        failed_micro_skill: str | None = None
+        if result.confidence > 0.0:
+            failed_micro_skill = result.micro_skill or validated_fallback_micro_skill
 
         await session.execute(
             text(
@@ -530,7 +942,7 @@ async def post_diagnose(
             ),
             {
                 "sid": student.id,
-                "aid": attempt_id,
+                "aid": persisted_attempt_id,
                 "pid": problem_id,
                 "nid": node_id,
                 "img": image_ref,
@@ -545,7 +957,7 @@ async def post_diagnose(
         )
 
         # ── 9. UPSERT INTO recurring_errors (только если micro_skill известен) ─
-        if failed_micro_skill:
+        if failed_micro_skill and result.confidence > 0.0:
             await session.execute(
                 text(
                     "INSERT INTO recurring_errors "
@@ -566,29 +978,16 @@ async def post_diagnose(
             )
 
         # ── Коммит DB ────────────────────────────────────────────────────────
-        # Сначала коммитим — строка в БД первична; файл на диске — артефакт.
-        # Если файл не запишется, строка уже сохранена и проблема детектируема.
         await session.commit()
+        db_committed = True
 
     finally:
+        if file_path is not None and not db_committed:
+            try:
+                file_path.unlink(missing_ok=True)
+            except OSError as exc:
+                logger.warning("Не удалось удалить orphan-фото %s: %s", file_path, exc)
         await session.close()
-
-    # ── Запись файла фото на диск (ПОСЛЕ коммита) ────────────────────────────
-    # photo_dir из settings — абсолютный путь на хосте
-    # Делается вне try/finally-блока сессии: DB-строка уже есть, ошибка ФС не критична.
-    photo_dir = Path(settings.photo_dir)
-    student_dir = photo_dir / str(student.id)
-    try:
-        student_dir.mkdir(parents=True, exist_ok=True)
-        file_path = student_dir / file_name
-        file_path.write_bytes(image_bytes)
-    except Exception as exc:  # noqa: BLE001
-        # Логируем предупреждение; не возвращаем 500 — DB-запись уже успешна
-        logger.warning(
-            "Не удалось записать фото на диск (image_ref=%s): %s",
-            image_ref,
-            exc,
-        )
 
     return DiagnosisOut(
         transcription=result.transcription,
@@ -608,7 +1007,7 @@ class StepSubmitOut(BaseModel):
     """Ответ эндпоинта /step-submit."""
 
     verdict: str            # match | mismatch | unsure
-    hint: str | None        # mistake_ru при mismatch, иначе None (expected_value не раскрываем)
+    hint: str | None        # инструкция текущего шага при mismatch, иначе None
     confidence: float
     step_n: int
 
@@ -619,7 +1018,7 @@ async def post_step_submit(
     request: Request,
     decomp_idx: int = Form(...),
     step_n: int = Form(...),
-    problem_id: int | None = Form(None),
+    problem_id: int = Form(...),
     photo: UploadFile = FastApiFile(...),
 ) -> StepSubmitOut:
     """Принимает фото одного шага лесенки → узкая vision-классификация → мягкий вердикт.
@@ -630,11 +1029,10 @@ async def post_step_submit(
       3. Загружаем шаг из problem_steps (404 если нет).
       4. statement — из problems, если problem_id передан.
       5. classify_step_photo (LlmUnavailable → 503).
-      6. Порог: mismatch с confidence < settings.step_confidence_threshold → unsure
+      6. Порог: match/mismatch с confidence ниже threshold → unsure
          (false-reject хуже пропуска — мягкость по умолчанию).
-      7. При mismatch — fingerprint-hint из problem_fingerprints по (decomp_idx, micro_skill).
-      8. INSERT INTO step_submissions ВСЕГДА (включая unsure).
-      9. Файл фото — на диск ПОСЛЕ коммита (steps/{student_id}/{uuid}.jpg).
+      7. При mismatch — только подсказка по текущему шагу без скрытого эталона.
+      8. Атомарно сохраняем файл и INSERT в step_submissions (включая unsure).
     """
     session, student = await _get_current_student(request)
     try:
@@ -654,13 +1052,6 @@ async def post_step_submit(
             )
 
         # Проверка content_type: только допустимые форматы изображений
-        _ALLOWED_CONTENT_TYPES = {
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "image/heic",
-            "image/heif",
-        }
         if photo.content_type is None:
             # Если content_type не передан — считаем JPEG (мобильные клиенты)
             content_type: str = "image/jpeg"
@@ -674,37 +1065,58 @@ async def post_step_submit(
 
         image_bytes = await photo.read()
         # Постчтение-проверка: Content-Length может лгать, сверяемся по факту
+        if not image_bytes:
+            raise HTTPException(status_code=422, detail="Фото пустое")
         if len(image_bytes) > _MAX_PHOTO_BYTES:
             raise HTTPException(
                 status_code=413,
                 detail=f"Фото превышает лимит {_MAX_PHOTO_BYTES // (1024 * 1024)} МБ",
             )
+        if not _is_valid_image_payload(image_bytes, content_type):
+            raise HTTPException(
+                status_code=422,
+                detail="Файл не является корректным изображением выбранного формата",
+            )
 
-        # ── Шаг из problem_steps (404 если нет) ──────────────────────────────
+        # ── Шаг + строгая identity-связь с задачей (404 если нет) ────────────
         step_row = (await session.execute(
-            text("SELECT n, instruction_ru, micro_skill, expected_value FROM problem_steps "
-                 "WHERE decomp_idx = :d AND n = :n"),
-            {"d": decomp_idx, "n": step_n},
+            text(
+                "SELECT ps.n, ps.instruction_ru, ps.micro_skill, ps.expected_value, "
+                "       p.text_ru AS statement, p.answer AS correct_answer "
+                "FROM problems p "
+                "JOIN decomposition_problems dp ON dp.idx = :d "
+                "JOIN problem_steps ps ON ps.decomp_idx = dp.idx AND ps.n = :n "
+                "WHERE p.id = :pid "
+                "  AND dp.node_id = p.node_id "
+                "  AND dp.answer = p.answer "
+                "  AND dp.all_steps_verified = true "
+                "  AND dp.needs_review = false "
+                "  AND (p.content_idx = dp.idx OR dp.problems_db_id = p.id) "
+                "LIMIT 1"
+            ),
+            {"d": decomp_idx, "n": step_n, "pid": problem_id},
         )).fetchone()
         if step_row is None:
             raise HTTPException(status_code=404,
                 detail=f"Шаг {step_n} декомпозиции {decomp_idx} не найден")
 
-        # ── statement (контекст) — если problem_id задан ─────────────────────
-        statement = ""
-        if problem_id is not None:
-            prob = (await session.execute(
-                text("SELECT text_ru FROM problems WHERE id = :pid"),
-                {"pid": problem_id},
-            )).fetchone()
-            if prob is not None:
-                statement = prob.text_ru
+        if not await _previous_drill_steps_solved(
+            session,
+            student_id=student.id,
+            problem_id=problem_id,
+            decomp_idx=decomp_idx,
+            step_n=step_n,
+        ):
+            raise HTTPException(
+                status_code=409,
+                detail="Сначала заверши предыдущий шаг",
+            )
 
         # ── Классификация (LlmUnavailable → 503) ─────────────────────────────
         try:
             cls: StepClassification = await classify_step_photo(
                 image_bytes=image_bytes, content_type=content_type,
-                statement=statement, instruction_ru=step_row.instruction_ru,
+                statement=step_row.statement, instruction_ru=step_row.instruction_ru,
                 expected_value=step_row.expected_value,
             )
         except LlmUnavailable as exc:
@@ -714,53 +1126,96 @@ async def post_step_submit(
                 detail="Сервис проверки фото временно недоступен. Попробуйте позже.",
             ) from exc
 
-        # ── Порог: mismatch с низкой confidence → unsure ─────────────────────
+        # ── Порог: неуверенный match/mismatch → unsure ───────────────────────
         # ⚠️ Ревью Task 2: verdict валидируем против допустимого набора — всё
         # неожиданное трактуем как 'unsure' (мягкость: false-reject хуже пропуска).
-        verdict = cls.verdict if cls.verdict in {"match", "mismatch", "unsure"} else "unsure"
-        if verdict == "mismatch" and cls.confidence < settings.step_confidence_threshold:
+        verdict = (
+            cls.verdict
+            if isinstance(cls.verdict, str)
+            and cls.verdict in {"match", "mismatch", "unsure"}
+            else "unsure"
+        )
+        try:
+            confidence = float(cls.confidence)
+        except (TypeError, ValueError, OverflowError):
+            confidence = 0.0
+        if not math.isfinite(confidence) or not 0.0 <= confidence <= 1.0:
+            confidence = 0.0
+            verdict = "unsure"
+        elif verdict in {"match", "mismatch"} and confidence < settings.step_confidence_threshold:
             verdict = "unsure"
 
-        # ── fingerprint-hint только при mismatch ─────────────────────────────
+        # ── Grounded hint только при mismatch ────────────────────────────────
+        # mistake_ru не показываем: контент может раскрыть expected_value.
+        # Fingerprint используем только как аналитическую метку при точном
+        # совпадении наблюдения с текущими decomposition/micro_skill.
         hint: str | None = None
         matched_ms: str | None = None
+        seen_value = cls.seen_value.strip()[:500] if isinstance(cls.seen_value, str) else None
+        if not seen_value:
+            seen_value = None
         if verdict == "mismatch":
-            fp = (await session.execute(
-                text("SELECT mistake_ru FROM problem_fingerprints "
-                     "WHERE decomp_idx = :d AND micro_skill = :ms LIMIT 1"),
-                {"d": decomp_idx, "ms": step_row.micro_skill},
-            )).fetchone()
+            fp = None
+            if seen_value:
+                candidate = await match_fingerprint(
+                    session,
+                    problem_id=problem_id,
+                    answer_given=seen_value,
+                )
+                if (
+                    candidate is not None
+                    and candidate.decomp_idx == decomp_idx
+                    and candidate.micro_skill == step_row.micro_skill
+                ):
+                    fp = candidate
+
+            safe_instruction = safe_step_instruction(
+                step_row.instruction_ru,
+                expected_value=step_row.expected_value,
+                correct_answer=step_row.correct_answer,
+            )
+            hint = f"Проверь этот шаг ещё раз: {safe_instruction}"
             if fp is not None:
-                hint = fp.mistake_ru
                 matched_ms = step_row.micro_skill
 
         # ── Путь фото (относительно photo_dir) ───────────────────────────────
-        file_name = f"{uuid4().hex}.jpg"
+        file_name = f"{uuid4().hex}{_IMAGE_EXTENSIONS[content_type]}"
         photo_path = f"steps/{student.id}/{file_name}"
+        file_path = Path(settings.photo_dir) / photo_path
+
+        # Сначала гарантируем durable-файл. Иначе нельзя отвечать успехом и
+        # оставлять в БД submission, у которого фактически нет изображения.
+        try:
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_bytes(image_bytes)
+        except OSError as exc:
+            logger.error("Не удалось сохранить фото шага (%s): %s", photo_path, exc)
+            raise HTTPException(
+                status_code=503,
+                detail="Не удалось сохранить фото. Попробуйте ещё раз.",
+            ) from exc
 
         # ── INSERT ВСЕГДА (включая unsure) ───────────────────────────────────
-        await session.execute(
-            text("INSERT INTO step_submissions "
-                 "(student_id, decomp_idx, step_n, problem_id, verdict, confidence, "
-                 " matched_micro_skill, photo_path, created_at) "
-                 "VALUES (:sid,:d,:n,:pid,:v,:conf,:ms,:path,NOW())"),
-            {"sid": student.id, "d": decomp_idx, "n": step_n, "pid": problem_id,
-             "v": verdict, "conf": cls.confidence, "ms": matched_ms, "path": photo_path},
-        )
-        await session.commit()
+        try:
+            await session.execute(
+                text("INSERT INTO step_submissions "
+                     "(student_id, decomp_idx, step_n, problem_id, verdict, confidence, "
+                     " matched_micro_skill, photo_path, created_at) "
+                     "VALUES (:sid,:d,:n,:pid,:v,:conf,:ms,:path,NOW())"),
+                {"sid": student.id, "d": decomp_idx, "n": step_n, "pid": problem_id,
+                 "v": verdict, "conf": confidence, "ms": matched_ms, "path": photo_path},
+            )
+            await session.commit()
+        except Exception:
+            try:
+                file_path.unlink(missing_ok=True)
+            except OSError as cleanup_exc:
+                logger.error("Не удалось удалить orphan-фото %s: %s", photo_path, cleanup_exc)
+            raise
     finally:
         await session.close()
 
-    # ── Файл фото — на диск ПОСЛЕ коммита (паттерн /diagnose) ───────────────
-    photo_dir = Path(settings.photo_dir)
-    student_dir = photo_dir / "steps" / str(student.id)
-    try:
-        student_dir.mkdir(parents=True, exist_ok=True)
-        (student_dir / file_name).write_bytes(image_bytes)
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Не удалось записать фото шага (%s): %s", photo_path, exc)
-
-    return StepSubmitOut(verdict=verdict, hint=hint, confidence=cls.confidence, step_n=step_n)
+    return StepSubmitOut(verdict=verdict, hint=hint, confidence=confidence, step_n=step_n)
 
 
 # ── Verification (closure): проверочная задача того же навыка ─────────────────
@@ -807,6 +1262,7 @@ async def post_verification_start(request: Request, payload: VerificationStartIn
         )).fetchone()
         if prob is None:
             raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
+
         node_id: str = prob.node_id
 
         vp = await pick_verification_problem(
@@ -875,7 +1331,6 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
 class EasierDecompOut(BaseModel):
     decomp_idx: int
     node_id: str
-    answer: str
     primary_micro_skill: str | None
     step_count: int
     steps: list[StepOut]
@@ -905,16 +1360,20 @@ async def get_easier(
             {"didx": row.idx},
         )
         steps = [
-            StepOut(n=s.n, instruction_ru=s.instruction_ru, micro_skill=s.micro_skill,
+            StepOut(n=s.n, instruction_ru=safe_step_instruction(
+                        s.instruction_ru,
+                        expected_value=s.expected_value,
+                        correct_answer=row.answer,
+                    ), micro_skill=s.micro_skill,
                     micro_skill_label=s.micro_skill_label,
-                    expected_value=s.expected_value, kind="compute", reveal=None)
+                    kind="compute", reveal=None)
             for s in steps_raw
         ]
     finally:
         await session.close()
 
     return EasierDecompOut(
-        decomp_idx=row.idx, node_id=row.node_id, answer=row.answer,
+        decomp_idx=row.idx, node_id=row.node_id,
         primary_micro_skill=row.primary_micro_skill, step_count=row.step_count, steps=steps,
     )
 
@@ -928,7 +1387,15 @@ class TutorChatIn(BaseModel):
     # диалог именно на ней. None → общий диалог по задаче. ge=1: мусорные значения
     # (отрицательные/ноль) не должны попадать в текст промпта.
     step_n: int | None = Field(default=None, ge=1)
-    message: str
+    message: str = Field(min_length=1, max_length=1000)
+
+    @field_validator("message")
+    @classmethod
+    def message_must_not_be_blank(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("message must not be blank")
+        return value
 
 
 class TutorMessageOut(BaseModel):
@@ -955,6 +1422,27 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
         )).fetchone()
         if prob is None:
             raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
+
+        if payload.decomp_idx is not None:
+            valid_decomp = (await session.execute(
+                text(
+                    "SELECT 1 FROM decomposition_problems dp "
+                    "JOIN problems p ON p.id = :pid "
+                    "WHERE dp.idx = :didx "
+                    "  AND dp.node_id = p.node_id "
+                    "  AND dp.answer = p.answer "
+                    "  AND dp.all_steps_verified = true "
+                    "  AND dp.needs_review = false "
+                    "  AND (p.content_idx = dp.idx OR dp.problems_db_id = p.id) "
+                    "LIMIT 1"
+                ),
+                {"pid": payload.problem_id, "didx": payload.decomp_idx},
+            )).scalar()
+            if valid_decomp is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Декомпозиция не относится к выбранной задаче",
+                )
 
         # Reuse или create сессии
         sess_row = (await session.execute(
@@ -1003,7 +1491,8 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
         )
         history = [{"role": h.role, "content": h.content} for h in hist_rows]
 
-        # Генерация ответа (LLM); LlmUnavailable → 503 (паттерн diagnose_photo)
+        # Генерация ответа (LLM). При сбое не оставляем ребёнка в тупике:
+        # сохраняем честный безопасный вопрос без чисел и ожидаемых ответов.
         try:
             reply = await generate_tutor_reply(
                 session,
@@ -1016,10 +1505,10 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
             )
         except LlmUnavailable as exc:
             logger.warning("LLM недоступен для tutor/chat: %s", exc)
-            raise HTTPException(
-                status_code=503,
-                detail="Тьютор временно недоступен. Попробуйте позже.",
-            ) from exc
+            reply = tutor_unavailable_fallback()
+        # Defense-in-depth: даже устаревший/замоканный generator не может
+        # записать и вернуть free-form assistant-текст.
+        reply = sanitize_tutor_output(reply)
 
         # Persist обе реплики
         await session.execute(
@@ -1036,7 +1525,17 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
             text("SELECT role, content FROM tutor_messages WHERE session_id = :sess ORDER BY id"),
             {"sess": session_id},
         )
-        out_history = [TutorMessageOut(role=r.role, content=r.content) for r in full]
+        out_history = [
+            TutorMessageOut(
+                role=r.role,
+                content=(
+                    sanitize_tutor_output(r.content)
+                    if r.role == "assistant"
+                    else r.content
+                ),
+            )
+            for r in full
+        ]
     finally:
         await session.close()
 
@@ -1254,4 +1753,7 @@ async def get_step_photo(request: Request, submission_id: int) -> Response:
     file_path = Path(settings.photo_dir) / row.photo_path
     if not file_path.is_file():
         raise HTTPException(status_code=404, detail="Файл фото не найден")
-    return Response(content=file_path.read_bytes(), media_type="image/jpeg")
+    media_type = _IMAGE_MEDIA_TYPES_BY_SUFFIX.get(file_path.suffix.casefold())
+    if media_type is None:
+        raise HTTPException(status_code=415, detail="Формат сохранённого фото не поддерживается")
+    return Response(content=file_path.read_bytes(), media_type=media_type)

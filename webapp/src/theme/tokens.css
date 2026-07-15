@@ -1,83 +1,92 @@
-/* Дизайн-токены v6 — «Тетрадь чемпиона» (канон: docs/loops/runs/2026-07-13-webapp-v6/DESIGN-V6.md,
-   синтез R1: rounds/round-1/SYNTHESIS.md). Значения перенесены из победившего концепта K-B
-   «Экспедиция» (тёплая мастерская чемпиона): слои бумаги со светом, тетрадная клетка как живая
-   текстура, ink-пары контраста на светлом, один акцент kodi-оранж = действие/маршрут/прогресс.
-
-   Роли токенов — DESIGN-V6.md §Colors. Значения = LAW, не трогать без синхронной правки канона.
-   Tailwind v4: @theme мапит токены в утилиты (bg-paper, text-brand-ink, border-grid, bg-brand…).
-   Раздел :root — «сырые» custom properties; @theme — производные для Tailwind. */
+/* AiPlus v11 — «Лента решения».
+   Source: docs/loops/runs/2026-07-15-webapp-v11-squirrel-clean-slate/round-concepts/RESULT.md */
 
 :root {
-  /* ---- шрифты (пара v6) ---- */
-  --font-sans: 'Golos Text', system-ui, sans-serif; /* body: учебный текст, реплики */
-  --font-display: 'Unbounded', 'Golos Text', sans-serif; /* display: числа-герои, заголовки, ступени */
+  --font-sans: 'Onest', 'Golos Text', system-ui, sans-serif;
+  --font-display: 'Tektur', 'Onest', system-ui, sans-serif;
+  --font-editorial: 'Onest', 'Golos Text', system-ui, sans-serif;
 
-  /* ---- ink / text / muted (тёплый почти-чёрный, НЕ #000) ---- */
-  --ink: #201d17; /* заголовки, числа-герои */
-  --text: #3d3a34; /* основной текст */
-  --muted: #71695d; /* подписи/плейсхолдеры — затемнён до AA 4.5:1 на бумаге и surface (R3 §3) */
-  --label: #6b665c; /* эйбровы, номера-метки, текст disabled-CTA (AA 4.6:1 на paper-3) */
+  --ink: #17312e;
+  --ink-panel: #21423d;
+  --ink-soft: #31514b;
+  --text: #29423e;
+  --muted: #566a64;
+  --label: #526762;
 
-  /* ---- поверхности: слои тёплой бумаги (глубина светом, не серыми тенями) ---- */
-  --paper: #faf7f2; /* фон страницы — верхний тёплый слой */
-  --paper-2: #f3ede2; /* второй слой (свёрнутые/тихие блоки) */
-  --paper-3: #efe7d8; /* третий слой (треки прогресса, вложенные подложки) */
-  --surface: #fffdfa; /* карточки — чуть светлее бумаги (приподняты) */
-  --stroke: #e8e2d8; /* 1px-бордер разделения */
-  --grid: #e7dfcf; /* тонкая линия клетки тетради (чуть теплее stroke) */
-  --grid-strong: #dcd2be; /* усиленная линия клетки (каждая 5-я) / пунктир-план */
+  --paper: #f5f1e7;
+  --paper-2: #ebe6d9;
+  --paper-3: #dbd5c7;
+  --surface: #fffdf7;
+  --stroke: #d5cfc0;
+  --grid: #e6e0d4;
+  --grid-strong: #b8b4a8;
 
-  /* ---- бренд: ОДИН акцент (ТОЛЬКО действие/маршрут/прогресс — DESIGN-V6.md §Colors) ---- */
-  --brand: #ff8c00;
-  --brand-soft: #fff3e2; /* выделенная тёплая подложка */
-  --brand-deep: #e67e00; /* hover/pressed */
-  --brand-ink: #9a5b00; /* тёмно-оранж ink-пара: текст/эйбров на светлом (AA на бумаге) */
-  --on-brand: #201d17; /* текст/иконка на заливке brand — ink, НЕ белый (AA 7:1 на оранже) */
+  --brand: #ff9f2f;
+  --brand-soft: #ffe0b6;
+  --brand-deep: #a44d08;
+  --brand-ink: #5e330d;
+  --on-brand: #17221f;
 
-  /* ---- маршрут-сигнатура: штрих линии + заливки прогресса (графический контраст ≥3:1) ---- */
-  --route-line: #b37000; /* прочерченный штрих + заливки прогресса: глубокий амбер, 3.75:1 на бумаге (R3 §1) */
-  --route-trace: #94856a; /* карандашный след-подложка всей траектории (тёплый серый); затемнён до графич. порога ≥3:1 на бумаге — 3.37:1 (R4 §6, было #ad9f82 ≈2.4:1) */
+  --sage: #b8d3c2;
+  --sage-soft: #e1eee5;
+  --sage-deep: #3a7055;
+  --blue: #62818a;
+  --blue-deep: #385b63;
+  --blue-soft: #dce8e7;
+  --blue-mist: #edf3f0;
+  --on-blue: #fffdf7;
 
-  /* ---- success / attn (амбер «не сошлось», НЕ красный) ---- */
-  --success: #2e9e5b;
-  --success-soft: #e9f6ee;
-  --success-ink: #1f7d45; /* ink-пара success на светлом */
-  --attn: #b7791f;
-  --attn-soft: #fbf3e4;
-  --attn-ink: #7a5210; /* ink-пара attn на светлом (AA) */
+  --success: #337a57;
+  --success-soft: #dcecdf;
+  --success-ink: #205b3e;
+  --oxide: #8f3f32;
+  --oxide-soft: #f3ded7;
+  --attn: #9b5c14;
+  --attn-soft: #f6e6ca;
+  --attn-ink: #6d3c08;
 
-  /* ---- радиусы (§DESIGN_SYSTEM: 4 значения) ---- */
-  --radius-chip: 8px;
-  --radius-control: 12px;
-  --radius-card: 16px;
+  /* Compatibility aliases for the behavior layer. */
+  --cobalt: var(--ink);
+  --cobalt-deep: var(--ink-panel);
+  --cobalt-soft: var(--sage-soft);
+  --on-cobalt: var(--surface);
+  --on-cobalt-muted: #c8d7d2;
+  --kodi: var(--brand);
+  --kodi-deep: var(--brand-deep);
+  --route-line: var(--ink);
+  --route-trace: var(--stroke);
+
+  --radius-chip: 999px;
+  --radius-control: 14px;
+  --radius-card: 28px;
+  --radius-tape: 10px 30px 30px 10px;
   --radius-full: 9999px;
 
-  /* ---- тени: один крафт-lift у активной карточки + служебные бар/меню ---- */
-  --shadow-lift: 0 8px 22px -14px rgba(230, 126, 0, 0.5); /* тёплый lift активной ступени/карточки */
-  --shadow-lift-sm: 0 6px 20px -12px rgba(32, 29, 23, 0.28); /* мягкий подъём ведущей карточки */
-  --shadow-tooltip: 0 2px 4px rgba(32, 29, 23, 0.16);
-  --shadow-bottom-bar: 0 -6px 20px -16px rgba(32, 29, 23, 0.4);
-  --shadow-overlay: 0 4px 12px rgba(32, 29, 23, 0.12), 0 2px 4px rgba(32, 29, 23, 0.03);
-  --shadow-menu: 0 12px 28px -4px rgba(32, 29, 23, 0.16);
+  --shadow-lift: 0 24px 64px -38px rgb(23 49 46 / 0.28);
+  --shadow-lift-sm: 0 16px 36px -26px rgb(23 49 46 / 0.2);
+  --shadow-key: 0 5px 0 #d9781d;
+  --shadow-tooltip: 0 14px 34px rgb(23 49 46 / 0.15);
+  --shadow-bottom-bar: 0 -14px 36px rgb(23 49 46 / 0.08);
+  --shadow-overlay: 0 22px 54px rgb(23 49 46 / 0.2);
+  --shadow-menu: 0 24px 58px -22px rgb(23 49 46 / 0.24);
 
-  /* ---- тайминги (150-300ms + draw маршрута ~1s, easeOut) ---- */
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-proof: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bar: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Tailwind v4: объявляем токены color/font/radius в @theme, чтобы получить
-   утилиты (bg-paper, text-ink, border-stroke, bg-brand, rounded-card…). */
 @theme {
-  --font-sans: 'Golos Text', system-ui, sans-serif;
-  --font-display: 'Unbounded', 'Golos Text', sans-serif;
+  --font-sans: 'Onest', 'Golos Text', system-ui, sans-serif;
+  --font-display: 'Tektur', 'Onest', system-ui, sans-serif;
+  --font-editorial: 'Onest', 'Golos Text', system-ui, sans-serif;
 
-  /* ink / text / muted → text / bg / border утилиты */
   --color-ink: var(--ink);
+  --color-ink-panel: var(--ink-panel);
+  --color-ink-soft: var(--ink-soft);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-label: var(--label);
 
-  /* поверхности */
   --color-paper: var(--paper);
   --color-paper-2: var(--paper-2);
   --color-paper-3: var(--paper-3);
@@ -86,28 +95,43 @@
   --color-grid: var(--grid);
   --color-grid-strong: var(--grid-strong);
 
-  /* бренд */
   --color-brand: var(--brand);
   --color-brand-soft: var(--brand-soft);
   --color-brand-deep: var(--brand-deep);
   --color-brand-ink: var(--brand-ink);
   --color-on-brand: var(--on-brand);
+
+  --color-sage: var(--sage);
+  --color-sage-soft: var(--sage-soft);
+  --color-sage-deep: var(--sage-deep);
+  --color-blue: var(--blue);
+  --color-blue-deep: var(--blue-deep);
+  --color-blue-soft: var(--blue-soft);
+  --color-blue-mist: var(--blue-mist);
+  --color-on-blue: var(--on-blue);
+
+  --color-cobalt: var(--cobalt);
+  --color-cobalt-deep: var(--cobalt-deep);
+  --color-cobalt-soft: var(--cobalt-soft);
+  --color-on-cobalt: var(--on-cobalt);
+  --color-on-cobalt-muted: var(--on-cobalt-muted);
+  --color-kodi: var(--kodi);
+  --color-kodi-deep: var(--kodi-deep);
   --color-route-line: var(--route-line);
 
-  /* success / attn */
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-success-ink: var(--success-ink);
+  --color-oxide: var(--oxide);
+  --color-oxide-soft: var(--oxide-soft);
   --color-attn: var(--attn);
   --color-attn-soft: var(--attn-soft);
   --color-attn-ink: var(--attn-ink);
 
-  /* радиусы → rounded-chip/control/card (rounded-full — стандартный Tailwind) */
   --radius-chip: var(--radius-chip);
   --radius-control: var(--radius-control);
   --radius-card: var(--radius-card);
 
-  /* тени → shadow-* */
   --shadow-lift: var(--shadow-lift);
   --shadow-lift-sm: var(--shadow-lift-sm);
   --shadow-tooltip: var(--shadow-tooltip);

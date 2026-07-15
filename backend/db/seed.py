@@ -15,16 +15,16 @@ logger = logging.getLogger(__name__)
 _DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 # Версия данных задач — увеличить при каждом обновлении problems JSON
-PROBLEMS_VERSION = "v10.1"  # v10.1: добавлены подсказки единиц, фикс ответа WP05
+PROBLEMS_VERSION = "v10.2"  # v10.2: исправлены 5 ошибочных ответов/решений
 
 
 async def seed_graph(session) -> int:
-    """Load knowledge graph nodes + edges if the nodes table is empty."""
-    result = await session.execute(text("SELECT count(*) FROM nodes"))
-    count = result.scalar()
-    if count and count > 0:
-        return count
+    """Недеструктивно долить отсутствующие узлы и рёбра knowledge graph.
 
+    Existing-узлы не обновляются: в рабочей БД их метаданные могли быть
+    отредактированы вручную. Это делает startup безопасным и для пустой, и для
+    частично засеянной БД.
+    """
     graph_path = _DATA_DIR / "nis_knowledge_graph_v01.json"
     if not graph_path.exists():
         logger.warning("Knowledge graph file not found: %s", graph_path)
@@ -32,8 +32,13 @@ async def seed_graph(session) -> int:
 
     data = json.loads(graph_path.read_text(encoding="utf-8"))
     nodes_raw = data["nodes"]
+    existing_node_ids = set(
+        (await session.execute(text("SELECT id FROM nodes"))).scalars().all()
+    )
 
     for n in nodes_raw:
+        if n["id"] in existing_node_ids:
+            continue
         session.add(Node(
             id=n["id"],
             name_ru=n["name_ru"],
@@ -45,13 +50,28 @@ async def seed_graph(session) -> int:
         ))
     await session.flush()
 
+    existing_edges = set(
+        (await session.execute(text("SELECT from_node, to_node FROM edges"))).all()
+    )
+    added_edges = 0
     for n in nodes_raw:
         for prereq_id in n.get("prerequisites", []):
+            if (prereq_id, n["id"]) in existing_edges:
+                continue
             session.add(Edge(from_node=prereq_id, to_node=n["id"]))
+            added_edges += 1
 
     await session.commit()
-    logger.info("Seeded %d knowledge graph nodes.", len(nodes_raw))
-    return len(nodes_raw)
+    count = (await session.execute(text("SELECT count(*) FROM nodes"))).scalar() or 0
+    added_nodes = len({n["id"] for n in nodes_raw} - existing_node_ids)
+    if added_nodes or added_edges:
+        logger.info(
+            "Knowledge graph repaired: added %d nodes and %d edges (%d nodes total).",
+            added_nodes,
+            added_edges,
+            count,
+        )
+    return count
 
 
 def _find_problems_path() -> Path | None:
@@ -80,11 +100,127 @@ async def seed_problems(session) -> int:
         if ver_row and ver_row[0] == PROBLEMS_VERSION:
             return count
 
-        # Версия устарела — обновить существующие записи
-        return await _sync_problems(session)
+        # Версия устарела — обновить только по stable content_idx.
+        return await sync_canonical_problems(session)
 
     # Таблица пустая — вставить все
     return await _insert_all_problems(session)
+
+
+async def backfill_problem_content_idx(session) -> int:
+    """Недеструктивно привязать existing-БД к canonical problem index.
+
+    Autoincrement ``problems.id`` нестабилен между базами, поэтому backfill идёт
+    по уникальному natural key ``(node_id, text_ru)``. Уже заполненные значения
+    не перезаписываются; ручные задачи, которых нет в canonical JSON, остаются NULL.
+    """
+    problems_path = _find_problems_path()
+    if not problems_path:
+        logger.warning("No problems JSON found in %s", _DATA_DIR)
+        return 0
+
+    problems_raw = json.loads(problems_path.read_text(encoding="utf-8"))["problems"]
+    identities = [
+        {
+            "content_idx": content_idx,
+            "node_id": problem["node_id"],
+            "text_ru": problem["text_ru"],
+        }
+        for content_idx, problem in enumerate(problems_raw)
+    ]
+    result = await session.execute(
+        text(
+            "UPDATE problems SET content_idx = :content_idx "
+            "WHERE content_idx IS NULL "
+            "  AND node_id = :node_id "
+            "  AND text_ru = :text_ru"
+        ),
+        identities,
+    )
+    await session.commit()
+    # asyncpg executemany может вернуть -1 («неизвестно»), это не число строк.
+    updated = max(result.rowcount or 0, 0)
+    if updated:
+        logger.info("Problem identity: backfilled content_idx for %d rows.", updated)
+    return updated
+
+
+async def sync_canonical_problems(session) -> int:
+    """Идемпотентно синхронизировать canonical-банк по ``content_idx``.
+
+    Порядок ``problems.id`` между базами нестабилен. Поэтому existing-строки
+    перед этим проходят ``backfill_problem_content_idx``, а upsert никогда
+    не сопоставляет задачи по autoincrement id и не трогает ручные NULL-строки.
+    """
+    problems_path = _find_problems_path()
+    if not problems_path:
+        logger.warning("No problems JSON found in %s", _DATA_DIR)
+        return 0
+
+    problems_raw = json.loads(problems_path.read_text(encoding="utf-8"))["problems"]
+    rows = [
+        {
+            "content_idx": content_idx,
+            "node_id": problem["node_id"],
+            "text_ru": problem["text_ru"],
+            "text_kz": problem.get("text_kz"),
+            "answer": problem["answer"],
+            "answer_type": problem.get("answer_type"),
+            "difficulty": problem.get("difficulty"),
+            "sub_difficulty": problem.get("sub_difficulty") or problem.get("difficulty"),
+            "raw_score": problem.get("raw_score"),
+            "image_path": problem.get("image_file"),
+            "image_path_kz": problem.get("image_file_kz"),
+            "source": problem.get("source"),
+            "solution_ru": problem.get("solution_ru"),
+            "solution_kz": problem.get("solution_kz"),
+        }
+        for content_idx, problem in enumerate(problems_raw)
+    ]
+    await session.execute(
+        text(
+            """
+            INSERT INTO problems (
+                content_idx, node_id, text_ru, text_kz, answer, answer_type,
+                difficulty, sub_difficulty, raw_score, image_path, image_path_kz,
+                source, solution_ru, solution_kz
+            ) VALUES (
+                :content_idx, :node_id, :text_ru, :text_kz, :answer, :answer_type,
+                :difficulty, :sub_difficulty, :raw_score, :image_path, :image_path_kz,
+                :source, :solution_ru, :solution_kz
+            )
+            ON CONFLICT (content_idx) DO UPDATE SET
+                node_id = EXCLUDED.node_id,
+                text_ru = EXCLUDED.text_ru,
+                text_kz = EXCLUDED.text_kz,
+                answer = EXCLUDED.answer,
+                answer_type = EXCLUDED.answer_type,
+                difficulty = EXCLUDED.difficulty,
+                sub_difficulty = EXCLUDED.sub_difficulty,
+                raw_score = EXCLUDED.raw_score,
+                image_path = EXCLUDED.image_path,
+                image_path_kz = EXCLUDED.image_path_kz,
+                source = EXCLUDED.source,
+                solution_ru = EXCLUDED.solution_ru,
+                solution_kz = EXCLUDED.solution_kz
+            """
+        ),
+        rows,
+    )
+    await session.execute(
+        text(
+            "INSERT INTO settings (key, value) VALUES ('problems_version', :v) "
+            "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value"
+        ),
+        {"v": PROBLEMS_VERSION},
+    )
+    await session.commit()
+    logger.info(
+        "Synced %d canonical problems by content_idx to version %s.",
+        len(rows),
+        PROBLEMS_VERSION,
+    )
+    return len(rows)
 
 
 async def _insert_all_problems(session) -> int:
@@ -97,8 +233,9 @@ async def _insert_all_problems(session) -> int:
     data = json.loads(problems_path.read_text(encoding="utf-8"))
     problems_raw = data["problems"]
 
-    for p in problems_raw:
+    for content_idx, p in enumerate(problems_raw):
         session.add(Problem(
+            content_idx=content_idx,
             node_id=p["node_id"],
             text_ru=p["text_ru"],
             text_kz=p.get("text_kz"),
@@ -199,87 +336,3 @@ async def backfill_theory(session) -> int:
     if filled:
         logger.info("Теория узлов: долито %d карточек (theory_ru IS NULL).", filled)
     return filled
-
-
-async def _sync_problems(session) -> int:
-    """Обновить существующие задачи из JSON (по порядку id)."""
-    problems_path = _find_problems_path()
-    if not problems_path:
-        logger.warning("No problems JSON found in %s", _DATA_DIR)
-        return 0
-
-    data = json.loads(problems_path.read_text(encoding="utf-8"))
-    problems_raw = data["problems"]
-
-    # Получить все id в порядке вставки
-    result = await session.execute(text("SELECT id FROM problems ORDER BY id"))
-    db_ids = [row[0] for row in result.fetchall()]
-
-    updated = 0
-    for i, p in enumerate(problems_raw):
-        if i >= len(db_ids):
-            # Новая задача — вставить
-            session.add(Problem(
-                node_id=p["node_id"],
-                text_ru=p["text_ru"],
-                text_kz=p.get("text_kz"),
-                answer=p["answer"],
-                answer_type=p.get("answer_type"),
-                difficulty=p.get("difficulty"),
-                sub_difficulty=p.get("sub_difficulty") or p.get("difficulty"),
-                raw_score=p.get("raw_score"),
-                image_path=p.get("image_file"),
-                image_path_kz=p.get("image_file_kz"),
-                source=p.get("source"),
-                solution_ru=p.get("solution_ru"),
-                solution_kz=p.get("solution_kz"),
-            ))
-            updated += 1
-            continue
-
-        # Обновить существующую запись
-        db_id = db_ids[i]
-        await session.execute(
-            text("""
-                UPDATE problems SET
-                    text_ru = :text_ru,
-                    text_kz = :text_kz,
-                    answer = :answer,
-                    answer_type = :answer_type,
-                    difficulty = :difficulty,
-                    sub_difficulty = :sub_difficulty,
-                    raw_score = :raw_score,
-                    image_path = :image_path,
-                    image_path_kz = :image_path_kz,
-                    source = :source,
-                    solution_ru = :solution_ru,
-                    solution_kz = :solution_kz
-                WHERE id = :id
-            """),
-            {
-                "id": db_id,
-                "text_ru": p["text_ru"],
-                "text_kz": p.get("text_kz"),
-                "answer": p["answer"],
-                "answer_type": p.get("answer_type"),
-                "difficulty": p.get("difficulty"),
-                "sub_difficulty": p.get("sub_difficulty") or p.get("difficulty"),
-                "raw_score": p.get("raw_score"),
-                "image_path": p.get("image_file"),
-                "image_path_kz": p.get("image_file_kz"),
-                "source": p.get("source"),
-                "solution_ru": p.get("solution_ru"),
-                "solution_kz": p.get("solution_kz"),
-            },
-        )
-        updated += 1
-
-    # Сохранить версию
-    await session.execute(
-        text("INSERT INTO settings (key, value) VALUES ('problems_version', :v) "
-             "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value"),
-        {"v": PROBLEMS_VERSION},
-    )
-    await session.commit()
-    logger.info("Synced %d problems to version %s.", updated, PROBLEMS_VERSION)
-    return updated

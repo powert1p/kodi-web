@@ -1,100 +1,90 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { MathText } from '../../components/MathText'
 import { ApButton } from '../../components/ApButton'
-import { ApInformer } from '../../components/ApInformer'
-import { ApTag } from '../../components/ApTag'
-import { ApCard } from '../../components/ApCard'
-import { Mascot } from '../../components/Mascot'
 
 interface VerificationCardProps {
-  /** Условие контрольной задачи (LaTeX инлайн в $...$). */
   statement: string
-  /** Промах: показать мягкий ретрай-баннер (НИКОГДА красный). */
   wrong: boolean
-  /** Сколько раз промахнулся — мягко меняет тон строки. */
+  networkError: boolean
   attempts: number
-  /** Проверить ответ — правильность решает сервер (verification/answer). */
+  checking: boolean
   onCheck: (value: string) => void
-  /** Ввод изменился после промаха — вернуть в solving. */
   onResume: () => void
 }
 
-// Контрольная без подсказок — ApCard tone=brand-soft (единственный ДРУГОЙ активный
-// фокус на этом экране, законно — это единственная интерактивная задача экрана):
-// эйбров + условие через KaTeX + поле + «Проверить». Промах — attn-Informer
-// (поддержка, не наказание, амбер — НИКОГДА красный), ввод сохраняется.
 export function VerificationCard({
   statement,
   wrong,
+  networkError,
   attempts,
+  checking,
   onCheck,
   onResume,
 }: VerificationCardProps) {
   const [value, setValue] = useState('')
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault()
-    if (!value.trim()) return
+  function submit(event: FormEvent) {
+    event.preventDefault()
+    if (!value.trim() || checking) return
     onCheck(value)
   }
 
-  const handleChange = (next: string) => {
+  function change(next: string) {
     setValue(next)
-    if (wrong) onResume()
+    if (wrong || networkError) onResume()
   }
 
   return (
-    <ApCard as="article" tone="brand-soft" padding="m" className="lift flex flex-col gap-3 border-brand/40">
-      <div className="flex items-center gap-2">
-        <span className="font-display min-w-0 flex-1 truncate text-caption2-medium uppercase tracking-[0.1em] text-brand-ink">
-          Контрольная
-        </span>
-        <ApTag status="neutral">без подсказок</ApTag>
+    <article className="tape-stage px-5 py-6 md:px-9 md:py-10">
+      <div className="relative flex items-center justify-between gap-3">
+        <p className="text-mark text-brand-deep">Новая задача</p>
+        <span className="text-caption1 text-muted">без подсказок</span>
+      </div>
+      <div className="math-prose relative mt-4 pb-2 md:mt-6">
+        <h2 className="formula-body max-w-4xl text-[clamp(30px,5vw,50px)] font-bold leading-[1.08] tracking-[-0.045em] text-ink">
+          <MathText text={statement} />
+        </h2>
       </div>
 
-      <p className="formula-body text-study text-ink">
-        <MathText text={statement} />
-      </p>
-
-      <form onSubmit={handleSubmit} className="flex items-stretch gap-3">
-        <input
-          inputMode="decimal"
-          value={value}
-          onChange={(e) => handleChange(e.target.value)}
-          placeholder="Твой ответ"
-          aria-label="Введите ответ контрольной"
-          autoComplete="off"
-          className="font-num min-w-0 flex-1 rounded-control border border-stroke bg-surface px-4 text-body tabular-nums text-text placeholder:text-muted outline-none focus:border-[1.5px] focus:border-brand"
-          style={{ fontSize: '16px' }}
-        />
-        <ApButton type="submit" variant="primary" size="m" disabled={!value.trim()}>
-          Проверить
+      <form onSubmit={submit} className="relative mt-5 md:mt-8">
+        <label htmlFor="closure-answer" className="text-caption1-medium text-muted">Твой ответ</label>
+        <div className="answer-panel math-viewport mt-3 pb-3">
+          <div className="font-display inline-flex min-w-max items-center gap-[0.22em] text-[clamp(34px,9vw,62px)] font-semibold leading-none tracking-[-0.055em]">
+            <span className="text-muted">Ответ</span>
+            <span className="text-muted">=</span>
+            <span className="bracket-slot" data-state={wrong ? 'wrong' : 'active'}>
+              <input
+                id="closure-answer"
+                inputMode="text"
+                value={value}
+                onChange={(event) => change(event.target.value)}
+                disabled={checking}
+                placeholder="?"
+                aria-label="Введите ответ контрольной"
+                aria-invalid={wrong || undefined}
+                autoComplete="off"
+                maxLength={64}
+                className="equation-input"
+              />
+            </span>
+          </div>
+        </div>
+        {(wrong || networkError) && <div className="relative mt-4" aria-live="polite">
+          {wrong && (
+            <div className="reveal rounded-control border border-oxide/20 border-l-4 border-l-oxide bg-oxide-soft px-4 py-3 text-text">
+              <p className="text-caption1-medium"><span className="font-semibold text-oxide">Пока не сошлось.</span> {attempts >= 2 ? 'Перечитай условие и проверь каждый шаг ещё раз.' : 'Проверь числа и попробуй снова. Ответ не раскрываем.'}</p>
+            </div>
+          )}
+          {networkError && (
+            <div className="reveal rounded-control border border-brand/20 border-l-4 border-l-brand bg-brand-soft/45 px-4 py-3 text-text" role="alert">
+              <p className="text-caption1-medium"><span className="font-semibold text-brand-deep">Нет связи.</span> Ответ сохранён — нажми «Проверить решение» ещё раз.</p>
+            </div>
+          )}
+        </div>}
+        <ApButton type="submit" size="l" className="mt-5 w-full sm:w-auto sm:min-w-56 md:mt-6" loading={checking} disabled={!value.trim() || checking}>
+          Проверить решение
         </ApButton>
       </form>
-
-      {wrong && <RetryBanner attempts={attempts} />}
-    </ApCard>
-  )
-}
-
-// Мягкий ретрай: attn-Informer (амбер — «не сошлось», НИКОГДА красный),
-// маскот подбадривает. Учебный текст (canon §1) — реплика Кёди ≥18px.
-function RetryBanner({ attempts }: { attempts: number }) {
-  const text =
-    attempts >= 2
-      ? 'Почти! Перечитай условие и проверь каждый шаг заново.'
-      : 'Чуть мимо — это нормально. Глянь числа и попробуй снова, ты близко.'
-
-  return (
-    <div className="reveal">
-      <ApInformer
-        tone="attn"
-        leading={<Mascot mood="oops" size="s" className="shrink-0" />}
-        title="Почти"
-      >
-        <span className="text-study">{text}</span>
-      </ApInformer>
-    </div>
+    </article>
   )
 }

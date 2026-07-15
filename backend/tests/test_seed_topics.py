@@ -4,6 +4,34 @@ import pytest
 from sqlalchemy import text
 
 from db.seed import seed_graph, seed_topics
+from db.models import Node
+
+
+async def test_seed_graph_repairs_partial_database_without_overwriting_existing_nodes(
+    db_session,
+):
+    db_session.add(
+        Node(
+            id="AR01",
+            name_ru="Сохранённое название",
+            name_kz="Сақталған атау",
+            difficulty=1,
+        )
+    )
+    await db_session.commit()
+
+    n1 = await seed_graph(db_session)
+    n2 = await seed_graph(db_session)
+
+    nodes = (await db_session.execute(text("SELECT count(*) FROM nodes"))).scalar()
+    edges = (await db_session.execute(text("SELECT count(*) FROM edges"))).scalar()
+    preserved_name = (
+        await db_session.execute(text("SELECT name_ru FROM nodes WHERE id = 'AR01'"))
+    ).scalar_one()
+
+    assert n1 == n2 == nodes == 114
+    assert edges == 178
+    assert preserved_name == "Сохранённое название"
 
 
 async def test_seed_topics_idempotent(db_session):

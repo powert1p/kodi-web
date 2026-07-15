@@ -1,9 +1,9 @@
-import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { ApButton } from '../../components/ApButton'
 import { ApInformer } from '../../components/ApInformer'
-import { Mascot } from '../../components/Mascot'
+import { FocusTopbar } from '../../components/FocusTopbar'
 import { HubError } from '../hub/HubError'
 import { SrezHeader } from './SrezHeader'
 import { SrezQuestionCard } from './SrezQuestionCard'
@@ -13,114 +13,76 @@ import { SrezEmpty } from './SrezEmpty'
 import { SrezFinal } from './SrezFinal'
 import { useSrez } from './useSrez'
 
-// /srez — мини-срез (Блок 1.0 «Пилот-подготовка»): 12 задач вразброс тем,
-// правильность решает ТОЛЬКО сервер — клиент никогда не хранит и не
-// показывает верный ответ (канон §2.5). Один экран — одна задача — один
-// primary-CTA «Проверить»; фидбек — реплика Кёди (§5), авто-переход к
-// следующей задаче. Финал — счётчик тем для разбора → назад на хаб.
 export function SrezPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const srez = useSrez()
   const [value, setValue] = useState('')
 
-  // Новая задача — очищаем поле (ответ прошлой задачи не переносится).
-  useEffect(() => {
-    setValue('')
-  }, [srez.currentTask?.problem_id])
+  useEffect(() => { setValue('') }, [srez.currentTask?.problem_id])
 
-  // Короткие состояния (лоадер/ошибка/пусто/финал) центрируем в доступной высоте —
-  // без этого под ними остаётся мёртвая нижняя половина вьюпорта (canon §2.8).
-  if (srez.isLoading) {
-    return <CenteredState><SrezSkeleton /></CenteredState>
-  }
-  if (srez.isError) {
-    return <CenteredState><HubError onRetry={srez.refetch} /></CenteredState>
-  }
-  if (srez.tasks.length === 0) {
-    return <CenteredState><SrezEmpty /></CenteredState>
-  }
-
+  if (srez.isLoading) return <FocusState><SrezSkeleton /></FocusState>
+  if (srez.isError) return <FocusState><HubError onRetry={srez.refetch} title="Мини-срез не загрузился" text="Проверь интернет и повтори. Новая выборка начнётся только после успешной загрузки." /></FocusState>
+  if (srez.tasks.length === 0) return <FocusState><SrezEmpty /></FocusState>
   if (srez.finished) {
     return (
-      <CenteredState>
-        <SrezFinal
-          wrongCount={srez.wrongCount}
-          onContinue={() => {
-            void queryClient.invalidateQueries({ queryKey: ['wrong-tasks'] })
-            navigate('/')
-          }}
-        />
-      </CenteredState>
+      <FocusState wide>
+        <SrezFinal wrongCount={srez.wrongCount} onContinue={() => {
+          void queryClient.invalidateQueries({ queryKey: ['wrong-tasks'] })
+          navigate('/')
+        }} />
+      </FocusState>
     )
   }
 
   const task = srez.currentTask
   if (!task) return null
-
   const locked = srez.phase === 'feedback' || srez.submitting
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  function submit(event: FormEvent) {
+    event.preventDefault()
     if (!value.trim() || locked) return
     srez.submit(value)
   }
 
   return (
-    // Шапка-якорь (иллюстрация+альтиметр+маршрут) держит верх; форма-вопрос
-    // центрируется в оставшейся высоте — без мёртвой нижней трети (R3 §4).
-    <div className="flex min-h-[calc(100dvh-8rem)] flex-col gap-4">
-      <div className="reveal" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
-        <SrezHeader current={task.position} total={task.total} />
-      </div>
-
-      <div className="flex flex-1 flex-col justify-center gap-4">
-        <form
-          onSubmit={handleSubmit}
-          className="reveal flex flex-col gap-4"
-          style={{ '--reveal-delay': '80ms' } as CSSProperties}
-        >
-          <SrezQuestionCard
-            topic={task.node_title}
-            statement={task.statement}
-            value={value}
-            disabled={locked}
-            onChange={setValue}
-          />
-
-          {srez.answerError && (
-            <ApInformer tone="attn" leading={<Mascot mood="oops" size="s" />} role="alert">
-              <span className="text-study">Не получилось проверить — попробуй ещё раз.</span>
-            </ApInformer>
-          )}
-
-          <ApButton
-            type="submit"
-            variant="primary"
-            size="l"
-            full
-            loading={srez.submitting}
-            disabled={!value.trim() || locked}
-          >
-            Проверить
-          </ApButton>
-        </form>
-
-        {srez.phase === 'feedback' && srez.feedbackCorrect !== null && (
-          <SrezFeedback correct={srez.feedbackCorrect} />
-        )}
+    <div className="min-h-dvh bg-paper">
+      <FocusTopbar />
+      <div className="mx-auto flex min-h-[calc(100dvh-4.5rem)] max-w-4xl items-start px-4 py-3 md:items-center md:px-8 md:py-8">
+        <section className="w-full min-w-0" aria-label="Вопрос мини-среза">
+          <SrezHeader current={task.position} total={task.total} />
+          <div className="min-w-0">
+            <form onSubmit={submit} className="min-w-0">
+              <SrezQuestionCard topic={task.node_title} statement={task.statement} answerType={task.answer_type} value={value} disabled={locked} onChange={setValue} />
+              {srez.answerError && (
+                <ApInformer tone="attn" role="alert" className="mt-5 max-w-3xl">
+                  <span className="text-study">Связь прервалась. Ответ остался в поле — попробуй ещё раз.</span>
+                </ApInformer>
+              )}
+              {srez.phase === 'answering' && (
+                <ApButton type="submit" size="l" loading={srez.submitting} disabled={!value.trim() || locked} className="mt-4 w-full sm:w-auto sm:min-w-56">
+                  Проверить
+                </ApButton>
+              )}
+            </form>
+            {srez.phase === 'feedback' && srez.feedbackCorrect !== null && (
+              <div className="mt-5 flex max-w-3xl flex-col gap-3" aria-live="polite">
+                <SrezFeedback correct={srez.feedbackCorrect} />
+                <ApButton size="l" onClick={srez.next}>Следующий вопрос</ApButton>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   )
 }
 
-// Центрирует короткий одиночный блок (лоадер/ошибка/пусто/финал) в доступной
-// высоте экрана — тот же приём, что и активная задача (canon §2.8: без него
-// под коротким контентом остаётся мёртвая нижняя половина вьюпорта).
-function CenteredState({ children }: { children: ReactNode }) {
+function FocusState({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   return (
-    <div className="flex min-h-[calc(100dvh-8rem)] flex-col justify-center">
-      {children}
+    <div className="min-h-dvh bg-paper">
+      <FocusTopbar />
+      <div className={['mx-auto flex min-h-[calc(100dvh-5rem)] items-center px-5 py-10', wide ? 'max-w-5xl' : 'max-w-3xl'].join(' ')}>{children}</div>
     </div>
   )
 }

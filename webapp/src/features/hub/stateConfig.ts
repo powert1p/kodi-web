@@ -13,9 +13,9 @@ interface StateMeta {
 }
 
 export const STATE_META: Record<TaskState, StateMeta> = {
-  revisit: { label: 'Разберём', tag: 'brand' },
+  revisit: { label: 'Вернёмся', tag: 'brand' },
   almost: { label: 'Почти', tag: 'neutral' },
-  got: { label: 'Готово', tag: 'success' },
+  got: { label: 'Уверенно', tag: 'success' },
 }
 
 /** Порядок приоритета для триажа (сначала «разберём», в конце «готово»). */

@@ -1,38 +1,26 @@
 import { useNavigate } from 'react-router-dom'
-import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { LongArrowRightIcon } from '../../icons'
 
-interface FinishedCardProps {
-  taskId: string
-  answer: string
-}
+interface FinishedCardProps { taskId: string }
 
-// Лесенка пройдена: лёгкое празднование Кёди + итоговый ответ + ApButton
-// «Закрепить →» на /closure/:taskId (большое празднование — уже там).
-export function FinishedCard({ taskId, answer }: FinishedCardProps) {
+export function FinishedCard({ taskId }: FinishedCardProps) {
   const navigate = useNavigate()
-
   return (
-    <article className="ap-card lift reveal flex flex-col items-center gap-3 p-5 text-center">
-      <Mascot mood="celebrate" size="m" className="bob mascot-shadow" />
-      <div className="flex flex-col gap-1">
-        <h2 className="text-h2 text-ink">Все шаги пройдены!</h2>
-        <p className="text-body text-text">
-          Итог:{' '}
-          <span className="font-num tabular-nums text-success-ink">{answer}</span>. Теперь
-          закрепим — без подсказок.
+    <article className="tape-card equation-commit grid overflow-hidden md:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="flex flex-col justify-center px-6 py-10 md:px-10 md:py-12">
+        <p className="text-mark text-success-ink">Лента собрана</p>
+        <p className="font-display mt-6 text-[clamp(38px,9vw,68px)] font-semibold leading-none text-ink">
+          Ход решения собран
         </p>
       </div>
-      <ApButton
-        variant="primary"
-        size="m"
-        full
-        onClick={() => navigate(`/closure/${taskId}`)}
-      >
-        Закрепить
-        <LongArrowRightIcon size={18} />
-      </ApButton>
+      <div className="flex flex-col justify-center bg-sage-soft/60 p-6 md:p-8">
+        <h2 className="text-h2 text-ink">Теперь — без подсказок.</h2>
+        <p className="mt-4 text-study text-text">Новая задача проверит, восстановился ли сам ход решения.</p>
+        <ApButton className="mt-6" size="l" full onClick={() => navigate(`/closure/${taskId}`)}>
+          Закрепить <LongArrowRightIcon size={18} />
+        </ApButton>
+      </div>
     </article>
   )
 }

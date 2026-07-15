@@ -1,177 +1,87 @@
-import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ApButton } from '../../components/ApButton'
-import { KodiBubble } from '../../components/KodiBubble'
+import { Mascot } from '../../components/Mascot'
+import { MathText } from '../../components/MathText'
 import { RightIcon } from '../../icons'
-import { ProgressBar } from './ProgressBar'
-import heroDesk from '../../assets/hero-desk.jpg'
+import type { WrongTask } from '../../lib/types'
+import { StateChip } from './StateChip'
 
-interface HubHeroProps {
-  /** Всего ошибок в срезе. */
-  total: number
-  /** Сколько уже «готово». */
-  done: number
-  /** id самой приоритетной ошибки — цель единственного primary-CTA экрана. */
-  firstTaskId: string | null
-}
+interface HubHeroProps { tasks: readonly WrongTask[] }
 
-// Трейлхед маршрута: тёплая полоса-иллюстрация мастерской со сплошным scrim (AA §10),
-// ЧИСЛО-ГЕРОЙ (Unbounded-гигант) — и маршрут СТАРТУЕТ прямо под ним: узел у основания
-// цифры, живой штрих ныряет вниз-влево мимо CTA и выходит к рельсу списка ниже (R3 §1
-// «первый изгиб заходит в hero, стартовая точка под числом-героем»). Голос Кёди (hi §7),
-// честный прогресс, единственный primary-CTA «Разобрать первую» — без скролла.
-export function HubHero({ total, done, firstTaskId }: HubHeroProps) {
+export function HubHero({ tasks }: HubHeroProps) {
   const navigate = useNavigate()
-  const remaining = Math.max(total - done, 0)
-  const allDone = remaining === 0
+  const first = tasks[0] ?? null
+  if (!first) return null
 
-  const heroRef = useRef<HTMLElement>(null)
-  const numRef = useRef<HTMLSpanElement>(null)
-  const drawRef = useRef<SVGPathElement>(null)
-  // Геометрия запуска маршрута: box hero + центр-низ числа-героя (измеряем, т.к.
-  // clamp-кегль зависит от вьюпорта, а число бывает 1-2 знака).
-  const [geo, setGeo] = useState<{ w: number; h: number; nx: number; ny: number } | null>(null)
-
-  useEffect(() => {
-    if (allDone) return
-    const hero = heroRef.current
-    const num = numRef.current
-    if (!hero || !num) return
-    const measure = () => {
-      const hb = hero.getBoundingClientRect()
-      const nb = num.getBoundingClientRect()
-      setGeo({
-        w: Math.max(1, Math.ceil(hb.width)),
-        h: Math.max(1, Math.ceil(hb.height)),
-        nx: nb.left - hb.left + 10, // чуть внутри левой стойки цифры
-        ny: nb.bottom - hb.top - 10, // у основания глифа
-      })
-    }
-    const raf = requestAnimationFrame(measure)
-    if (document.fonts?.ready) void document.fonts.ready.then(() => requestAnimationFrame(measure))
-    let ro: ResizeObserver | null = null
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(measure)
-      ro.observe(hero)
-    }
-    return () => {
-      cancelAnimationFrame(raf)
-      ro?.disconnect()
-    }
-  }, [allDone, remaining])
-
-  // Draw штриха запуска поверх подложки (reduced-motion → мгновенно).
-  useEffect(() => {
-    const p = drawRef.current
-    if (!p || !geo) return
-    const reduce =
-      typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) {
-      p.style.strokeDasharray = ''
-      p.style.strokeDashoffset = '0'
-      return
-    }
-    let len = 0
-    try {
-      len = p.getTotalLength()
-    } catch {
-      len = geo.h
-    }
-    p.style.transition = 'none'
-    p.style.strokeDasharray = String(len)
-    p.style.strokeDashoffset = String(len)
-    void p.getBoundingClientRect()
-    p.style.transition = 'stroke-dashoffset 1s var(--ease-out-soft) 0.25s'
-    p.style.strokeDashoffset = '0'
-  }, [geo])
-
-  // Кривая запуска: от узла под числом (nx,ny) уверенным штрихом ныряет вниз-влево к
-  // рельсу списка (x=22) у нижней кромки hero — стыкуется со stroke-подложкой RouteSpine
-  // ниже (тот же x). Один плавный cubic — «маркер провёл от цифры вниз».
-  const launch = geo
-    ? `M ${geo.nx} ${geo.ny} C ${geo.nx - 22} ${geo.ny + 38}, 23 ${geo.ny + (geo.h - geo.ny) * 0.46}, 22 ${geo.h - 2}`
-    : ''
+  const route = tasks.slice(0, 4)
 
   return (
-    <section ref={heroRef} className="relative -mt-1 overflow-hidden rounded-card border border-stroke">
-      {/* Иллюстрация мастерской + сплошной тёплый scrim под текстом (AA) */}
-      <img
-        src={heroDesk}
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-90"
-      />
-      <div className="hero-scrim pointer-events-none absolute inset-0" />
-
-      {/* Запуск маршрута: след-подложка + прочерченный штрих + узел-трейлхед под числом */}
-      {geo && launch && (
-        <svg
-          className="pointer-events-none absolute inset-0 overflow-visible"
-          width={geo.w}
-          height={geo.h}
-          viewBox={`0 0 ${geo.w} ${geo.h}`}
-          aria-hidden
-        >
-          <path d={launch} fill="none" stroke="var(--route-trace)" strokeWidth={2.5} strokeLinecap="round" />
-          <path
-            ref={drawRef}
-            d={launch}
-            fill="none"
-            stroke="var(--route-line)"
-            strokeWidth={5.5}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx={geo.nx} cy={geo.ny} r={7} fill="var(--brand)" stroke="var(--surface)" strokeWidth={2} />
-        </svg>
-      )}
-
-      <div className="relative flex flex-col gap-4 p-4 pl-9">
-        <p className="text-caption1-medium uppercase tracking-[0.14em] text-brand-ink">
-          Срез на сегодня
-        </p>
-
-        {allDone ? (
-          <h1 className="text-h1 text-ink">Всё разобрано!</h1>
-        ) : (
-          // «N из total» держит одну систему прочтения с прогресс-строкой ниже —
-          // «минус один» (разобранные) читается мгновенно, без сверки 4↔5 (R4 §5).
-          <h1 className="flex items-end gap-3">
-            <span ref={numRef} className="text-hero text-ink">
-              {remaining}
-            </span>
-            <span className="flex flex-col pb-2 text-ink">
-              <span className="text-h1 leading-none">из {total}</span>
-              <span className="text-title text-text">{waitVerb(remaining)} разбора</span>
-            </span>
+    <section aria-labelledby="review-focus-title">
+      <div className="mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-[90rem] items-center gap-6 px-5 py-5 md:px-8 lg:grid-cols-[minmax(15rem,0.72fr)_minmax(26rem,1.15fr)_minmax(12rem,0.46fr)] lg:gap-10 lg:py-12">
+        <div className="order-2 min-w-0 lg:order-none">
+          <p className="text-mark text-brand-deep">Твой короткий маршрут</p>
+          <h1 id="review-focus-title" className="mt-3 max-w-xl text-[clamp(32px,4.5vw,52px)] font-bold leading-[1] tracking-[-0.055em] text-ink">
+            Один момент — и дальше легче.
           </h1>
-        )}
+          <p className="mt-4 max-w-sm text-body text-muted">
+            Вернёмся к месту, где решение свернуло не туда. Остальное уже получается.
+          </p>
+        </div>
 
-        <KodiBubble mood={allDone ? 'celebrate' : 'hi'} size="s">
-          {allDone
-            ? 'Ни одной незакрытой ошибки — чисто. Можно закреплять победы.'
-            : 'Привет! Я рядом. Начнём с первой — она сегодня главная, дальше будет легче.'}
-        </KodiBubble>
+        <article className="tape-card tape-card--notched order-1 relative min-w-0 px-5 py-5 pl-14 md:px-8 md:py-7 md:pl-20 lg:order-none">
+          <RouteRail tasks={route} />
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-mark text-brand-deep">Сейчас · {first.topic_label}</p>
+            <StateChip state={first.state} />
+          </div>
 
-        <ProgressBar done={done} total={total} />
+          <div className="math-prose mt-5 pb-2 md:mt-6">
+            <p className="formula-body max-w-4xl text-[clamp(30px,5vw,48px)] font-bold leading-[1.08] tracking-[-0.045em] text-ink">
+              <MathText text={first.statement} />
+            </p>
+          </div>
 
-        {!allDone && firstTaskId && (
-          <ApButton
-            variant="primary"
-            size="l"
-            full
-            onClick={() => navigate(`/drill/${firstTaskId}`)}
-          >
-            Разобрать первую
-            <RightIcon size={18} />
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
+            <p className="text-caption1 text-muted">
+              В прошлый раз: <span className="font-num font-semibold text-oxide">{first.wrong_answer}</span>
+            </p>
+            <p className="text-caption1-medium text-ink">разбор по шагам</p>
+          </div>
+
+          <ApButton full size="l" onClick={() => navigate(`/drill/${first.id}`)} className="mt-5 justify-between px-5">
+            Разобрать точный шаг <RightIcon size={18} />
           </ApButton>
-        )}
+          <p className="mt-4 text-caption2 text-muted">Следом — короткая проверка на другой задаче.</p>
+        </article>
+
+        <aside className="order-3 flex items-end gap-3 rounded-card border border-ink/10 bg-sage-soft/55 px-4 pt-3 lg:order-none lg:block lg:px-4 lg:pt-4 lg:pb-4">
+          <Mascot mood="hi" size="l" eager decorative className="mascot-shadow w-28 shrink-0 lg:w-full" />
+          <p className="mb-3 max-w-xs text-caption1 text-muted lg:mt-2 lg:mb-0">
+            <span className="font-semibold text-ink">Кёди держит контекст.</span><br />Ответ не скажет — следующий шаг подхватит.
+          </p>
+        </aside>
       </div>
     </section>
   )
 }
 
-// Глагол «ждёт/ждут» согласован с числом оставшихся ошибок («N из total ждут разбора»).
-function waitVerb(n: number): string {
-  return n % 10 === 1 && n % 100 !== 11 ? 'ждёт' : 'ждут'
+function RouteRail({ tasks }: { tasks: readonly WrongTask[] }) {
+  return (
+    <ol className="hub-route-rail absolute top-5 bottom-5 left-4 flex w-7 flex-col items-center justify-between md:left-7" aria-label="Очередь разборов">
+      {tasks.map((task, index) => (
+        <li
+          key={task.id}
+          className={[
+                'font-display grid size-7 place-items-center rounded-full border text-caption2 font-bold',
+            index === 0
+              ? 'border-brand bg-brand text-ink ring-4 ring-brand-soft'
+              : 'border-stroke bg-surface text-muted',
+          ].join(' ')}
+        >
+          <span aria-hidden>{index + 1}</span>
+          <span className="sr-only">{task.topic_label}: {index === 0 ? 'текущий разбор' : 'впереди'}</span>
+        </li>
+      ))}
+    </ol>
+  )
 }
