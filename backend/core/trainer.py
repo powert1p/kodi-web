@@ -357,8 +357,8 @@ async def build_wrong_tasks(
     """Строит список задач для тренажёра ошибок на основе срезовых попыток.
 
     Алгоритм:
-      1. Берём последние «days» дней: попытки источников diagnostic/exam/practice,
-         где is_correct=false. Используем индекс ix_attempts_student_source.
+      1. Берём последние «days» дней: неверные попытки diagnostic/exam/practice,
+         после которых не было успешной контрольной того же узла.
       2. Джойним problems (statement, answer) и nodes (topic_label).
       3. Дедуплицируем в Python по problem_id — оставляем самую свежую попытку.
       4. Для каждой задачи вызываем resolve_decomp → mapим шаги в StepDTO.
@@ -372,6 +372,8 @@ async def build_wrong_tasks(
     #   это даёт «limit самых свежих уникальных задач» без потери при большой истории.
     # make_interval(days => :days) — integer-friendly интервал (asyncpg не принимает
     #   int в '$N days'::interval).
+    # Успешная closure того же узла закрывает предыдущие ошибки. Сравниваем также
+    # id на случай одинакового created_at; более поздняя ошибка снова попадёт в очередь.
     # = ANY(:sources) — asyncpg-native синтаксис для text[] (нет f-строк).
     raw = await session.execute(
         text(
@@ -388,6 +390,15 @@ async def build_wrong_tasks(
             "    AND a.is_correct = false "
             "    AND a.source = ANY(:sources) "
             "    AND a.created_at >= now() - make_interval(days => :days) "
+            "    AND NOT EXISTS ("
+            "      SELECT 1 FROM attempts proof "
+            "      WHERE proof.student_id = a.student_id "
+            "        AND proof.node_id = a.node_id "
+            "        AND proof.is_correct = true "
+            "        AND proof.source = 'closure' "
+            "        AND (proof.created_at > a.created_at "
+            "          OR (proof.created_at = a.created_at AND proof.id > a.id))"
+            "    ) "
             "  ORDER BY a.problem_id, a.created_at DESC"
             ") latest "
             "ORDER BY created_at DESC "

@@ -46,6 +46,11 @@ async def vclient(db_session):
         "INSERT INTO recurring_errors (student_id, micro_skill, node_id, error_count, resolved, created_at) "
         "VALUES (:sid, 'vf_failed_ms', 'VF01', 2, false, NOW()) ON CONFLICT DO NOTHING"
     ), {"sid": SID})
+    await db_session.execute(text(
+        "INSERT INTO attempts "
+        "(student_id, problem_id, node_id, answer_given, is_correct, source, created_at) "
+        "VALUES (:sid, :pid, 'VF01', '11', false, 'diagnostic', NOW())"
+    ), {"sid": SID, "pid": p1})
     await db_session.commit()
 
     from api.routes import _create_token
@@ -98,11 +103,20 @@ async def test_verification_start_micro_skill_label_none_for_unknown_code(vclien
 @pytest.mark.asyncio
 async def test_verification_answer_correct_resolves(vclient):
     ac, token, p1, p2, sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
+    before = await ac.get("/api/trainer/wrong-tasks", headers=headers)
+    assert before.status_code == 200, before.text
+    assert any(task["problem_id"] == p1 for task in before.json()["tasks"])
+
     resp = await ac.post("/api/trainer/verification/answer",
-                         headers={"Authorization": f"Bearer {token}"},
+                         headers=headers,
                          json={"problem_id": p2, "answer": "20", "micro_skill": "vf_skill"})
     assert resp.status_code == 200, resp.text
     assert resp.json()["correct"] is True
+
+    after = await ac.get("/api/trainer/wrong-tasks", headers=headers)
+    assert after.status_code == 200, after.text
+    assert all(task["problem_id"] != p1 for task in after.json()["tasks"])
 
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
     eng = create_async_engine(_TEST_URL)
@@ -111,18 +125,53 @@ async def test_verification_answer_correct_resolves(vclient):
         res = (await s.execute(text(
             "SELECT resolved FROM recurring_errors WHERE student_id = :sid AND micro_skill = 'vf_failed_ms'"
         ), {"sid": sid})).scalar_one()
+        closure_attempt = (await s.execute(text(
+            "SELECT problem_id, answer_given, is_correct, source "
+            "FROM attempts WHERE student_id = :sid AND source = 'closure'"
+        ), {"sid": sid})).one()
     await eng.dispose()
     assert res is True
+    assert tuple(closure_attempt) == (p2, "20", True, "closure")
 
 
 @pytest.mark.asyncio
 async def test_verification_answer_wrong_not_resolved(vclient):
     ac, token, p1, p2, sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
     resp = await ac.post("/api/trainer/verification/answer",
-                         headers={"Authorization": f"Bearer {token}"},
+                         headers=headers,
                          json={"problem_id": p2, "answer": "99", "micro_skill": "vf_skill"})
     assert resp.status_code == 200, resp.text
     assert resp.json()["correct"] is False
+
+    wrong_tasks = await ac.get("/api/trainer/wrong-tasks", headers=headers)
+    assert wrong_tasks.status_code == 200, wrong_tasks.text
+    assert any(task["problem_id"] == p1 for task in wrong_tasks.json()["tasks"])
+
+
+@pytest.mark.asyncio
+async def test_new_wrong_attempt_after_closure_reopens_task(vclient):
+    ac, token, p1, p2, sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
+    closed = await ac.post(
+        "/api/trainer/verification/answer",
+        headers=headers,
+        json={"problem_id": p2, "answer": "20", "micro_skill": "vf_skill"},
+    )
+    assert closed.status_code == 200, closed.text
+    assert closed.json()["correct"] is True
+
+    reopened = await ac.post(
+        "/api/trainer/srez/answer",
+        headers=headers,
+        json={"problem_id": p1, "answer": "11", "elapsed_ms": 500},
+    )
+    assert reopened.status_code == 200, reopened.text
+    assert reopened.json()["is_correct"] is False
+
+    wrong_tasks = await ac.get("/api/trainer/wrong-tasks", headers=headers)
+    assert wrong_tasks.status_code == 200, wrong_tasks.text
+    assert any(task["problem_id"] == p1 for task in wrong_tasks.json()["tasks"])
 
 
 @pytest.mark.asyncio

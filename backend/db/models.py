@@ -153,7 +153,7 @@ class Attempt(Base):
     node_id: Mapped[str] = mapped_column(String(10), ForeignKey("nodes.id", ondelete="RESTRICT"))
     answer_given: Mapped[str | None] = mapped_column(Text)
     is_correct: Mapped[bool | None] = mapped_column(Boolean)
-    source: Mapped[str | None] = mapped_column(String(20))  # "diagnostic" / "practice"
+    source: Mapped[str | None] = mapped_column(String(20))  # diagnostic / exam / practice / closure
     response_time_ms: Mapped[int | None] = mapped_column(Integer)
     p_mastery_after: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())

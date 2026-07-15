@@ -26,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.routes import _get_current_student, ai_ip_limit, limiter
 from core.agent_context import build_agent_context
+from core.bkt import record_attempt
 from core.config import settings
 from core.grading import check_answer
 from core.llm_openai import LlmUnavailable, StepClassification, classify_step_photo, diagnose_photo
@@ -45,6 +46,7 @@ from core.tutor import (
     sanitize_tutor_output,
     tutor_unavailable_fallback,
 )
+from db.models import Problem
 
 logger = logging.getLogger(__name__)
 
@@ -1298,17 +1300,25 @@ async def post_verification_start(request: Request, payload: VerificationStartIn
 
 @router.post("/verification/answer", response_model=VerificationAnswerOut)
 async def post_verification_answer(request: Request, payload: VerificationAnswerIn) -> VerificationAnswerOut:
-    """Проверяет ответ на контрольную. Верно + micro_skill → recurring_errors.resolved=true."""
+    """Проверяет контрольную, обновляет прогресс и закрывает ошибку при верном ответе."""
     session, student = await _get_current_student(request)
     try:
-        prob = (await session.execute(
-            text("SELECT node_id, answer, answer_type FROM problems WHERE id = :pid"),
-            {"pid": payload.problem_id},
-        )).fetchone()
-        if prob is None:
+        problem = await session.get(Problem, payload.problem_id)
+        if problem is None:
             raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
 
-        correct = check_answer(payload.answer, prob.answer, prob.answer_type)
+        correct = check_answer(payload.answer, problem.answer, problem.answer_type)
+        # Контрольная — самостоятельная попытка на перенос, поэтому она должна
+        # попадать в историю и BKT. source='closure' также служит устойчивым
+        # доказательством закрытия очереди: новый неверный ответ позднее снова её откроет.
+        await record_attempt(
+            session,
+            student.id,
+            problem,
+            payload.answer,
+            correct,
+            source="closure",
+        )
 
         if correct:
             # recurring_errors ключуется ДИАГНОСТИРОВАННЫМ failed_micro_skill, а не
@@ -1319,9 +1329,9 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
                     "UPDATE recurring_errors SET resolved = true "
                     "WHERE student_id = :sid AND node_id = :nid AND resolved = false"
                 ),
-                {"sid": student.id, "nid": prob.node_id},
+                {"sid": student.id, "nid": problem.node_id},
             )
-            await session.commit()
+        await session.commit()
     finally:
         await session.close()
 
