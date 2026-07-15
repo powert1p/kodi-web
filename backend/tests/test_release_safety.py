@@ -116,7 +116,7 @@ def test_default_gemini_chain_contains_only_current_ga_models() -> None:
     )
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == "gemini-3.5-flash,gemini-3.1-flash-lite"
+    assert result.stdout.strip() == "gemini-3.1-flash-lite,gemini-3.5-flash"
 
 
 def test_database_url_components_round_trip_reserved_chars_and_spaces(monkeypatch) -> None:
