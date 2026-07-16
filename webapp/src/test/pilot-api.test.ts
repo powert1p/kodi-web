@@ -2,7 +2,10 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { startSrez, answerSrez } from '../lib/api'
 import { track } from '../lib/telemetry'
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
+})
 
 function okJson(body: unknown) {
   return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(body) } as Response)
@@ -24,7 +27,21 @@ describe('srez api', () => {
 })
 
 describe('telemetry', () => {
+  it('отправляет событие с keepalive, чтобы переход по экрану не терял POST', async () => {
+    vi.stubGlobal('localStorage', { getItem: vi.fn(() => 'test-token') })
+    const fetchMock = vi.fn(() => okJson({ inserted: 1 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await track('drill_left', { task_id: '3' })
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/trainer/events', expect.objectContaining({
+      method: 'POST',
+      keepalive: true,
+    }))
+  })
+
   it('track глотает сетевую ошибку (fire-and-forget)', async () => {
+    vi.stubGlobal('localStorage', { getItem: vi.fn(() => 'test-token') })
     vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new Error('offline'))))
     await expect(track('hub_opened')).resolves.toBeUndefined()
   })

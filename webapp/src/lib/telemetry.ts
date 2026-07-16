@@ -13,6 +13,7 @@ export async function track(eventType: string, payload?: Record<string, unknown>
     if (!token) return
     await fetch('/api/trainer/events', {
       method: 'POST',
+      keepalive: true,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ events: [{ event_type: eventType, payload: payload ?? null }] }),
     })
