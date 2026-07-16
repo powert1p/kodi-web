@@ -18,7 +18,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
 
 /** Обёртка для /login: если уже авторизован → Hub. */
 export function RequireGuest({ children }: RequireAuthProps) {
-  const { token } = useAuth()
-  if (token) return <Navigate to="/" replace />
+  const { token, authDestination } = useAuth()
+  if (token) return <Navigate to={authDestination} replace />
   return <>{children}</>
 }

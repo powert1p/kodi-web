@@ -5,12 +5,10 @@
 // Маскот приветствует, поддерживающий тон при ошибках (без «злого красного»).
 
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApTextField } from '../../components/ApTextField'
 import { BrandMark } from '../../components/BrandMark'
-import { ConsentCheckbox } from './ConsentCheckbox'
 import { GradeSelect } from './GradeSelect'
 import { LeftIcon } from '../../icons'
 import { useAuth } from './AuthContext'
@@ -33,11 +31,11 @@ function stepTitle(step: Step): string {
 
 // Подзаголовок по этапу.
 function stepSub(step: Step, phone: string): string {
-  if (step === 'phone') return 'Войдём через номер телефона'
-  if (step === 'login') return `Введи PIN для ${formatPhoneDisplay(phone)}`
-  if (step === 'register-name') return 'Имя видно только тебе'
-  if (step === 'register-grade') return 'Подберём задачи по твоему уровню'
-  return 'Минимум 4 цифры — запомни его'
+  if (step === 'phone') return 'Введи номер — и откроем твой текущий урок'
+  if (step === 'login') return `Введи PIN для ${formatPhoneDisplay(phone)} и продолжай с нужного шага`
+  if (step === 'register-name') return 'Имя поможет сохранять твой учебный путь'
+  if (step === 'register-grade') return 'Подберём объяснение и сложность по классу'
+  return 'Минимум 4 цифры — по нему ты вернёшься к уроку'
 }
 
 // Консистентный формат телефона для ОТОБРАЖЕНИЯ (+7 700 000 00 00) — вне
@@ -52,8 +50,16 @@ function formatPhoneDisplay(raw: string): string {
   return `+7 ${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 8)} ${d.slice(8, 10)}`
 }
 
+// Браузер сообщает о потере сети техническим `Failed to fetch`. Ребёнку
+// показываем понятное действие, а содержательные ответы backend сохраняем.
+function userFacingAuthError(error: unknown, fallback: string): string {
+  if (error instanceof TypeError || (error instanceof Error && error.message === 'Failed to fetch')) {
+    return 'Не получилось подключиться. Проверь интернет и попробуй ещё раз.'
+  }
+  return error instanceof Error ? error.message : fallback
+}
+
 export function LoginPage() {
-  const navigate = useNavigate()
   const { login, register } = useAuth()
 
   const [step, setStep] = useState<Step>('phone')
@@ -61,7 +67,6 @@ export function LoginPage() {
   const [pin, setPin] = useState('')
   const [name, setName] = useState('')
   const [grade, setGrade] = useState<number | null>(null)
-  const [consent, setConsent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -81,7 +86,7 @@ export function LoginPage() {
       const { exists } = await checkPhone(trimmed)
       setStep(exists ? 'login' : 'register-name')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось проверить номер')
+      setError(userFacingAuthError(err, 'Не удалось проверить номер'))
     } finally {
       setLoading(false)
     }
@@ -95,9 +100,8 @@ export function LoginPage() {
     setError(null)
     try {
       await login(phone.trim(), pin.trim())
-      navigate('/', { replace: true })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неверный PIN — попробуй ещё раз')
+      setError(userFacingAuthError(err, 'Неверный PIN — попробуй ещё раз'))
     } finally {
       setLoading(false)
     }
@@ -126,10 +130,9 @@ export function LoginPage() {
     setLoading(true)
     setError(null)
     try {
-      await register(phone.trim(), name.trim(), pin.trim(), consent, grade)
-      navigate('/', { replace: true })
+      await register(phone.trim(), name.trim(), pin.trim(), grade)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось зарегистрироваться')
+      setError(userFacingAuthError(err, 'Не удалось зарегистрироваться'))
     } finally {
       setLoading(false)
     }
@@ -152,6 +155,7 @@ export function LoginPage() {
         <form onSubmit={(e) => void handlePhone(e)} className="flex flex-col gap-4">
           <ApTextField
             label="Номер телефона"
+            autoFocus
             type="tel"
             value={phone}
             onChange={(e) => { setPhone(e.target.value); clearError() }}
@@ -174,6 +178,7 @@ export function LoginPage() {
         <form onSubmit={(e) => void handleLogin(e)} className="flex flex-col gap-4">
           <ApTextField
             label="PIN-код"
+            autoFocus
             type="password"
             value={pin}
             onChange={(e) => { setPin(e.target.value); clearError() }}
@@ -186,7 +191,7 @@ export function LoginPage() {
             error={error}
           />
           <ApButton type="submit" full size="m" loading={loading}>
-            Войти
+            Войти и продолжить урок
           </ApButton>
           <BackButton onClick={() => { setStep('phone'); setPin(''); setError(null) }} label="Другой номер" />
         </form>
@@ -198,6 +203,7 @@ export function LoginPage() {
         <form onSubmit={handleRegisterName} className="flex flex-col gap-4">
           <ApTextField
             label="Имя"
+            autoFocus
             value={name}
             onChange={(e) => { setName(e.target.value); clearError() }}
             placeholder="Айдана"
@@ -217,7 +223,7 @@ export function LoginPage() {
     if (step === 'register-grade') {
       return (
         <form onSubmit={handleRegisterGrade} className="flex flex-col gap-4">
-          <GradeSelect value={grade} onChange={(g) => { setGrade(g); clearError() }} disabled={loading} />
+          <GradeSelect autoFocus value={grade} onChange={(g) => { setGrade(g); clearError() }} disabled={loading} />
           <ApButton type="submit" full size="m" disabled={grade === null}>
             Далее
           </ApButton>
@@ -231,6 +237,7 @@ export function LoginPage() {
       <form onSubmit={(e) => void handleRegisterPin(e)} className="flex flex-col gap-4">
         <ApTextField
           label="Придумай PIN"
+          autoFocus
           type="password"
           value={pin}
           onChange={(e) => { setPin(e.target.value); clearError() }}
@@ -242,9 +249,8 @@ export function LoginPage() {
           disabled={loading}
           error={error}
         />
-        <ConsentCheckbox checked={consent} onChange={setConsent} disabled={loading} />
         <ApButton type="submit" full size="m" loading={loading}>
-          Создать аккаунт
+          Создать аккаунт и начать
         </ApButton>
         <BackButton onClick={() => { setStep('register-grade'); setPin(''); setError(null) }} label="Назад" />
       </form>
@@ -259,9 +265,11 @@ export function LoginPage() {
       </header>
       <main className="mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-6xl items-center gap-6 px-5 py-6 md:px-8 lg:grid-cols-[minmax(22rem,0.82fr)_minmax(22rem,1fr)] lg:gap-12 lg:py-10">
         <section className="tape-card reveal order-1 w-full px-6 py-7 md:px-9 md:py-9">
-          <p className="text-mark text-brand-deep">{step === 'login' ? 'С возвращением' : step === 'phone' ? 'Вход' : 'Регистрация'}</p>
-          <h1 className="mt-3 text-h2 text-ink">{stepTitle(step)}</h1>
-          <p className="mt-3 text-body text-muted">{stepSub(step, phone)}</p>
+          <div aria-live="polite" aria-atomic="true">
+            <p className="text-mark text-brand-deep">{step === 'login' ? 'С возвращением' : step === 'phone' ? 'Вход' : 'Регистрация'}</p>
+            <h1 className="mt-3 text-h2 text-ink">{stepTitle(step)}</h1>
+            <p className="mt-3 text-body text-muted">{stepSub(step, phone)}</p>
+          </div>
 
           {regIdx >= 0 && (
             <div className="mt-6" aria-label={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}>
@@ -279,15 +287,15 @@ export function LoginPage() {
             </div>
           )}
 
-          <div className="mt-6 w-full">{renderForm()}</div>
-          <p className="mt-6 rounded-control bg-sage-soft px-4 py-3 text-caption1 text-text">Кёди помогает восстановить ход решения, но ответ остаётся твоим.</p>
+          <div key={step} className="mt-6 w-full">{renderForm()}</div>
+          <p className="mt-6 rounded-control bg-sage-soft px-4 py-3 text-caption1 text-text">Сначала разберём пример, потом ты решишь сам — шаг за шагом.</p>
         </section>
 
         <aside className="order-2 grid min-h-60 grid-cols-[minmax(0,1fr)_8rem] items-center overflow-hidden rounded-card border border-ink/10 bg-sage-soft/70 px-5 pt-5 shadow-lift-sm lg:min-h-[34rem] lg:grid-cols-1 lg:grid-rows-[auto_minmax(0,1fr)] lg:px-8 lg:pt-8">
           <div className="self-start">
-            <p className="text-mark text-sage-deep">Продолжение живого урока</p>
-            <h2 className="mt-3 max-w-md text-[clamp(27px,4vw,48px)] font-bold leading-[1.02] tracking-[-0.055em] text-ink">Точный шаг вместо ещё одной случайной задачи.</h2>
-            <p className="mt-4 hidden max-w-lg text-body text-muted sm:block">Учитель объясняет тему. Здесь ты спокойно находишь место ошибки и восстанавливаешь решение сам.</p>
+            <p className="text-mark text-sage-deep">Учёба начинается сразу</p>
+            <h2 className="mt-3 max-w-md text-[clamp(27px,4vw,48px)] font-bold leading-[1.02] tracking-[-0.055em] text-ink">Один понятный урок. От примера до самостоятельного решения.</h2>
+            <p className="mt-4 hidden max-w-lg text-body text-muted sm:block">После входа откроется текущая тема: разберёшь метод, потренируешься с опорой и применишь его сам.</p>
           </div>
           <Mascot mood="hi" size="xl" eager decorative className="mascot-shadow h-36 self-end lg:h-full lg:max-h-72" />
         </aside>

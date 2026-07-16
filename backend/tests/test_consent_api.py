@@ -1,7 +1,9 @@
 """Consent API: 403 на diagnose без согласия, проставление через /consent."""
 from __future__ import annotations
 
+import asyncio
 import os
+import threading
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-with-at-least-32-chars")
 
 import pytest
@@ -116,3 +118,57 @@ async def test_register_without_checkbox_leaves_consent_null(rclient, db_session
     me = await rclient.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert me.status_code == 200
     assert me.json()["photo_consent"] is None
+
+
+@pytest.mark.asyncio
+async def test_register_rejects_photo_consent_escalation(rclient, db_session):
+    """Детская регистрация не является каналом выдачи родительского согласия."""
+    phone = "+77011234568"
+    r = await rclient.post("/api/auth/phone/register", json={
+        "name": "Тест Эскалация",
+        "phone": phone,
+        "pin": "1234",
+        "photo_consent": True,
+    })
+
+    assert r.status_code == 422
+    row = (await db_session.execute(text(
+        "SELECT id FROM students WHERE phone = :phone"
+    ), {"phone": phone})).fetchone()
+    assert row is None
+
+
+@pytest.mark.asyncio
+async def test_concurrent_registration_creates_one_student(
+    rclient,
+    db_session,
+    monkeypatch,
+):
+    """Два одновременных запроса на один телефон не создают дубли."""
+    import api.routes as routes_module
+
+    barrier = threading.Barrier(2, timeout=5)
+
+    def synchronized_hash(_pin: str) -> str:
+        barrier.wait()
+        return "test-pin-hash"
+
+    monkeypatch.setattr(routes_module, "_hash_pin", synchronized_hash)
+    payload = {
+        "name": "Тест Гонка",
+        "phone": "+77011234569",
+        "pin": "1234",
+    }
+
+    responses = await asyncio.gather(
+        rclient.post("/api/auth/phone/register", json=payload),
+        rclient.post("/api/auth/phone/register", json=payload),
+    )
+
+    assert sorted(response.status_code for response in responses) == [200, 409]
+    conflict = next(response for response in responses if response.status_code == 409)
+    assert conflict.json()["detail"] == "Этот номер уже зарегистрирован"
+    count = (await db_session.execute(text(
+        "SELECT count(*) FROM students WHERE phone = :phone"
+    ), {"phone": payload["phone"]})).scalar_one()
+    assert count == 1

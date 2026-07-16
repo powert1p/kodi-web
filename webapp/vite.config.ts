@@ -22,9 +22,9 @@ export default defineConfig({
         'icons/apple-touch-icon.png',
       ],
       manifest: {
-        name: 'AiPlus — разбор математики',
+        name: 'AiPlus — учусь математике',
         short_name: 'AiPlus',
-        description: 'Пошаговый разбор математических ошибок и самостоятельное закрепление.',
+        description: 'Пошаговое обучение математике: пример, практика, самостоятельное решение и перенос.',
         start_url: '/app/',
         scope: '/app/',
         display: 'standalone',

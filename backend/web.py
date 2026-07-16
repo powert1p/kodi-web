@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -30,10 +30,34 @@ logger = logging.getLogger(__name__)
 STATS_DIR = Path("/tmp/nis_stats")
 STATS_DIR.mkdir(parents=True, exist_ok=True)
 
-WEB_STATIC_DIR = Path(__file__).resolve().parent / "web_static"
 PROBLEM_IMAGES_DIR = Path(__file__).resolve().parent / "static"
 # Директория скомпилированного PWA (webapp/dist → копируется в образе)
 WEBAPP_DIST_DIR = Path(__file__).resolve().parent / "webapp_dist"
+PWA_ENTRYPOINT = "/app/"
+
+LEGACY_FLUTTER_SERVICE_WORKER = """\
+const LEGACY_CACHE_NAMES = [
+  'flutter-app-cache',
+  'flutter-temp-cache',
+  'flutter-app-manifest',
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    await Promise.all(LEGACY_CACHE_NAMES.map((name) => caches.delete(name)));
+    await self.clients.claim();
+    const windows = await self.clients.matchAll({ type: 'window' });
+    await self.registration.unregister();
+    await Promise.all(windows.map((client) => client.navigate(client.url)));
+  })());
+});
+
+self.addEventListener('fetch', () => {});
+"""
 
 MAX_AGE_SECONDS = 3600
 
@@ -138,7 +162,27 @@ class SPAStaticFiles(StaticFiles):
             raise
 
 
-# ── PWA «Работа над ошибками» — смонтирована на /app/ ───────────────────────
+# ── Канонический production-entrypoint React PWA ────────────────────────────
+@app.get("/", include_in_schema=False)
+@app.get("/app", include_in_schema=False)
+async def pwa_entrypoint():
+    return RedirectResponse(PWA_ENTRYPOINT, status_code=308)
+
+
+@app.get("/flutter_service_worker.js", include_in_schema=False)
+async def retire_legacy_flutter_service_worker():
+    """Обновляет и снимает уже установленные root-scope Flutter service workers."""
+    return Response(
+        content=LEGACY_FLUTTER_SERVICE_WORKER,
+        media_type="application/javascript",
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "Service-Worker-Allowed": "/",
+        },
+    )
+
+
+# ── React PWA смонтирована на /app/ ─────────────────────────────────────────
 # Порядок важен: /api и /health уже зарегистрированы через include_router
 # и @app.get ВЫШЕ — Starlette обходит смонтированное субприложение только
 # если маршрут не совпал с зарегистрированными эндпоинтами.
@@ -167,12 +211,16 @@ def save_html(html_bytes: bytes) -> str:
     return token
 
 
-def _should_serve_flutter_index(full_path: str) -> bool:
-    """Разрешает root SPA-fallback только для клиентских маршрутов без расширения."""
-    normalized = full_path.lstrip("/")
+def _pwa_redirect_target(full_path: str) -> str | None:
+    """Переносит старые extensionless Flutter deep links в единый React PWA."""
+    normalized = full_path.strip("/")
     if normalized == "api" or normalized.startswith("api/"):
-        return False
-    return not os.path.splitext(normalized)[1]
+        return None
+    if normalized and os.path.splitext(normalized)[1]:
+        return None
+    if not normalized or normalized == "app":
+        return PWA_ENTRYPOINT
+    return f"{PWA_ENTRYPOINT}{normalized}"
 
 
 @app.get("/stats/{token}")
@@ -185,20 +233,10 @@ async def get_stats(token: str) -> HTMLResponse:
     return HTMLResponse(content=path.read_text(encoding="utf-8"))
 
 
-if WEB_STATIC_DIR.exists():
-    logger.info("Serving Flutter web from %s", WEB_STATIC_DIR)
-
-    @app.get("/{full_path:path}")
-    async def spa_fallback(request: Request, full_path: str):
-        file_path = WEB_STATIC_DIR / full_path
-        if full_path and file_path.exists() and file_path.is_file():
-            return FileResponse(file_path)
-        if not _should_serve_flutter_index(full_path):
-            raise HTTPException(status_code=404, detail="Not Found")
-        return FileResponse(WEB_STATIC_DIR / "index.html")
-else:
-    logger.info("No web_static/ directory — API-only mode")
-
-    @app.get("/")
-    async def health() -> dict:
-        return {"status": "ok"}
+@app.get("/{full_path:path}")
+async def spa_fallback(full_path: str):
+    """Канонизирует UI deep links в React PWA, не маскируя missing assets."""
+    redirect_target = _pwa_redirect_target(full_path)
+    if redirect_target:
+        return RedirectResponse(redirect_target, status_code=308)
+    raise HTTPException(status_code=404, detail="Not Found")

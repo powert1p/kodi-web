@@ -89,23 +89,92 @@ async def test_api_404_stays_json():
     assert r.json() == {"detail": "Not Found"}
 
 
+@pytest.mark.asyncio
+async def test_public_entrypoints_use_one_canonical_pwa_url(monkeypatch, tmp_path):
+    """Root и /app больше не могут открыть legacy Flutter вместо учебного PWA."""
+    import web as web_module
+
+    # Маршрутная топология не должна зависеть от ignored локального build artifact.
+    monkeypatch.setattr(web_module, "WEBAPP_DIST_DIR", tmp_path)
+    real_app = web_module.app
+
+    async with AsyncClient(
+        transport=ASGITransport(app=real_app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as ac:
+        root_response = await ac.get("/")
+        app_response = await ac.get("/app")
+
+    assert root_response.status_code == 308
+    assert root_response.headers["location"] == "/app/"
+    assert app_response.status_code == 308
+    assert app_response.headers["location"] == "/app/"
+
+
 @pytest.mark.parametrize(
-    ("path", "should_fallback"),
+    ("legacy_path", "pwa_path"),
     [
-        ("", True),
-        ("lesson/mixtures-1", True),
-        ("api", False),
-        ("api/nonexistent", False),
-        ("api/v1/nonexistent", False),
-        ("assets/nonexistent.js", False),
-        ("favicon.ico", False),
+        ("/login", "/app/login"),
+        ("/lesson/mixtures-1", "/app/lesson/mixtures-1"),
     ],
 )
-def test_flutter_root_fallback_only_handles_client_routes(path, should_fallback):
-    """Root SPA не должна маскировать API 404 и отсутствующие ассеты HTML-ответом."""
-    from web import _should_serve_flutter_index
+@pytest.mark.asyncio
+async def test_legacy_flutter_deep_links_redirect_to_react_pwa(
+    legacy_path, pwa_path, monkeypatch, tmp_path
+):
+    """Сохранённые legacy-ссылки не возвращают ученика в старый интерфейс."""
+    import web as web_module
 
-    assert _should_serve_flutter_index(path) is should_fallback
+    monkeypatch.setattr(web_module, "WEBAPP_DIST_DIR", tmp_path)
+    real_app = web_module.app
+
+    async with AsyncClient(
+        transport=ASGITransport(app=real_app),
+        base_url="http://test",
+        follow_redirects=False,
+    ) as ac:
+        response = await ac.get(legacy_path)
+
+    assert response.status_code == 308
+    assert response.headers["location"] == pwa_path
+
+
+@pytest.mark.asyncio
+async def test_legacy_flutter_service_worker_retires_itself():
+    """У уже установленных root-scope Flutter SW есть безопасный путь миграции."""
+    from web import app as real_app
+
+    async with AsyncClient(
+        transport=ASGITransport(app=real_app),
+        base_url="http://test",
+    ) as ac:
+        response = await ac.get("/flutter_service_worker.js")
+
+    assert response.status_code == 200
+    assert "application/javascript" in response.headers["content-type"]
+    assert response.headers["cache-control"] == "no-store, no-cache, must-revalidate"
+    assert "flutter-app-cache" in response.text
+    assert "registration.unregister" in response.text
+
+
+@pytest.mark.parametrize(
+    ("path", "redirect_target"),
+    [
+        ("", "/app/"),
+        ("lesson/mixtures-1", "/app/lesson/mixtures-1"),
+        ("api", None),
+        ("api/nonexistent", None),
+        ("api/v1/nonexistent", None),
+        ("assets/nonexistent.js", None),
+        ("favicon.ico", None),
+    ],
+)
+def test_root_redirect_only_handles_client_routes(path, redirect_target):
+    """PWA-redirect не должен маскировать API 404 и отсутствующие ассеты."""
+    from web import _pwa_redirect_target
+
+    assert _pwa_redirect_target(path) == redirect_target
 
 
 @pytest.mark.skipif(not WEBAPP_DIST_DIR.exists(), reason="webapp_dist не собран в этом окружении")

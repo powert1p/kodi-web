@@ -40,6 +40,10 @@ async def on_startup():
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS problems_on_current_node INTEGER DEFAULT 0",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS pin_hash VARCHAR(128)",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS paused_diagnostic JSONB",
+            # Телефон — identity web-аккаунта. DB constraint закрывает race
+            # между параллельными SELECT → INSERT при регистрации.
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_students_phone_not_null "
+            "ON students (phone) WHERE phone IS NOT NULL",
             # ── consent на фото (Блок 1.0) ──
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_consent BOOLEAN",
             "ALTER TABLE students ADD COLUMN IF NOT EXISTS photo_consent_at TIMESTAMPTZ",

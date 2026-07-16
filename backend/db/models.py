@@ -15,6 +15,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy import JSON
 from sqlalchemy.dialects.postgresql import JSONB
@@ -87,6 +88,14 @@ class Student(Base):
     """Telegram user profile."""
 
     __tablename__ = "students"
+    __table_args__ = (
+        Index(
+            "uq_students_phone_not_null",
+            "phone",
+            unique=True,
+            postgresql_where=text("phone IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)  # tg user_id
     first_name: Mapped[str | None] = mapped_column(Text)

@@ -11,7 +11,7 @@ export function BrandMark({ to = '/', className = '' }: BrandMarkProps) {
   return (
     <Link
       to={to}
-      aria-label="AiPlus — к моему пути"
+      aria-label="AiPlus — к учёбе"
       className={['brand-signature', className].join(' ')}
     >
       <span className="brand-signature__seed" aria-hidden>

@@ -6,12 +6,13 @@ interface GradeSelectProps {
   value: number | null
   onChange: (grade: number) => void
   disabled?: boolean
+  autoFocus?: boolean
 }
 
 // Классы, в которые может идти ученик (совпадает с валидацией backend: 4–7).
 const GRADES = [4, 5, 6, 7] as const
 
-export function GradeSelect({ value, onChange, disabled }: GradeSelectProps) {
+export function GradeSelect({ value, onChange, disabled, autoFocus = false }: GradeSelectProps) {
   return (
     <div
       role="radiogroup"
@@ -27,6 +28,7 @@ export function GradeSelect({ value, onChange, disabled }: GradeSelectProps) {
             role="radio"
             aria-checked={active}
             disabled={disabled}
+            autoFocus={autoFocus && g === GRADES[0]}
             onClick={() => onChange(g)}
             className={[
               'font-display h-12 flex-1 rounded-chip text-title transition-colors',

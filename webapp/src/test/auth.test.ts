@@ -143,7 +143,7 @@ describe('registerWithPin', () => {
       })
     }))
 
-    await registerWithPin('+77009876543', 'Айдана', '5678', false)
+    await registerWithPin('+77009876543', 'Айдана', '5678', 7)
 
     const fetchMock = vi.mocked(fetch)
     const [url] = fetchMock.mock.calls[0] as [string, RequestInit]
@@ -151,6 +151,8 @@ describe('registerWithPin', () => {
     expect(capturedBody?.['phone']).toBe('+77009876543')
     expect(capturedBody?.['name']).toBe('Айдана')
     expect(capturedBody?.['pin']).toBe('5678')
+    expect(capturedBody?.['grade']).toBe(7)
+    expect(capturedBody).not.toHaveProperty('photo_consent')
     expect(getToken()).toBe(mockToken)
   })
 
@@ -161,7 +163,7 @@ describe('registerWithPin', () => {
       json: async () => ({ detail: 'Этот номер уже зарегистрирован' }),
     }))
 
-    await expect(registerWithPin('+77001234567', 'Test', '1234', false)).rejects.toThrow(
+    await expect(registerWithPin('+77001234567', 'Test', '1234')).rejects.toThrow(
       'Этот номер уже зарегистрирован',
     )
     expect(getToken()).toBeNull()

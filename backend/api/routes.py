@@ -34,11 +34,13 @@ import random
 from threading import Lock
 import time
 from datetime import datetime, timedelta, timezone
+from typing import Literal
 
 import jwt
 from fastapi import APIRouter, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from slowapi import Limiter
@@ -229,10 +231,13 @@ class PhoneCheckBody(BaseModel):
     pin: str = ""
 
 class PhoneRegisterBody(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     phone: str
     name: str
     pin: str
-    photo_consent: bool = False
+    # Совместимость со старыми клиентами: false допустим, true отклоняется схемой.
+    photo_consent: Literal[False] = False
     grade: int | None = None  # класс, в который идёт ученик (4–7); None = не указан
 
 class PhoneLoginBody(BaseModel):
@@ -401,13 +406,25 @@ async def auth_phone_register(request: Request, body: PhoneRegisterBody):
             grade=body.grade,
             registered=True,
             lang="ru",
-            # Снятый чекбокс = «родитель ещё не ответил» (NULL), а НЕ отказ (False) —
-            # иначе ConsentCard на хабе (показывается только при NULL) никогда не появится.
-            photo_consent=True if body.photo_consent else None,
-            photo_consent_at=(datetime.now(timezone.utc) if body.photo_consent else None),
+            # Детская регистрация не является parent handoff: согласие может появиться
+            # только через отдельный защищённый consent-flow перед первой работой с фото.
+            photo_consent=None,
+            photo_consent_at=None,
         )
         session.add(student)
-        await session.commit()
+        try:
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            conflict = await session.scalar(
+                select(Student.id).where(Student.phone == phone)
+            )
+            if conflict is not None:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Этот номер уже зарегистрирован",
+                )
+            raise
         return {"access_token": _create_token(student.id)}
 
 

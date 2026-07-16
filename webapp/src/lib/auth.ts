@@ -118,18 +118,17 @@ export async function loginWithPin(phone: string, pin: string): Promise<void> {
   setToken(data.access_token)
 }
 
-/** Регистрация нового студента. Сохраняет токен в localStorage. grade — класс (4–7) или null. */
+/** Регистрация ученика без фото-согласия. Согласие родителя запрашивается отдельно перед фото. */
 export async function registerWithPin(
   phone: string,
   name: string,
   pin: string,
-  photoConsent: boolean,
   grade: number | null = null,
 ): Promise<void> {
   const res = await fetch(`${AUTH_BASE}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ phone, name, pin, photo_consent: photoConsent, grade }),
+    body: JSON.stringify({ phone, name, pin, grade }),
   })
   if (!res.ok) {
     const detail = await res.json().then((d: { detail?: string }) => d.detail).catch(() => null)
