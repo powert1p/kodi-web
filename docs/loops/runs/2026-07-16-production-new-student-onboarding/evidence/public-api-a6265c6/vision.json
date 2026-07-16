@@ -1,0 +1,31 @@
+{
+  "base_url": "https://wearing-ministers-indexes-mono.trycloudflare.com",
+  "synthetic_account": "credentials redacted",
+  "problem_id": 3,
+  "decomp_idx": 2,
+  "step_n": 1,
+  "expected_value": "91",
+  "results": [
+    {
+      "fixture": "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-15-production-child-journey-release/fixtures/step-1-match.png",
+      "expected": "match",
+      "actual": "match",
+      "confidence": 1.0,
+      "hint": null,
+      "attempts": 1,
+      "correct": true,
+      "grounded_hint": true
+    },
+    {
+      "fixture": "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-15-production-child-journey-release/fixtures/step-1-mismatch.png",
+      "expected": "mismatch",
+      "actual": "mismatch",
+      "confidence": 1.0,
+      "hint": "Проверь этот шаг ещё раз: Действия одного уровня выполняй слева направо. Сначала сложи: 63 + 28.",
+      "attempts": 1,
+      "correct": true,
+      "grounded_hint": true
+    }
+  ],
+  "verdict": "PASS"
+}

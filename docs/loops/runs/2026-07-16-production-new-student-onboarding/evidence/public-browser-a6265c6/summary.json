@@ -1,0 +1,223 @@
+{
+  "verdict": "PASS",
+  "generated_at_utc": "2026-07-16T09:43:56.232387+00:00",
+  "base_origin": "https://wearing-ministers-indexes-mono.trycloudflare.com",
+  "viewports": [
+    "375x844 touch",
+    "1280x900"
+  ],
+  "route_matrix": {
+    "/": {
+      "status": 308,
+      "location": "/app/",
+      "content_type": "",
+      "body_bytes": 0,
+      "spa_shell": false
+    },
+    "/app": {
+      "status": 308,
+      "location": "/app/",
+      "content_type": "",
+      "body_bytes": 0,
+      "spa_shell": false
+    },
+    "/app/": {
+      "status": 200,
+      "location": null,
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 1494,
+      "spa_shell": true
+    },
+    "/app/login": {
+      "status": 200,
+      "location": null,
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 1494,
+      "spa_shell": true
+    },
+    "/app/lesson/mixtures-1": {
+      "status": 200,
+      "location": null,
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 1494,
+      "spa_shell": true
+    },
+    "/app/assets/__acceptance_missing__.js": {
+      "status": 404,
+      "location": null,
+      "content_type": "application/json",
+      "body_bytes": 22,
+      "spa_shell": false
+    }
+  },
+  "registration_to_activity": {
+    "student_id": 1784195023525460,
+    "path_response_lesson_id": "mixtures-1",
+    "browser_destination": "/app/lesson/mixtures-1",
+    "submit_to_activity_ms": 2186,
+    "initial_session_id": 43,
+    "photo_consent": null
+  },
+  "continuity": {
+    "initial_session_id": 43,
+    "mobile_reload_session_id": 43,
+    "mobile_relogin_session_id": 43,
+    "desktop_relogin_session_id": 43,
+    "unique_session_ids": [
+      43
+    ],
+    "duplicate_session_created": false,
+    "saved_progress": "2/6"
+  },
+  "path_failure_recovery": {
+    "injected_first_path_status": 503,
+    "fallback_destination": "/app",
+    "jwt_preserved": true,
+    "auth_me_student_id": 1784195018173800,
+    "recovered_path_status": 200,
+    "recovered_lesson_id": "mixtures-1",
+    "account_preserved": true,
+    "path_request_statuses": [
+      503,
+      200,
+      200
+    ]
+  },
+  "touch_targets": {
+    "continue button": [
+      {
+        "width_px": 285,
+        "height_px": 48
+      },
+      {
+        "width_px": 285,
+        "height_px": 48
+      },
+      {
+        "width_px": 285,
+        "height_px": 48
+      },
+      {
+        "width_px": 394.6,
+        "height_px": 48
+      }
+    ],
+    "grade 7": [
+      {
+        "width_px": 65.8,
+        "height_px": 48
+      }
+    ],
+    "create and start button": [
+      {
+        "width_px": 285,
+        "height_px": 48
+      }
+    ],
+    "worked example advance": [
+      {
+        "width_px": 301,
+        "height_px": 56
+      }
+    ],
+    "check math step": [
+      {
+        "width_px": 301,
+        "height_px": 56
+      }
+    ],
+    "continue lesson login": [
+      {
+        "width_px": 285,
+        "height_px": 48
+      },
+      {
+        "width_px": 394.6,
+        "height_px": 48
+      }
+    ]
+  },
+  "checkpoints": [
+    "00-network-error-recovery",
+    "01-registration-start",
+    "02-registration-ready",
+    "03-first-math-direct",
+    "04-first-result-saved",
+    "05-mobile-reload-resume",
+    "06-mobile-relogin-resume",
+    "07-desktop-login-resume"
+  ],
+  "checks": [
+    "registration contains no parent-consent control",
+    "lesson id from /api/learning/path/current maps directly to the browser route",
+    "registration opens /app/lesson/mixtures-1 without a path-screen click",
+    "a failed first path request preserves the account and recovers on the path screen",
+    "first worked example and first student answer persist on the server",
+    "reload and both re-logins keep one server session id and resume at 2/6",
+    "public route matrix covers redirects, SPA deep links and missing asset 404",
+    "critical touch targets are at least 44x44",
+    "keyboard focus reaches form and answer controls",
+    "registration exposes a disabled loading state under network latency",
+    "recoverable network error is announced with an accessible alert",
+    "reduced-motion mode completes the full journey",
+    "preinstalled synthetic Flutter root SW unregisters and removes its caches",
+    "zero horizontal overflow",
+    "zero console, page, request, and API errors"
+  ],
+  "api_statuses": {
+    "GET /api/auth/me 200": 1,
+    "GET /api/learning/path/current 200": 3,
+    "POST /api/auth/phone/check 200": 3,
+    "POST /api/auth/phone/login 200": 2,
+    "POST /api/auth/phone/register 200": 1,
+    "POST /api/learning/advance 200": 1,
+    "POST /api/learning/answer 200": 1,
+    "POST /api/learning/start 200": 8
+  },
+  "legacy_worker_migration": {
+    "synthetic_worker_requested": "https://wearing-ministers-indexes-mono.trycloudflare.com/flutter_service_worker.js",
+    "worker_route_requests": [
+      "https://wearing-ministers-indexes-mono.trycloudflare.com/flutter_service_worker.js",
+      "https://wearing-ministers-indexes-mono.trycloudflare.com/flutter_service_worker.js?retire-e2e=1"
+    ],
+    "same_client_after_reload_controller": null,
+    "next_client_controller": "/app/sw.js",
+    "before": {
+      "controller": "/flutter_service_worker.js",
+      "registrations": [
+        {
+          "scope": "/",
+          "script": "/flutter_service_worker.js",
+          "state": "activated"
+        }
+      ],
+      "caches": [
+        "flutter-app-cache",
+        "flutter-temp-cache",
+        "flutter-app-manifest",
+        "kodi-e2e-preserve-cache"
+      ]
+    },
+    "after": {
+      "controller": "/app/sw.js",
+      "registrations": [
+        {
+          "scope": "/app/",
+          "script": "/app/sw.js"
+        }
+      ],
+      "ready_registration": {
+        "scope": "/app/",
+        "script": "/app/sw.js"
+      },
+      "caches": [
+        "kodi-e2e-preserve-cache",
+        "workbox-precache-v2-https://wearing-ministers-indexes-mono.trycloudflare.com/app/"
+      ]
+    }
+  },
+  "console_errors": [],
+  "page_errors": [],
+  "request_errors": [],
+  "api_errors": []
+}

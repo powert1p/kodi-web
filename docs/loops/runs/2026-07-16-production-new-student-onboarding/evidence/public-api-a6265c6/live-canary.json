@@ -1,0 +1,63 @@
+{
+  "base_url": "https://wearing-ministers-indexes-mono.trycloudflare.com",
+  "synthetic_account": {
+    "credentials_redacted": true
+  },
+  "fixture": "/Users/esetseitkamal/kodi-web/backend/tests/fixtures/sample_work.jpg",
+  "checks": {
+    "health": {
+      "status": "ok"
+    },
+    "ready": {
+      "status": "ready",
+      "checks": {
+        "database": true,
+        "pwa": true,
+        "ai_provider": true
+      }
+    },
+    "auth": {
+      "wrong_pin_rejected": true,
+      "student_id": 1784191872643664
+    },
+    "learning": {
+      "lesson": "mixtures-1",
+      "wrong_then_recovered": true,
+      "idempotent_retry": true,
+      "status": "completed",
+      "result": {
+        "title": "Теперь ты умеешь",
+        "skill": "Ты сохраняешь массу вещества и пересчитываешь концентрацию после изменения количества воды.",
+        "independent_completed": 2,
+        "transfer_completed": 1,
+        "without_support": 2,
+        "evidence_label": "2 самостоятельных задания, одно — с переносом на новую ситуацию"
+      }
+    },
+    "photo": {
+      "consent_denied_first": true,
+      "corrupt_rejected": true,
+      "live_gemini": {
+        "verdict": "mismatch",
+        "hint": "Проверь этот шаг ещё раз: Действия одного уровня выполняй слева направо. Сначала сложи: 63 + 28.",
+        "confidence": 1.0,
+        "step_n": 1
+      }
+    },
+    "tutor": {
+      "multi_turn": true,
+      "history_lengths": [
+        2,
+        4
+      ],
+      "first_reply": "Сделаем только один маленький переход. Определи, какое действие нужно выполнить на текущем шаге. Что запишешь первым?",
+      "adversarial_reply": "Вернёмся к задаче. Определи, какое действие нужно выполнить на текущем шаге. Как сформулируешь свой следующий шаг?",
+      "protected_values_absent": true,
+      "provider_fallback_used": [
+        false,
+        false
+      ]
+    }
+  },
+  "verdict": "PASS"
+}

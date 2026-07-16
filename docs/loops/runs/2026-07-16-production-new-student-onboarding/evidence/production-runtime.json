@@ -1,0 +1,126 @@
+{
+  "verdict": "PASS",
+  "verified_at_utc": "2026-07-16T09:45:04Z",
+  "release": {
+    "commit": "a6265c64e8afd3eb9a540d1d1e35501340fad36a",
+    "tree": "79f8b0147a6a641c967676a8faf07fb29950f27e",
+    "local_image": {
+      "tag": "kodi-web:onboarding-a6265c6",
+      "id": "sha256:60951509f7e4c12d821ffe3498b73813b6f4bc64ee75af45ec0165c269738aef",
+      "os": "linux",
+      "architecture": "amd64"
+    },
+    "deployed_image": {
+      "container": "kodi-app",
+      "container_id": "95734486d8f4d37628c9cbdd16bea1cb150330ddbcb7b9d0687b98c1c802f755",
+      "tag": "kodi-web:online",
+      "config_id": "sha256:267a39ed644bbc17a9318614cba8b57de66e5eb0c0efbfd163fcdbb50d420397",
+      "os": "linux",
+      "architecture": "amd64",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0,
+      "started_at": "2026-07-16T08:44:59.128843166Z"
+    },
+    "rootfs_provenance": {
+      "local_remote_exact_match": true,
+      "layer_count": 13,
+      "layers": [
+        "sha256:f2ec4de84f559f5c7be4233b589cdbdbb5507807e05621b77320edd55a1f2a0f",
+        "sha256:1d1e59fb358647027ab521a60f44f87f158376fd9477b6542ef8e88992301dd1",
+        "sha256:99ab40bce873c6bc2ef49d1441dcbd1752681c34a02f4655fb3f68f8f2b34523",
+        "sha256:fc95983f78e7d6f0a6a727cef3214722721b65d6d2710fc433fc381cac671ec2",
+        "sha256:a8f122ed1d28db6e4eba8732e6df0d5eea1dd35d0cff4d32efc539a54e6f06d9",
+        "sha256:6e3ebd241e0222e5e682b41566f0d2e3120f269e70f7a54c715c5fca87c82754",
+        "sha256:769850442b09039e4c55899fc031ffd1f603f5207074cf548b9fc074df7f56ce",
+        "sha256:a7f3c2b66105363e6d69b0573769cbafad45429d5488263e9770c43a17f8f5ee",
+        "sha256:f0073a4bd52bb236b05d04341e35e2dc563bc57df3b0a1578bfef24cf099d675",
+        "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+        "sha256:3b92dd6bded239c90182cfc8e077f28a650f39c04655065ee85e2e6735bbd889",
+        "sha256:b4386051c6863ab73bbd82f263ca5646cf01d1bfb53f187e833830ef178d6af7",
+        "sha256:0e67312fa2a311d3f3456cb6bed3b3bf398a963ac7c35a5be2d96092d099d142"
+      ]
+    }
+  },
+  "public_runtime": {
+    "url": "https://wearing-ministers-indexes-mono.trycloudflare.com/app/",
+    "endpoint_type": "managed quick tunnel",
+    "health": {"status": "ok"},
+    "ready": {
+      "status": "ready",
+      "checks": {"database": true, "pwa": true, "ai_provider": true}
+    },
+    "tunnel": {
+      "container": "kodi-tunnel",
+      "container_id": "d1049810fb9110c5953d4e661b60e996a85aed60aed7e263870f096e053ea3d4",
+      "state": "running",
+      "restart_count": 0,
+      "started_at": "2026-07-15T19:35:26.448943416Z"
+    },
+    "canonical_domain": {
+      "confirmed_for_this_release": false,
+      "note": "The verified public release endpoint is the managed quick tunnel; kodi.aiplus.kz resolves but does not currently serve this app with a trusted certificate."
+    }
+  },
+  "database": {
+    "duplicate_non_null_phone_groups": 0,
+    "unique_index": "CREATE UNIQUE INDEX uq_students_phone_not_null ON public.students USING btree (phone) WHERE (phone IS NOT NULL)"
+  },
+  "rollback": {
+    "database_backup": "/home/eset/kodi-web/backups/20260716T084044Z-pre-onboarding.dump",
+    "database_backup_bytes": 909294,
+    "pg_restore_list_entries": 203,
+    "image_tag": "kodi-web:rollback-20260716T084044Z",
+    "image_id": "sha256:e755c6ae60dbaaba044123d9fe72614b6284af45c95274286e45f2ea22af307d"
+  },
+  "release_logs": {
+    "since": "2026-07-16T08:44:59Z",
+    "traceback_uncaught_fatal_error_count": 0
+  },
+  "gates": {
+    "backend_full_database": {
+      "command": "TEST_DATABASE_URL=<isolated-postgres> .venv/bin/pytest backend/tests/ -x -q",
+      "result": "515 passed, 22 warnings in 60.28s",
+      "exit_code": 0,
+      "tested_commit": "a6265c64e8afd3eb9a540d1d1e35501340fad36a",
+      "backend_diff_from_commit": false
+    },
+    "frontend_tests": {
+      "command": "npm exec vitest -- run",
+      "result": "18 files passed, 96 tests passed",
+      "exit_code": 0
+    },
+    "frontend_lint": {
+      "command": "npm run lint",
+      "result": "0 errors, 3 pre-existing warnings",
+      "exit_code": 0
+    },
+    "design_lint": {
+      "command": "npm run lint:design",
+      "result": "114 files clean",
+      "exit_code": 0
+    },
+    "frontend_production_build": {
+      "command": "npm run build",
+      "result": "TypeScript and Vite production build passed; PWA precache contains 67 entries",
+      "exit_code": 0
+    },
+    "flutter_analyze": {
+      "command": "flutter analyze",
+      "result": "No issues found",
+      "exit_code": 0
+    },
+    "public_browser_cjm": {
+      "artifact": "public-browser-a6265c6/summary.json",
+      "result": "PASS"
+    },
+    "public_api_ai_canary": {
+      "artifact": "public-api-a6265c6/live-canary.json",
+      "result": "PASS"
+    },
+    "public_gemini_vision": {
+      "artifact": "public-api-a6265c6/vision.json",
+      "result": "PASS"
+    }
+  }
+}
