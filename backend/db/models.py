@@ -472,6 +472,38 @@ class DrillStepAttempt(Base):
     )
 
 
+class VerificationSubmission(Base):
+    """Идемпотентная команда проверки переноса навыка.
+
+    Строка создаётся в той же транзакции, что Attempt и BKT update. Поэтому
+    повтор запроса после потерянного HTTP-ответа возвращает прежний результат,
+    но не учитывает доказательство второй раз.
+    """
+
+    __tablename__ = "verification_submissions"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "client_attempt_id",
+            name="uq_verification_submission_student_client",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    client_attempt_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    problem_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="RESTRICT"), nullable=False
+    )
+    answer_given: Mapped[str] = mapped_column(Text, nullable=False)
+    is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
 class LearningSession(Base):
     """Persistent student position inside one versioned learning path."""
 

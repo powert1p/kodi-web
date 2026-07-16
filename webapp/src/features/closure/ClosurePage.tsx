@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useRef, type ReactNode } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import { FocusTopbar } from '../../components/FocusTopbar'
 import { ApButton } from '../../components/ApButton'
@@ -11,11 +11,23 @@ export function ClosurePage() {
   const location = useLocation()
   const { taskId } = useParams<{ taskId: string }>()
   const { data: task, isLoading: isTaskLoading } = useWrongTask(taskId ?? '')
-  const closure = useClosure(task?.problem_id ?? 0, task?.primary_micro_skill ?? null)
+  // После успешной closure invalidation закономерно убирает задачу из очереди.
+  // Держим snapshot только для текущего route id, чтобы celebration не исчезал
+  // между commit ответа и переходом ребёнка обратно к учебному пути.
+  const taskSnapshot = useRef<{ taskId: string; task: NonNullable<typeof task> } | null>(null)
+  if (task && taskId && String(task.id) === taskId) taskSnapshot.current = { taskId, task }
+  const capturedTask = taskSnapshot.current
+  const closureTask = task ?? (
+    capturedTask?.taskId === taskId ? capturedTask?.task : undefined
+  )
+  const closure = useClosure(
+    closureTask?.problem_id ?? 0,
+    closureTask?.primary_micro_skill ?? null,
+  )
   const devCelebrate = import.meta.env.DEV && new URLSearchParams(location.search).get('dev') === 'celebrate'
   const isDone = closure.status === 'correct' || devCelebrate
   const problem = closure.problem
-  const isTaskNotFound = !isTaskLoading && !task
+  const isTaskNotFound = !isTaskLoading && !closureTask
 
   return (
     <div className="min-h-dvh bg-paper">
@@ -24,7 +36,7 @@ export function ClosurePage() {
         <ClosureCelebration
           statement={problem?.statement ?? null}
           answer={closure.lastAnswer ?? null}
-          topic={problem?.topic_label ?? task?.topic_label ?? 'Математика'}
+          topic={problem?.topic_label ?? closureTask?.topic_label ?? 'Математика'}
         />
       ) : (
         <div className="mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-6xl content-start gap-4 px-4 py-3 md:px-8 lg:grid-cols-[minmax(14rem,0.42fr)_minmax(0,1fr)] lg:content-center lg:items-center lg:gap-9 lg:py-8">
@@ -32,7 +44,7 @@ export function ClosurePage() {
             <p className="text-mark text-brand-deep">Перенос навыка</p>
             <h1 className="mt-3 text-[clamp(30px,4vw,44px)] font-bold leading-[1.02] tracking-[-0.05em] text-ink">Та же мысль. Новые числа.</h1>
             <p className="mt-3 max-w-xl text-body text-text lg:mt-5">Реши без подсказок. Так проверяем ход решения, а не память ответа.</p>
-            <p className="mt-3 border-t border-ink/10 pt-3 text-caption1 text-muted lg:mt-6 lg:pt-4">{problem?.topic_label ?? task?.topic_label ?? 'Готовим похожую задачу'}</p>
+            <p className="mt-3 border-t border-ink/10 pt-3 text-caption1 text-muted lg:mt-6 lg:pt-4">{problem?.topic_label ?? closureTask?.topic_label ?? 'Готовим похожую задачу'}</p>
           </aside>
 
           <section className="flex min-w-0 items-center" aria-label="Проверочная задача">

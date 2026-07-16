@@ -222,9 +222,14 @@ describe('verification', () => {
     expect(JSON.parse(body as unknown as string).problem_id).toBe(1)
   })
   it('answerVerification возвращает correct', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ correct: true }) }))
-    const res = await answerVerification(2, '20', 'vf')
+    let body: string | null = null
+    vi.stubGlobal('fetch', vi.fn().mockImplementation((_u: string, init: RequestInit) => {
+      body = init.body as string
+      return Promise.resolve({ ok: true, json: async () => ({ correct: true, is_duplicate: false }) })
+    }))
+    const res = await answerVerification(2, '20', 'closure-attempt-1', 'vf')
     expect(res.correct).toBe(true)
+    expect(JSON.parse(body as unknown as string).client_attempt_id).toBe('closure-attempt-1')
   })
 })
 

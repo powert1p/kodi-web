@@ -17,6 +17,19 @@ interface ClosureState {
   retryStart: () => void
 }
 
+interface PendingSubmission {
+  problemId: number
+  answer: string
+  clientAttemptId: string
+}
+
+function createClientAttemptId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `closure-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
 // Живое закрепление: контрольная приходит с verification/start (тот же узел,
 // другая задача), проверка — verification/answer (server-side). Верно → 'correct'
 // + сервер помечает recurring_errors.resolved. Неверно → 'wrong' (мягкий ретрай).
@@ -33,6 +46,9 @@ export function useClosure(
   const queryClient = useQueryClient()
   // Guard от двойного клика: запрос уже в полёте — повторный check игнорируем.
   const checkInFlight = useRef(false)
+  // Сохраняем ключ после ambiguous network failure: retry того же ответа
+  // безопасно получает серверный результат, не создавая новый Attempt/BKT update.
+  const pendingSubmissionRef = useRef<PendingSubmission | null>(null)
   // Изолирует ответы старой closure-сессии при смене route param или retry.
   const generationRef = useRef(0)
 
@@ -40,6 +56,7 @@ export function useClosure(
     const generation = generationRef.current + 1
     generationRef.current = generation
     checkInFlight.current = false
+    pendingSubmissionRef.current = null
     setStatus('loading')
     setProblem(null)
     setAttempts(0)
@@ -68,11 +85,22 @@ export function useClosure(
       if (checkInFlight.current) return
       checkInFlight.current = true
       const generation = generationRef.current
-      setLastAnswer(value.trim())
+      const answer = value.trim()
+      const pending = pendingSubmissionRef.current
+      const submission = pending?.problemId === problem.problem_id && pending.answer === answer
+        ? pending
+        : {
+            problemId: problem.problem_id,
+            answer,
+            clientAttemptId: createClientAttemptId(),
+          }
+      pendingSubmissionRef.current = submission
+      setLastAnswer(answer)
       setStatus('checking')
-      answerVerification(problem.problem_id, value, microSkill)
+      answerVerification(problem.problem_id, answer, submission.clientAttemptId, microSkill)
         .then((res) => {
           if (generationRef.current !== generation) return
+          pendingSubmissionRef.current = null
           if (res.correct) {
             setStatus('correct')
             void track('closure_passed')

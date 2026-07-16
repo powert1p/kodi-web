@@ -33,7 +33,7 @@ beforeEach(() => {
 
 describe('useClosure submit state', () => {
   it('показывает checking до ответа сервера и блокирует повторную отправку', async () => {
-    let resolveAnswer: ((value: { correct: boolean }) => void) | undefined
+    let resolveAnswer: ((value: { correct: boolean; is_duplicate: boolean }) => void) | undefined
     vi.mocked(answerVerification).mockImplementation(
       () => new Promise((resolve) => { resolveAnswer = resolve }),
     )
@@ -49,7 +49,7 @@ describe('useClosure submit state', () => {
     expect(result.current.status).toBe('checking')
     expect(answerVerification).toHaveBeenCalledTimes(1)
 
-    await act(async () => resolveAnswer?.({ correct: true }))
+    await act(async () => resolveAnswer?.({ correct: true, is_duplicate: false }))
     expect(result.current.status).toBe('correct')
   })
 
@@ -79,7 +79,7 @@ describe('useClosure submit state', () => {
   })
 
   it('изолирует поздний ответ предыдущей задачи после смены problem id', async () => {
-    let resolveOldAnswer: ((value: { correct: boolean }) => void) | undefined
+    let resolveOldAnswer: ((value: { correct: boolean; is_duplicate: boolean }) => void) | undefined
     vi.mocked(answerVerification).mockImplementation(
       () => new Promise((resolve) => { resolveOldAnswer = resolve }),
     )
@@ -116,14 +116,14 @@ describe('useClosure submit state', () => {
     expect(result.current.problem).toBeNull()
     await waitFor(() => expect(result.current.problem?.problem_id).toBe(84))
 
-    await act(async () => resolveOldAnswer?.({ correct: true }))
+    await act(async () => resolveOldAnswer?.({ correct: true, is_duplicate: false }))
     expect(result.current.status).toBe('solving')
     expect(result.current.problem?.problem_id).toBe(84)
     expect(result.current.lastAnswer).toBeNull()
   })
 
   it('очищает завершённую closure при переходе на отсутствующую задачу', async () => {
-    vi.mocked(answerVerification).mockResolvedValue({ correct: true })
+    vi.mocked(answerVerification).mockResolvedValue({ correct: true, is_duplicate: false })
     const { result, rerender } = renderHook(
       ({ id }) => useClosure(id, 'add_fractions'),
       { initialProps: { id: 7 }, wrapper },
@@ -137,5 +137,26 @@ describe('useClosure submit state', () => {
     expect(result.current.status).toBe('loading')
     expect(result.current.problem).toBeNull()
     expect(result.current.lastAnswer).toBeNull()
+  })
+
+  it('повторяет тот же ответ после сетевой неопределённости с тем же idempotency key', async () => {
+    vi.mocked(answerVerification)
+      .mockRejectedValueOnce(new Error('response lost'))
+      .mockResolvedValueOnce({ correct: true, is_duplicate: true })
+
+    const { result } = renderHook(() => useClosure(7, 'add_fractions'), { wrapper })
+    await waitFor(() => expect(result.current.status).toBe('solving'))
+
+    act(() => result.current.check('1'))
+    await waitFor(() => expect(result.current.status).toBe('error'))
+    const firstKey = vi.mocked(answerVerification).mock.calls[0]?.[2]
+    expect(firstKey).toBeTypeOf('string')
+
+    act(() => result.current.resume())
+    act(() => result.current.check('1'))
+    await waitFor(() => expect(result.current.status).toBe('correct'))
+
+    expect(answerVerification).toHaveBeenCalledTimes(2)
+    expect(vi.mocked(answerVerification).mock.calls[1]?.[2]).toBe(firstKey)
   })
 })

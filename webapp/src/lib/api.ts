@@ -360,13 +360,23 @@ export async function startVerification(problemId: number, microSkill?: string |
   }
 }
 
-export async function answerVerification(problemId: number, answer: string, microSkill?: string | null): Promise<{ correct: boolean }> {
+export async function answerVerification(
+  problemId: number,
+  answer: string,
+  clientAttemptId: string,
+  microSkill?: string | null,
+): Promise<{ correct: boolean; is_duplicate: boolean }> {
   const res = await apiFetch(`${API_BASE}/trainer/verification/answer`, {
     method: 'POST',
     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ problem_id: problemId, answer, micro_skill: microSkill ?? null }),
+    body: JSON.stringify({
+      problem_id: problemId,
+      answer,
+      micro_skill: microSkill ?? null,
+      client_attempt_id: clientAttemptId,
+    }),
   })
-  return res.json() as Promise<{ correct: boolean }>
+  return res.json() as Promise<{ correct: boolean; is_duplicate: boolean }>
 }
 
 // ── Чат тьютора ──

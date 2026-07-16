@@ -357,7 +357,7 @@ async def build_wrong_tasks(
     """Строит список задач для тренажёра ошибок на основе срезовых попыток.
 
     Алгоритм:
-      1. Берём последние «days» дней: неверные попытки diagnostic/exam/practice,
+      1. Берём последние «days» дней: неверные попытки diagnostic/exam/practice/closure,
          после которых не было успешной контрольной того же узла.
       2. Джойним problems (statement, answer) и nodes (topic_label).
       3. Дедуплицируем в Python по problem_id — оставляем самую свежую попытку.
@@ -406,7 +406,7 @@ async def build_wrong_tasks(
         ),
         {
             "sid": student_id,
-            "sources": ["diagnostic", "exam", "practice"],
+            "sources": ["diagnostic", "exam", "practice", "closure"],
             "days": days,
             "lim": limit,
         },

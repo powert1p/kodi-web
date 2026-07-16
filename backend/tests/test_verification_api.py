@@ -1,6 +1,7 @@
 """Интеграционные тесты verification-эндпоинтов closure."""
 from __future__ import annotations
 
+import asyncio
 import os
 
 os.environ.setdefault("JWT_SECRET", "test-jwt-secret-with-at-least-32-chars")
@@ -110,7 +111,12 @@ async def test_verification_answer_correct_resolves(vclient):
 
     resp = await ac.post("/api/trainer/verification/answer",
                          headers=headers,
-                         json={"problem_id": p2, "answer": "20", "micro_skill": "vf_skill"})
+                         json={
+                             "problem_id": p2,
+                             "answer": "20",
+                             "micro_skill": "vf_skill",
+                             "client_attempt_id": "correct-resolves-1",
+                         })
     assert resp.status_code == 200, resp.text
     assert resp.json()["correct"] is True
 
@@ -140,7 +146,12 @@ async def test_verification_answer_wrong_not_resolved(vclient):
     headers = {"Authorization": f"Bearer {token}"}
     resp = await ac.post("/api/trainer/verification/answer",
                          headers=headers,
-                         json={"problem_id": p2, "answer": "99", "micro_skill": "vf_skill"})
+                         json={
+                             "problem_id": p2,
+                             "answer": "99",
+                             "micro_skill": "vf_skill",
+                             "client_attempt_id": "wrong-stays-open-1",
+                         })
     assert resp.status_code == 200, resp.text
     assert resp.json()["correct"] is False
 
@@ -156,7 +167,12 @@ async def test_new_wrong_attempt_after_closure_reopens_task(vclient):
     closed = await ac.post(
         "/api/trainer/verification/answer",
         headers=headers,
-        json={"problem_id": p2, "answer": "20", "micro_skill": "vf_skill"},
+        json={
+            "problem_id": p2,
+            "answer": "20",
+            "micro_skill": "vf_skill",
+            "client_attempt_id": "close-before-srez-1",
+        },
     )
     assert closed.status_code == 200, closed.text
     assert closed.json()["correct"] is True
@@ -194,7 +210,12 @@ async def test_wrong_recorded_attempt_reopens_recurring_progress(vclient):
     closed = await ac.post(
         "/api/trainer/verification/answer",
         headers=headers,
-        json={"problem_id": p2, "answer": "20", "micro_skill": "vf_skill"},
+        json={
+            "problem_id": p2,
+            "answer": "20",
+            "micro_skill": "vf_skill",
+            "client_attempt_id": "close-before-reopen-1",
+        },
     )
     assert closed.status_code == 200, closed.text
     assert closed.json()["correct"] is True
@@ -202,7 +223,12 @@ async def test_wrong_recorded_attempt_reopens_recurring_progress(vclient):
     wrong = await ac.post(
         "/api/trainer/verification/answer",
         headers=headers,
-        json={"problem_id": p2, "answer": "99", "micro_skill": "vf_skill"},
+        json={
+            "problem_id": p2,
+            "answer": "99",
+            "micro_skill": "vf_skill",
+            "client_attempt_id": "new-wrong-after-close-1",
+        },
     )
     assert wrong.status_code == 200, wrong.text
     assert wrong.json()["correct"] is False
@@ -217,6 +243,111 @@ async def test_wrong_recorded_attempt_reopens_recurring_progress(vclient):
         ), {"sid": sid})).scalar_one()
     await eng.dispose()
     assert resolved is False
+
+    wrong_tasks = await ac.get("/api/trainer/wrong-tasks", headers=headers)
+    assert wrong_tasks.status_code == 200, wrong_tasks.text
+    assert any(task["problem_id"] == p2 for task in wrong_tasks.json()["tasks"])
+
+
+@pytest.mark.asyncio
+async def test_verification_answer_retry_is_idempotent(vclient):
+    """Повтор после потерянного ответа не создаёт Attempt и не двигает BKT второй раз."""
+    ac, token, _p1, p2, sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "problem_id": p2,
+        "answer": "20",
+        "micro_skill": "vf_skill",
+        "client_attempt_id": "ambiguous-network-retry-1",
+    }
+
+    first = await ac.post("/api/trainer/verification/answer", headers=headers, json=payload)
+    assert first.status_code == 200, first.text
+    assert first.json() == {"correct": True, "is_duplicate": False}
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    eng = create_async_engine(_TEST_URL)
+    fac = async_sessionmaker(eng, expire_on_commit=False)
+    async with fac() as s:
+        before = (await s.execute(text(
+            "SELECT COUNT(*), MAX(p_mastery_after) FROM attempts "
+            "WHERE student_id = :sid AND source = 'closure'"
+        ), {"sid": sid})).one()
+
+    retry = await ac.post("/api/trainer/verification/answer", headers=headers, json=payload)
+    assert retry.status_code == 200, retry.text
+    assert retry.json() == {"correct": True, "is_duplicate": True}
+
+    async with fac() as s:
+        after = (await s.execute(text(
+            "SELECT COUNT(*), MAX(p_mastery_after) FROM attempts "
+            "WHERE student_id = :sid AND source = 'closure'"
+        ), {"sid": sid})).one()
+    await eng.dispose()
+    assert tuple(after) == tuple(before)
+
+
+@pytest.mark.asyncio
+async def test_verification_attempt_id_cannot_be_reused_for_other_payload(vclient):
+    ac, token, _p1, p2, _sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
+    attempt_id = "payload-binding-check-1"
+
+    first = await ac.post(
+        "/api/trainer/verification/answer",
+        headers=headers,
+        json={
+            "problem_id": p2,
+            "answer": "20",
+            "micro_skill": "vf_skill",
+            "client_attempt_id": attempt_id,
+        },
+    )
+    assert first.status_code == 200, first.text
+
+    conflict = await ac.post(
+        "/api/trainer/verification/answer",
+        headers=headers,
+        json={
+            "problem_id": p2,
+            "answer": "99",
+            "micro_skill": "vf_skill",
+            "client_attempt_id": attempt_id,
+        },
+    )
+    assert conflict.status_code == 409, conflict.text
+
+
+@pytest.mark.asyncio
+async def test_parallel_verification_retries_record_one_attempt(vclient):
+    """Два одновременно пришедших одинаковых запроса сериализуются unique claim."""
+    ac, token, _p1, p2, sid = vclient
+    headers = {"Authorization": f"Bearer {token}"}
+    payload = {
+        "problem_id": p2,
+        "answer": "20",
+        "micro_skill": "vf_skill",
+        "client_attempt_id": "parallel-retry-same-key-1",
+    }
+
+    responses = await asyncio.gather(*(
+        ac.post("/api/trainer/verification/answer", headers=headers, json=payload)
+        for _ in range(2)
+    ))
+    assert [response.status_code for response in responses] == [200, 200]
+    bodies = [response.json() for response in responses]
+    assert sorted(body["is_duplicate"] for body in bodies) == [False, True]
+
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+    eng = create_async_engine(_TEST_URL)
+    fac = async_sessionmaker(eng, expire_on_commit=False)
+    async with fac() as s:
+        count = (await s.execute(text(
+            "SELECT COUNT(*) FROM attempts "
+            "WHERE student_id = :sid AND source = 'closure'"
+        ), {"sid": sid})).scalar_one()
+    await eng.dispose()
+    assert count == 1
 
 
 @pytest.mark.asyncio

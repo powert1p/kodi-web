@@ -21,7 +21,8 @@ from fastapi import APIRouter, Form, HTTPException, Query, Request, UploadFile
 from fastapi import File as FastApiFile
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import text
+from sqlalchemy import select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.routes import _get_current_student, ai_ip_limit, limiter
@@ -46,7 +47,7 @@ from core.tutor import (
     sanitize_tutor_output,
     tutor_unavailable_fallback,
 )
-from db.models import Problem
+from db.models import Problem, VerificationSubmission
 
 logger = logging.getLogger(__name__)
 
@@ -1247,10 +1248,12 @@ class VerificationAnswerIn(BaseModel):
     problem_id: int
     answer: str
     micro_skill: str | None = None
+    client_attempt_id: str = Field(min_length=8, max_length=64)
 
 
 class VerificationAnswerOut(BaseModel):
     correct: bool
+    is_duplicate: bool = False
 
 
 _VERIFICATION_XP = 30
@@ -1309,6 +1312,41 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
             raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
 
         correct = check_answer(payload.answer, problem.answer, problem.answer_type)
+        # Сначала атомарно занимаем client_attempt_id. ON CONFLICT ждёт
+        # параллельную транзакцию с тем же ключом, поэтому и retry, и двойной
+        # запрос получают один durable результат без повторного BKT update.
+        claimed_id = (
+            await session.execute(
+                pg_insert(VerificationSubmission)
+                .values(
+                    student_id=student.id,
+                    client_attempt_id=payload.client_attempt_id,
+                    problem_id=problem.id,
+                    answer_given=payload.answer,
+                    is_correct=correct,
+                )
+                .on_conflict_do_nothing(
+                    index_elements=["student_id", "client_attempt_id"]
+                )
+                .returning(VerificationSubmission.id)
+            )
+        ).scalar_one_or_none()
+        if claimed_id is None:
+            previous = (
+                await session.execute(
+                    select(VerificationSubmission).where(
+                        VerificationSubmission.student_id == student.id,
+                        VerificationSubmission.client_attempt_id == payload.client_attempt_id,
+                    )
+                )
+            ).scalar_one()
+            if previous.problem_id != problem.id or previous.answer_given != payload.answer:
+                raise HTTPException(
+                    status_code=409,
+                    detail="Этот идентификатор уже относится к другому ответу",
+                )
+            return VerificationAnswerOut(correct=previous.is_correct, is_duplicate=True)
+
         # Контрольная — самостоятельная попытка на перенос, поэтому она должна
         # попадать в историю и BKT. source='closure' также служит устойчивым
         # доказательством закрытия очереди: новый неверный ответ позднее снова её откроет.
@@ -1336,7 +1374,7 @@ async def post_verification_answer(request: Request, payload: VerificationAnswer
     finally:
         await session.close()
 
-    return VerificationAnswerOut(correct=correct)
+    return VerificationAnswerOut(correct=correct, is_duplicate=False)
 
 
 # ── Climb-down: decomp полегче для того же навыка ─────────────────────────────
