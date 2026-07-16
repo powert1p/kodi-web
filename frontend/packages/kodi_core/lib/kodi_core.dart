@@ -1,5 +1,3 @@
-library kodi_core;
-
 export 'models/student.dart';
 export 'models/stats.dart';
 export 'models/graph_node.dart';
