@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from typing import Iterable, TypedDict
 
 
 _RESULT_CUE_RE = re.compile(
@@ -45,6 +45,21 @@ _STEP_OPERAND_RE = re.compile(
 )
 _SPACE_RE = re.compile(r"\s+")
 _SIMPLE_NUMBER_RE = re.compile(r"[-+]?\d+(?:[.,]\d+)?(?:\s*%)?")
+_FRACTION_RE = re.compile(r"[-+]?\d+\s*/\s*\d+")
+_MIXED_FRACTION_RE = re.compile(r"[-+]?\d+\s+\d+\s*/\s*\d+")
+_UNIT_VALUE_RE = re.compile(
+    r"[-+]?\d+(?:[.,]\d+)?(?:\s+\d+\s*/\s*\d+)?\s*[A-Za-zА-Яа-яЁё²³/%]+"
+)
+_EXPRESSION_MARKER_RE = re.compile(r"[=+−–×·∙÷*^()]|[A-Za-zА-Яа-яЁё]\s*=")
+
+
+class GuidedInputContract(TypedDict):
+    """Публичная подсказка о форме ответа без раскрытия expected value."""
+
+    prompt: str
+    format_hint: str
+    example: str
+    input_mode: str
 
 
 def _value_pattern(value: object) -> re.Pattern[str] | None:
@@ -274,6 +289,88 @@ def safe_step_action(source: str) -> str:
     """
     normalised = _SPACE_RE.sub(" ", source).strip()
     return _fallback_instruction(normalised)
+
+
+def guided_input_contract(
+    instruction: str,
+    *,
+    expected_value: object,
+) -> GuidedInputContract:
+    """Объясняет ребёнку, что вводить на текущем шаге.
+
+    Все примеры намеренно синтетические и не строятся из ``expected_value``.
+    Неизвестная или неполная форма всегда получает безопасный текстовый fallback.
+    """
+
+    source = _SPACE_RE.sub(" ", str(instruction)).strip()
+    expected = _SPACE_RE.sub(" ", str(expected_value)).strip()
+    folded = source.casefold().replace("ё", "е")
+
+    if (
+        "отношени" in folded
+        and any(word in folded for word in ("част", "сумм", "всего"))
+    ):
+        return {
+            "prompt": "Запиши действие, которое нужно выполнить на этом шаге.",
+            "format_hint": "Например: 2 + 3 + 4",
+            "example": "2 + 3 + 4",
+            "input_mode": "text",
+        }
+    if _MIXED_FRACTION_RE.fullmatch(expected):
+        return {
+            "prompt": "Запиши смешанное число.",
+            "format_hint": "Например: 2 1/3",
+            "example": "2 1/3",
+            "input_mode": "text",
+        }
+    if _FRACTION_RE.fullmatch(expected):
+        return {
+            "prompt": "Запиши дробь через косую черту.",
+            "format_hint": "Например: 3/5",
+            "example": "3/5",
+            "input_mode": "text",
+        }
+    if expected and _UNIT_VALUE_RE.fullmatch(expected):
+        return {
+            "prompt": "Запиши значение вместе с единицей измерения.",
+            "format_hint": "Например: 12 см",
+            "example": "12 см",
+            "input_mode": "text",
+        }
+    if expected and (_EXPRESSION_MARKER_RE.search(expected) or "выражен" in folded):
+        return {
+            "prompt": "Запиши выражение или равенство этого перехода.",
+            "format_hint": "Например: x = 12 - 5",
+            "example": "x = 12 - 5",
+            "input_mode": "text",
+        }
+    if expected and _SIMPLE_NUMBER_RE.fullmatch(expected):
+        if expected.endswith("%") or "процент" in folded:
+            return {
+                "prompt": "Запиши число со знаком процента.",
+                "format_hint": "Например: 25%",
+                "example": "25%",
+                "input_mode": "decimal",
+            }
+        return {
+            "prompt": "Запиши число, которое получилось на этом шаге.",
+            "format_hint": "Например: 7",
+            "example": "7",
+            "input_mode": "decimal",
+        }
+    if any(word in folded for word in ("выбери", "сравни", "вывод", "объясни")):
+        return {
+            "prompt": "Запиши короткий вывод своими словами.",
+            "format_hint": "Одно короткое предложение",
+            "example": "Первая величина больше",
+            "input_mode": "text",
+        }
+    return {
+        "prompt": "Запиши результат только текущего шага.",
+        "format_hint": "Короткий ответ или выражение",
+        "example": "Короткая запись шага",
+        "input_mode": "text",
+    }
 
 
 def safe_step_instruction(

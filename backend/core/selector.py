@@ -23,12 +23,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.bkt import MASTERY_THRESHOLD
+from core.bkt import MASTERY_THRESHOLD, is_mastered, mastery_reached_clause
 from core.exam import EXAM_HEADS
 from core.graph import get_outer_fringe
 from db.models import Attempt, Mastery, Problem
 
-HEAD_MASTERY_THRESHOLD = 0.85
 _EXAM_HEADS_SET = set(EXAM_HEADS)
 
 _nis_first = case(
@@ -215,25 +214,25 @@ async def _get_weak_exam_heads(
     session: AsyncSession,
     student_id: int,
 ) -> list[str]:
-    """Return EXAM_HEADS with p_mastery < 0.85, untested first, then by weakness."""
+    """Return unmastered EXAM_HEADS, untested first, then by BKT probability."""
     mastery_rows = (
         await session.execute(
-            select(Mastery.node_id, Mastery.p_mastery).where(
+            select(Mastery).where(
                 Mastery.student_id == student_id,
                 Mastery.node_id.in_(EXAM_HEADS),
             )
         )
-    ).all()
-    mastery_map = {row.node_id: row.p_mastery for row in mastery_rows}
+    ).scalars().all()
+    mastery_map = {row.node_id: row for row in mastery_rows}
 
     untested: list[str] = []
     weak: list[tuple[float, str]] = []
     for head in EXAM_HEADS:
-        p = mastery_map.get(head)
-        if p is None:
+        mastery = mastery_map.get(head)
+        if mastery is None:
             untested.append(head)
-        elif p < HEAD_MASTERY_THRESHOLD:
-            weak.append((p, head))
+        elif not is_mastered(mastery):
+            weak.append((mastery.p_mastery, head))
 
     weak.sort(key=lambda x: x[0])
     return untested + [nid for _, nid in weak]
@@ -328,7 +327,7 @@ async def _get_review_topics(
     rows = (await session.execute(
         select(Mastery.node_id, Mastery.last_attempt_at).where(
             Mastery.student_id == student_id,
-            Mastery.p_mastery >= MASTERY_THRESHOLD,
+            mastery_reached_clause(),
         ).order_by(Mastery.last_attempt_at.asc())
     )).all()
     return [r.node_id for r in rows]

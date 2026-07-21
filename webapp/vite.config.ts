@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const apiProxy = process.env.VITE_API_PROXY ?? 'http://localhost:8000'
+
 // Приложение монтируется под /app/ (nginx проксирует туда статику).
 export default defineConfig({
   base: '/app/',
@@ -10,7 +12,7 @@ export default defineConfig({
   // чтобы живые скриншоты/ручная проверка снимались на vite :5173 против
   // реального /api. Прод отдаёт /api через nginx same-origin, этой строки не
   // видит (влияет только на `server`, не на `vite build`).
-  server: { proxy: { '/api': 'http://localhost:8000' } },
+  server: { proxy: { '/api': apiProxy } },
   plugins: [
     react(),
     tailwindcss(),

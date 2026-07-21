@@ -29,7 +29,7 @@ from api.routes import _get_current_student, ai_ip_limit, limiter
 from core.agent_context import build_agent_context
 from core.bkt import record_attempt
 from core.config import settings
-from core.grading import check_answer
+from core.grading import check_answer, check_step_evidence
 from core.llm_openai import LlmUnavailable, StepClassification, classify_step_photo, diagnose_photo
 from core.srez import pick_srez_problems
 from core.step_content import safe_step_instruction
@@ -44,8 +44,8 @@ from core.trainer import (
 )
 from core.tutor import (
     generate_tutor_reply,
-    sanitize_tutor_output,
     tutor_unavailable_fallback,
+    validate_tutor_reply,
 )
 from db.models import Problem, VerificationSubmission
 
@@ -394,7 +394,15 @@ async def post_step_answer(request: Request, payload: StepAnswerIn) -> StepAnswe
                 detail="Сначала заверши предыдущий шаг",
             )
 
-        correct = check_answer(payload.answer, step.expected_value, step.answer_type)
+        correct = (
+            check_answer(payload.answer, step.expected_value, step.answer_type)
+            if payload.decomp_idx is None
+            else check_step_evidence(
+                payload.answer,
+                step.expected_value,
+                step.answer_type,
+            )
+        )
         hint: str | None = None
         if not correct and payload.decomp_idx is not None:
             # mistake_ru может содержать скрытый expected_value и не доказывает,
@@ -1460,6 +1468,39 @@ class TutorChatOut(BaseModel):
     history: list[TutorMessageOut]
 
 
+async def _trusted_tutor_scope(
+    session: AsyncSession,
+    *,
+    student_id: int,
+    problem_id: int,
+    requested_decomp_idx: int | None,
+) -> tuple[int | None, int | None]:
+    """Берёт guided-контекст только из durable позиции ученика на сервере."""
+
+    row = (
+        await session.execute(
+            text(
+                "SELECT stage, activity, current_problem_id, current_decomp_idx "
+                "FROM student_journeys WHERE student_id = :sid"
+            ),
+            {"sid": student_id},
+        )
+    ).fetchone()
+    if (
+        row is not None
+        and row.stage == "guided_step"
+        and row.current_problem_id == problem_id
+        and row.current_decomp_idx is not None
+    ):
+        activity = row.activity if isinstance(row.activity, dict) else {}
+        try:
+            step_n = int(activity.get("guided_step", 1))
+        except (TypeError, ValueError):
+            step_n = 1
+        return int(row.current_decomp_idx), max(1, step_n)
+    return requested_decomp_idx, None
+
+
 @router.post("/tutor/chat", response_model=TutorChatOut)
 @limiter.limit("15/minute")
 @ai_ip_limit
@@ -1475,7 +1516,14 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
         if prob is None:
             raise HTTPException(status_code=404, detail=f"Задача {payload.problem_id} не найдена")
 
-        if payload.decomp_idx is not None:
+        trusted_decomp_idx, trusted_step_n = await _trusted_tutor_scope(
+            session,
+            student_id=student.id,
+            problem_id=payload.problem_id,
+            requested_decomp_idx=payload.decomp_idx,
+        )
+
+        if trusted_decomp_idx is not None:
             valid_decomp = (await session.execute(
                 text(
                     "SELECT 1 FROM decomposition_problems dp "
@@ -1488,7 +1536,7 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
                     "  AND (p.content_idx = dp.idx OR dp.problems_db_id = p.id) "
                     "LIMIT 1"
                 ),
-                {"pid": payload.problem_id, "didx": payload.decomp_idx},
+                {"pid": payload.problem_id, "didx": trusted_decomp_idx},
             )).scalar()
             if valid_decomp is None:
                 raise HTTPException(
@@ -1537,11 +1585,25 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
         hist_rows = await session.execute(
             text(
                 "SELECT role, content FROM tutor_messages "
-                "WHERE session_id = :sess ORDER BY id"
+                "WHERE session_id = :sess "
+                "AND decomp_idx IS NOT DISTINCT FROM :didx "
+                "AND step_n IS NOT DISTINCT FROM :step_n "
+                "ORDER BY id"
             ),
-            {"sess": session_id},
+            {
+                "sess": session_id,
+                "didx": trusted_decomp_idx,
+                "step_n": trusted_step_n,
+            },
         )
         history = [{"role": h.role, "content": h.content} for h in hist_rows]
+
+        tutor_ctx = await build_agent_context(
+            session,
+            student_id=student.id,
+            problem_id=payload.problem_id,
+            decomp_idx=trusted_decomp_idx,
+        )
 
         # Генерация ответа (LLM). При сбое не оставляем ребёнка в тупике:
         # сохраняем честный безопасный вопрос без чисел и ожидаемых ответов.
@@ -1550,38 +1612,57 @@ async def post_tutor_chat(request: Request, payload: TutorChatIn) -> TutorChatOu
                 session,
                 student_id=student.id,
                 problem_id=payload.problem_id,
-                decomp_idx=payload.decomp_idx,
-                step_n=payload.step_n,
+                decomp_idx=trusted_decomp_idx,
+                step_n=trusted_step_n,
                 user_message=payload.message,
                 history=history,
+                ctx=tutor_ctx,
             )
         except LlmUnavailable as exc:
             logger.warning("LLM недоступен для tutor/chat: %s", exc)
             reply = tutor_unavailable_fallback()
         # Defense-in-depth: даже устаревший/замоканный generator не может
-        # записать и вернуть free-form assistant-текст.
-        reply = sanitize_tutor_output(reply)
+        # записать ответ, раскрывающий финал или канонические значения шагов.
+        reply = validate_tutor_reply(reply, tutor_ctx, step_n=trusted_step_n)
 
         # Persist обе реплики
         await session.execute(
             text(
-                "INSERT INTO tutor_messages (session_id, role, content, created_at) VALUES "
-                "(:sess, 'user', :u, NOW()), (:sess, 'assistant', :a, NOW())"
+                "INSERT INTO tutor_messages "
+                "(session_id, decomp_idx, step_n, role, content, created_at) VALUES "
+                "(:sess, :didx, :step_n, 'user', :u, NOW()), "
+                "(:sess, :didx, :step_n, 'assistant', :a, NOW())"
             ),
-            {"sess": session_id, "u": payload.message, "a": reply},
+            {
+                "sess": session_id,
+                "didx": trusted_decomp_idx,
+                "step_n": trusted_step_n,
+                "u": payload.message,
+                "a": reply,
+            },
         )
         await session.commit()
 
         # Итоговая история
         full = await session.execute(
-            text("SELECT role, content FROM tutor_messages WHERE session_id = :sess ORDER BY id"),
-            {"sess": session_id},
+            text(
+                "SELECT role, content FROM tutor_messages "
+                "WHERE session_id = :sess "
+                "AND decomp_idx IS NOT DISTINCT FROM :didx "
+                "AND step_n IS NOT DISTINCT FROM :step_n "
+                "ORDER BY id"
+            ),
+            {
+                "sess": session_id,
+                "didx": trusted_decomp_idx,
+                "step_n": trusted_step_n,
+            },
         )
         out_history = [
             TutorMessageOut(
                 role=r.role,
                 content=(
-                    sanitize_tutor_output(r.content)
+                    validate_tutor_reply(r.content, tutor_ctx, step_n=trusted_step_n)
                     if r.role == "assistant"
                     else r.content
                 ),

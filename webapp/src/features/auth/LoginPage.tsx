@@ -1,11 +1,9 @@
-// Экран входа/регистрации v11: короткая форма в системе «Лента решения».
+// Экран входа/регистрации: короткий вход в персональный маршрут.
 // Шаги: 1) ввод телефона → проверка /phone/check → ветка login или register.
 //        2a) login: PIN → вход.
 //        2b) register: имя → класс → PIN → регистрация.
-// Маскот приветствует, поддерживающий тон при ошибках (без «злого красного»).
 
 import { useState, type FormEvent } from 'react'
-import { Mascot } from '../../components/Mascot'
 import { ApButton } from '../../components/ApButton'
 import { ApTextField } from '../../components/ApTextField'
 import { BrandMark } from '../../components/BrandMark'
@@ -25,17 +23,17 @@ function stepTitle(step: Step): string {
   if (step === 'phone') return 'Привет! Введи номер'
   if (step === 'login') return 'Добро пожаловать!'
   if (step === 'register-name') return 'Как тебя зовут?'
-  if (step === 'register-grade') return 'В какой класс идёшь?'
+  if (step === 'register-grade') return 'В каком классе ты сейчас?'
   return 'Придумай PIN'
 }
 
 // Подзаголовок по этапу.
 function stepSub(step: Step, phone: string): string {
-  if (step === 'phone') return 'Введи номер — и откроем твой текущий урок'
-  if (step === 'login') return `Введи PIN для ${formatPhoneDisplay(phone)} и продолжай с нужного шага`
-  if (step === 'register-name') return 'Имя поможет сохранять твой учебный путь'
-  if (step === 'register-grade') return 'Подберём объяснение и сложность по классу'
-  return 'Минимум 4 цифры — по нему ты вернёшься к уроку'
+  if (step === 'phone') return 'Новый ученик сначала настроит цель и пройдёт короткую диагностику'
+  if (step === 'login') return `Введи PIN для ${formatPhoneDisplay(phone)} — продолжим ровно с сохранённого шага`
+  if (step === 'register-name') return 'Имя появится в твоём учебном маршруте'
+  if (step === 'register-grade') return 'Это поможет подобрать честную стартовую сложность — без задач наугад'
+  return 'Минимум 4 цифры — по PIN ты вернёшься к сохранённому прогрессу'
 }
 
 // Консистентный формат телефона для ОТОБРАЖЕНИЯ (+7 700 000 00 00) — вне
@@ -138,7 +136,7 @@ export function LoginPage() {
     }
   }
 
-  // Кнопка «← Другой номер» / «← Назад» — тихая ghost (ambient-навигация).
+  // Кнопка «Другой номер» / «Назад» остаётся тихим вторичным действием.
   function BackButton({ onClick, label }: { onClick: () => void; label: string }) {
     return (
       <ApButton variant="ghost" size="m" full onClick={onClick} disabled={loading}>
@@ -250,7 +248,7 @@ export function LoginPage() {
           error={error}
         />
         <ApButton type="submit" full size="m" loading={loading}>
-          Создать аккаунт и начать
+          Создать аккаунт и настроить маршрут
         </ApButton>
         <BackButton onClick={() => { setStep('register-grade'); setPin(''); setError(null) }} label="Назад" />
       </form>
@@ -259,27 +257,28 @@ export function LoginPage() {
 
   const regIdx = REGISTER_STEPS.indexOf(step)
   return (
-    <div className="studio-grain min-h-dvh bg-paper">
-      <header className="mx-auto flex min-h-18 max-w-6xl items-center px-5 md:px-8">
+    <div className="login-shell">
+      <header className="login-header">
         <BrandMark />
+        <span>Подготовка к NIS</span>
       </header>
-      <main className="mx-auto grid min-h-[calc(100dvh-4.5rem)] max-w-6xl items-center gap-6 px-5 py-6 md:px-8 lg:grid-cols-[minmax(22rem,0.82fr)_minmax(22rem,1fr)] lg:gap-12 lg:py-10">
-        <section className="tape-card reveal order-1 w-full px-6 py-7 md:px-9 md:py-9">
+      <main className="login-main">
+        <section className="login-form-panel">
           <div aria-live="polite" aria-atomic="true">
-            <p className="text-mark text-brand-deep">{step === 'login' ? 'С возвращением' : step === 'phone' ? 'Вход' : 'Регистрация'}</p>
-            <h1 className="mt-3 text-h2 text-ink">{stepTitle(step)}</h1>
-            <p className="mt-3 text-body text-muted">{stepSub(step, phone)}</p>
+            <p className="journey-eyebrow">{step === 'login' ? 'С возвращением' : step === 'phone' ? 'Вход' : 'Регистрация'}</p>
+            <h1>{stepTitle(step)}</h1>
+            <p className="login-lead">{stepSub(step, phone)}</p>
           </div>
 
           {regIdx >= 0 && (
-            <div className="mt-6" aria-label={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}>
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-caption1-medium text-ink">Твой маршрут входа</span>
-                <span className="font-display rounded-chip bg-brand-soft px-3 py-1 text-caption1-medium text-brand-ink">{regIdx + 1} / {REGISTER_STEPS.length}</span>
+            <div className="login-progress" aria-label={`Шаг регистрации ${regIdx + 1} из ${REGISTER_STEPS.length}`}>
+              <div>
+                <span>Регистрация</span>
+                <b>{regIdx + 1} / {REGISTER_STEPS.length}</b>
               </div>
-              <ol className="mt-4 grid grid-cols-3 gap-2">
+              <ol>
                 {REGISTER_STEPS.map((registerStep, index) => (
-                  <li key={registerStep} className={['h-2 rounded-full', index < regIdx ? 'bg-success' : index === regIdx ? 'bg-brand ring-2 ring-brand-soft' : 'bg-ink/15'].join(' ')}>
+                  <li key={registerStep} className={index < regIdx ? 'is-done' : index === regIdx ? 'is-current' : ''}>
                     <span className="sr-only">Шаг {index + 1}{index < regIdx ? ' пройден' : index === regIdx ? ' текущий' : ' впереди'}</span>
                   </li>
                 ))}
@@ -287,17 +286,19 @@ export function LoginPage() {
             </div>
           )}
 
-          <div key={step} className="mt-6 w-full">{renderForm()}</div>
-          <p className="mt-6 rounded-control bg-sage-soft px-4 py-3 text-caption1 text-text">Сначала разберём пример, потом ты решишь сам — шаг за шагом.</p>
+          <div key={step} className="login-form-body">{renderForm()}</div>
+          <p className="login-privacy">Прогресс хранится в аккаунте. После входа приложение продолжит с последнего подтверждённого шага.</p>
         </section>
 
-        <aside className="order-2 grid min-h-60 grid-cols-[minmax(0,1fr)_8rem] items-center overflow-hidden rounded-card border border-ink/10 bg-sage-soft/70 px-5 pt-5 shadow-lift-sm lg:min-h-[34rem] lg:grid-cols-1 lg:grid-rows-[auto_minmax(0,1fr)] lg:px-8 lg:pt-8">
-          <div className="self-start">
-            <p className="text-mark text-sage-deep">Учёба начинается сразу</p>
-            <h2 className="mt-3 max-w-md text-[clamp(27px,4vw,48px)] font-bold leading-[1.02] tracking-[-0.055em] text-ink">Один понятный урок. От примера до самостоятельного решения.</h2>
-            <p className="mt-4 hidden max-w-lg text-body text-muted sm:block">После входа откроется текущая тема: разберёшь метод, потренируешься с опорой и применишь его сам.</p>
-          </div>
-          <Mascot mood="hi" size="xl" eager decorative className="mascot-shadow h-36 self-end lg:h-full lg:max-h-72" />
+        <aside className="login-proof" aria-label="Как начинается подготовка">
+          <div className="login-proof__orbit" aria-hidden />
+          <p className="journey-eyebrow">Не случайный набор задач</p>
+          <h2>Сначала поймём, откуда тебе начинать.</h2>
+          <ol>
+            <li><span>01</span><div><b>Цель</b><p>Настроим реальный ритм подготовки.</p></div></li>
+            <li><span>02</span><div><b>Диагностика</b><p>Найдём сильные навыки и пробелы.</p></div></li>
+            <li><span>03</span><div><b>Маршрут</b><p>Начнём с темы, которая даст рост.</p></div></li>
+          </ol>
         </aside>
       </main>
     </div>

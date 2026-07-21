@@ -1,10 +1,32 @@
-/* AiPlus v11 — «Лента решения».
-   Source: docs/loops/runs/2026-07-15-webapp-v11-squirrel-clean-slate/round-concepts/RESULT.md */
+/* AiPlus v12 — «Фокус-станция».
+   Source: docs/loops/runs/2026-07-16-adaptive-photo-first-nis/round-concepts/RESULT.md.
+   Старые semantic aliases ниже временно сохраняют legacy routes. */
 
 :root {
   --font-sans: 'Onest', 'Golos Text', system-ui, sans-serif;
   --font-display: 'Tektur', 'Onest', system-ui, sans-serif;
   --font-editorial: 'Onest', 'Golos Text', system-ui, sans-serif;
+  --font-stage: 'Alumni Sans', 'Onest', system-ui, sans-serif;
+
+  /* Focus Station: production journey. Kept semantic so legacy routes can migrate safely. */
+  --focus-paper: #fff9ef;
+  --focus-surface: #fffdf8;
+  --focus-ink: #172d27;
+  --focus-muted: #587068;
+  --focus-muted-light: #8b9994;
+  --focus-line: #ced8d2;
+  --focus-orange: #ff8a2b;
+  --focus-orange-deep: #bd5d15;
+  --focus-orange-ink: #71340b;
+  --focus-apricot: #ffd9b2;
+  --focus-orange-wash: #fff0df;
+  --focus-teal: #347465;
+  --focus-teal-soft: #dce8e2;
+  --focus-danger: #a64f39;
+  --focus-danger-soft: #f9e2d9;
+  --focus-white: #ffffff;
+  --focus-shadow: 0 28px 64px rgb(45 56 51 / 0.09);
+  --focus-shadow-small: 0 16px 38px rgb(45 56 51 / 0.08);
 
   --ink: #17312e;
   --ink-panel: #21423d;
@@ -73,12 +95,36 @@
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --ease-proof: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bar: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Mobile-first учебная тетрадь: задача и действие остаются в одном потоке. */
+  --workspace-paper: var(--focus-paper);
+  --workspace-surface: var(--focus-surface);
+  --workspace-ink: var(--focus-ink);
+  --workspace-muted: var(--focus-muted);
+  --workspace-line: var(--focus-line);
+  --workspace-accent: var(--focus-orange);
+  --workspace-accent-deep: var(--focus-orange-deep);
+  --workspace-accent-wash: var(--focus-orange-wash);
+  --workspace-context: var(--focus-teal-soft);
+  --workspace-context-strong: var(--focus-teal);
+  --workspace-danger: var(--focus-danger);
+  --workspace-danger-soft: var(--focus-danger-soft);
+  --workspace-max-inline: 76rem;
+  --workspace-context-inline: 16.25rem;
+  --workspace-response-inline: 18.125rem;
+  --workspace-gap: clamp(1.25rem, 3.6vw, 2.875rem);
+  --workspace-hit: 2.75rem;
+  --workspace-statement: clamp(1.2rem, 2.1vw, 1.75rem);
+  --workspace-mobile-dock: 11.5rem;
+  --workspace-mobile-typed-dock: 15.5rem;
+  --workspace-shadow: 0 1.5rem 4rem rgb(23 45 39 / 0.1);
 }
 
 @theme {
   --font-sans: 'Onest', 'Golos Text', system-ui, sans-serif;
   --font-display: 'Tektur', 'Onest', system-ui, sans-serif;
   --font-editorial: 'Onest', 'Golos Text', system-ui, sans-serif;
+  --font-stage: 'Alumni Sans', 'Onest', system-ui, sans-serif;
 
   --color-ink: var(--ink);
   --color-ink-panel: var(--ink-panel);

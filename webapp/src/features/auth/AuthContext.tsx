@@ -10,8 +10,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { getToken, setToken, clearToken, loginWithPin, registerWithPin } from '../../lib/auth'
-import { currentLearningDestination } from '../../lib/onboarding'
+import { clearToken, getToken, loginWithPin, registerWithPin, subscribeToken } from '../../lib/auth'
 
 interface AuthContextValue {
   /** Текущий JWT-токен или null (неавторизован). */
@@ -39,18 +38,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = useCallback(async (phone: string, pin: string) => {
     await loginWithPin(phone, pin)
-    const destination = await currentLearningDestination()
-    setAuthDestination(destination)
-    // После loginWithPin токен уже в localStorage — читаем оттуда.
+    setAuthDestination('/')
     setTokenState(getToken())
   }, [])
 
   const register = useCallback(async (phone: string, name: string, pin: string, grade: number | null) => {
     await registerWithPin(phone, name, pin, grade)
-    // Пока token state остаётся null, LoginPage не размонтируется через RequireGuest.
-    // Токен уже записан в localStorage, поэтому path API авторизован.
-    const destination = await currentLearningDestination()
-    setAuthDestination(destination)
+    setAuthDestination('/')
     setTokenState(getToken())
   }, [])
 
@@ -60,19 +54,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setTokenState(null)
   }, [])
 
-  // Если токен изменился снаружи (другой таб) — синхронизируем.
-  // Простой подход: слушаем storage event.
+  // Синхронизируем logout при 401, same-tab login и изменения из другой вкладки.
   useEffect(() => {
-    const handler = (e: StorageEvent) => {
-      if (e.key === 'kodi.jwt') {
-        setAuthDestination('/')
-        setTokenState(e.newValue)
-        if (!e.newValue) clearToken()
-        else setToken(e.newValue)
-      }
-    }
-    window.addEventListener('storage', handler)
-    return () => window.removeEventListener('storage', handler)
+    return subscribeToken(() => {
+      setAuthDestination('/')
+      setTokenState(getToken())
+    })
   }, [])
 
   const value = useMemo<AuthContextValue>(

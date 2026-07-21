@@ -56,3 +56,6 @@ cabinet/engine/test-kit/node_modules/
 
 # Рендер-скрины benchmark-loop run'ов (тяжёлые, регенерируются render-скриптами; текст-артефакты коммитятся)
 docs/loops/runs/**/*.png
+
+# Локальный маунт фото-датасета кандидатов (детские работы — НИКОГДА не коммитить)
+/error_photos/

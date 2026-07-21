@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AuthProvider } from '../features/auth/AuthContext'
 import { LoginPage } from '../features/auth/LoginPage'
@@ -20,11 +20,6 @@ function makeStorageMock(): Storage {
 
 const storageMock = makeStorageMock()
 
-function FirstLessonProbe() {
-  const { lessonId } = useParams()
-  return createElement('h1', null, `Первый урок открыт: ${lessonId}`)
-}
-
 function RegistrationHarness() {
   return createElement(
     MemoryRouter,
@@ -41,11 +36,7 @@ function RegistrationHarness() {
         }),
         createElement(Route, {
           path: '/',
-          element: createElement(RequireAuth, null, createElement('h1', null, 'Мой путь')),
-        }),
-        createElement(Route, {
-          path: '/lesson/:lessonId',
-          element: createElement(RequireAuth, null, createElement(FirstLessonProbe)),
+          element: createElement(RequireAuth, null, createElement('h1', null, 'Начнём с тебя')),
         }),
       ),
     ),
@@ -74,7 +65,7 @@ async function completeRegistration() {
   })
   fireEvent.click(screen.getByRole('button', { name: 'Далее' }))
 
-  await screen.findByRole('heading', { name: 'В какой класс идёшь?' })
+  await screen.findByRole('heading', { name: 'В каком классе ты сейчас?' })
   const firstGrade = screen.getByRole('radio', { name: '4' })
   await waitFor(() => expect(document.activeElement).toBe(firstGrade))
   fireEvent.click(screen.getByRole('radio', { name: '7' }))
@@ -131,35 +122,10 @@ describe('production journey нового ученика', () => {
     expect((screen.getByRole('button', { name: 'Продолжить' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
-  it('после регистрации сразу открывает первый серверный урок без промежуточного path screen', async () => {
+  it('после регистрации открывает адаптацию и не запрашивает старый learning path', async () => {
     const fetchMock = vi.fn().mockImplementation((url: string) => {
       if (url === '/api/auth/phone/check') return Promise.resolve(jsonResponse({ exists: false }))
       if (url === '/api/auth/phone/register') return Promise.resolve(jsonResponse({ access_token: 'new-student-token' }))
-      if (url === '/api/learning/path/current') {
-        return Promise.resolve(jsonResponse({
-          path: {
-            id: 'nish-preparation',
-            title: 'Подготовка к НИШ',
-            current_block: {
-              id: 'PC06',
-              title: 'Смеси и концентрации',
-              completed_lessons: 0,
-              total_lessons: 1,
-            },
-          },
-          lesson: {
-            id: 'mixtures-1',
-            title: 'Смеси и концентрации',
-            lesson_title: 'Вещество остаётся',
-            goal: 'Пересчитывать концентрацию после добавления воды.',
-            result_label: 'Сохранять массу вещества.',
-            duration_minutes: 12,
-            status: 'not_started',
-            progress: { completed: 0, total: 6, current_role: 'worked' },
-            primary_action: { label: 'Начать урок', lesson_id: 'mixtures-1' },
-          },
-        }))
-      }
       throw new Error(`Unexpected request: ${url}`)
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -167,21 +133,14 @@ describe('production journey нового ученика', () => {
     render(createElement(RegistrationHarness))
     await completeRegistration()
 
-    expect(await screen.findByRole('heading', { name: 'Первый урок открыт: mixtures-1' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Мой путь' })).toBeNull()
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        '/api/learning/path/current',
-        expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer new-student-token' }) }),
-      )
-    })
+    expect(await screen.findByRole('heading', { name: 'Начнём с тебя' })).toBeTruthy()
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/learning/path/current', expect.anything())
   })
 
-  it('при временной ошибке learning path сохраняет созданный аккаунт и открывает восстановимый path screen', async () => {
+  it('созданный аккаунт не зависит от доступности старого learning path', async () => {
     const fetchMock = vi.fn().mockImplementation((url: string) => {
       if (url === '/api/auth/phone/check') return Promise.resolve(jsonResponse({ exists: false }))
       if (url === '/api/auth/phone/register') return Promise.resolve(jsonResponse({ access_token: 'new-student-token' }))
-      if (url === '/api/learning/path/current') return Promise.reject(new Error('offline'))
       throw new Error(`Unexpected request: ${url}`)
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -189,20 +148,14 @@ describe('production journey нового ученика', () => {
     render(createElement(RegistrationHarness))
     await completeRegistration()
 
-    expect(await screen.findByRole('heading', { name: 'Мой путь' })).toBeTruthy()
+    expect(await screen.findByRole('heading', { name: 'Начнём с тебя' })).toBeTruthy()
     expect(localStorage.getItem('kodi.jwt')).toBe('new-student-token')
   })
 
-  it('обычный вход существующего ученика сразу возобновляет текущий серверный урок', async () => {
+  it('обычный вход отдаёт управление server-owned journey, а не lesson URL', async () => {
     const fetchMock = vi.fn().mockImplementation((url: string) => {
       if (url === '/api/auth/phone/check') return Promise.resolve(jsonResponse({ exists: true }))
       if (url === '/api/auth/phone/login') return Promise.resolve(jsonResponse({ access_token: 'returning-student-token' }))
-      if (url === '/api/learning/path/current') {
-        return Promise.resolve(jsonResponse({
-          path: { id: 'nish-preparation', title: 'Подготовка к НИШ', current_block: {} },
-          lesson: { primary_action: { lesson_id: 'mixtures-1' } },
-        }))
-      }
       throw new Error(`Unexpected request: ${url}`)
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -210,13 +163,7 @@ describe('production journey нового ученика', () => {
     render(createElement(RegistrationHarness))
     await completeLogin()
 
-    expect(await screen.findByRole('heading', { name: 'Первый урок открыт: mixtures-1' })).toBeTruthy()
-    expect(screen.queryByRole('heading', { name: 'Мой путь' })).toBeNull()
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        '/api/learning/path/current',
-        expect.objectContaining({ headers: expect.objectContaining({ Authorization: 'Bearer returning-student-token' }) }),
-      )
-    })
+    expect(await screen.findByRole('heading', { name: 'Начнём с тебя' })).toBeTruthy()
+    expect(fetchMock).not.toHaveBeenCalledWith('/api/learning/path/current', expect.anything())
   })
 })

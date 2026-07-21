@@ -17,6 +17,7 @@ Strategy:
 
 from __future__ import annotations
 
+import ast
 import asyncio
 import logging
 import re
@@ -117,7 +118,345 @@ def _normalise_keep_separators(text: str) -> str:
 
 def _compact(text: str) -> str:
     """Aggressive normalisation: remove all spaces, treat : as /."""
-    return _normalise(text).replace(" ", "").replace(":", "/")
+    compact = (
+        _normalise(text)
+        .replace(" ", "")
+        .replace(":", "/")
+        .replace("÷", "/")
+        .replace("·", "*")
+        .replace("⋅", "*")
+    )
+
+    def canonical_decimal(match: re.Match[str]) -> str:
+        fraction = match.group(2).rstrip("0")
+        return match.group(1) if not fraction else f"{match.group(1)}.{fraction}"
+
+    return re.sub(r"(?<![\d.])(\d+)\.(\d+)(?![\d.])", canonical_decimal, compact)
+
+
+# ── Safe algebraic equivalence ──────────────────────────────────────────────
+
+_MAX_ALGEBRA_TERMS = 64
+_MAX_ALGEBRA_POWER = 8
+_MAX_ALGEBRA_COEFFICIENT_BITS = 256
+
+_Monomial = tuple[tuple[str, int], ...]
+_Polynomial = dict[_Monomial, Fraction]
+
+
+def _clean_polynomial(polynomial: _Polynomial) -> _Polynomial:
+    """Удаляет нулевые коэффициенты и ограничивает сложность выражения."""
+    clean = {term: value for term, value in polynomial.items() if value}
+    if len(clean) > _MAX_ALGEBRA_TERMS:
+        raise ValueError("too many polynomial terms")
+    for term, value in clean.items():
+        if sum(power for _, power in term) > _MAX_ALGEBRA_POWER:
+            raise ValueError("polynomial power is too large")
+        if (
+            value.numerator.bit_length() > _MAX_ALGEBRA_COEFFICIENT_BITS
+            or value.denominator.bit_length() > _MAX_ALGEBRA_COEFFICIENT_BITS
+        ):
+            raise ValueError("polynomial coefficient is too large")
+    return clean
+
+
+def _add_polynomials(left: _Polynomial, right: _Polynomial) -> _Polynomial:
+    result = dict(left)
+    for term, value in right.items():
+        result[term] = result.get(term, Fraction(0)) + value
+    return _clean_polynomial(result)
+
+
+def _scale_polynomial(polynomial: _Polynomial, factor: Fraction) -> _Polynomial:
+    return _clean_polynomial({term: value * factor for term, value in polynomial.items()})
+
+
+def _multiply_polynomials(left: _Polynomial, right: _Polynomial) -> _Polynomial:
+    result: _Polynomial = {}
+    for left_term, left_value in left.items():
+        for right_term, right_value in right.items():
+            powers: dict[str, int] = dict(left_term)
+            for variable, power in right_term:
+                powers[variable] = powers.get(variable, 0) + power
+            term = tuple(sorted((variable, power) for variable, power in powers.items() if power))
+            result[term] = result.get(term, Fraction(0)) + left_value * right_value
+    return _clean_polynomial(result)
+
+
+def _polynomial_from_ast(node: ast.AST, *, depth: int = 0) -> _Polynomial:
+    """Строит многочлен без eval: только числа, переменные и базовые операции."""
+    if depth > 24:
+        raise ValueError("algebra expression is too deep")
+
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
+            raise ValueError("unsupported algebra constant")
+        value = Fraction(str(node.value))
+        return _clean_polynomial({(): value})
+
+    if isinstance(node, ast.Name):
+        if len(node.id) != 1 or not node.id.isascii() or not node.id.isalpha():
+            raise ValueError("unsupported algebra variable")
+        return {((node.id, 1),): Fraction(1)}
+
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+        operand = _polynomial_from_ast(node.operand, depth=depth + 1)
+        return operand if isinstance(node.op, ast.UAdd) else _scale_polynomial(operand, Fraction(-1))
+
+    if not isinstance(node, ast.BinOp):
+        raise ValueError("unsupported algebra syntax")
+
+    left = _polynomial_from_ast(node.left, depth=depth + 1)
+    right = _polynomial_from_ast(node.right, depth=depth + 1)
+    if isinstance(node.op, ast.Add):
+        return _add_polynomials(left, right)
+    if isinstance(node.op, ast.Sub):
+        return _add_polynomials(left, _scale_polynomial(right, Fraction(-1)))
+    if isinstance(node.op, ast.Mult):
+        return _multiply_polynomials(left, right)
+    if isinstance(node.op, ast.Div):
+        if set(right) != {()} or not right[()]:
+            raise ValueError("division by a variable or zero")
+        return _scale_polynomial(left, Fraction(1, 1) / right[()])
+    if isinstance(node.op, ast.Pow):
+        if set(right) != {()} or right[()].denominator != 1:
+            raise ValueError("non-integer algebra power")
+        power = int(right[()])
+        if not 0 <= power <= _MAX_ALGEBRA_POWER:
+            raise ValueError("algebra power is out of bounds")
+        result: _Polynomial = {(): Fraction(1)}
+        for _ in range(power):
+            result = _multiply_polynomials(result, left)
+        return result
+    raise ValueError("unsupported algebra operator")
+
+
+def _parse_expression(text: str) -> ast.AST:
+    """Парсит короткую школьную запись в ограниченное AST без выполнения."""
+    expression = unicodedata.normalize("NFKC", text).lower().strip()
+    expression = expression.translate(_DASHES)
+    expression = (
+        expression.replace("·", "*")
+        .replace("⋅", "*")
+        .replace("÷", "/")
+        .replace(":", "/")
+    )
+    expression = expression.replace(",", ".").replace("^", "**")
+    expression = re.sub(r"\s+", "", expression)
+    expression = re.sub(r"(?<=[0-9])(?=[a-z(])", "*", expression)
+    expression = re.sub(r"(?<=[a-z])(?=\()", "*", expression)
+    expression = re.sub(r"(?<=\))(?=[0-9a-z(])", "*", expression)
+    if not expression or len(expression) > 200:
+        raise ValueError("algebra expression is empty or too long")
+    parsed = ast.parse(expression, mode="eval")
+    if sum(1 for _ in ast.walk(parsed)) > 96:
+        raise ValueError("algebra expression has too many nodes")
+    return parsed.body
+
+
+def _parse_polynomial(text: str) -> _Polynomial:
+    """Парсит короткую школьную запись в ограниченный точный многочлен."""
+    return _polynomial_from_ast(_parse_expression(text))
+
+
+def _expression_fingerprint(node: ast.AST, *, depth: int = 0) -> tuple[object, ...]:
+    """Сохраняет структуру вычисления, нормализуя только + и × как коммутативные."""
+    if depth > 24:
+        raise ValueError("algebra expression is too deep")
+
+    if isinstance(node, ast.Constant):
+        if isinstance(node.value, bool) or not isinstance(node.value, (int, float)):
+            raise ValueError("unsupported algebra constant")
+        return ("number", Fraction(str(node.value)))
+
+    if isinstance(node, ast.Name):
+        if len(node.id) != 1 or not node.id.isascii() or not node.id.isalpha():
+            raise ValueError("unsupported algebra variable")
+        return ("variable", node.id)
+
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.UAdd):
+        return _expression_fingerprint(node.operand, depth=depth + 1)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        return ("negate", _expression_fingerprint(node.operand, depth=depth + 1))
+    if not isinstance(node, ast.BinOp):
+        raise ValueError("unsupported algebra syntax")
+
+    if isinstance(node.op, (ast.Add, ast.Mult)):
+        operator_type = type(node.op)
+        operator_name = "add" if operator_type is ast.Add else "multiply"
+        operands: list[tuple[object, ...]] = []
+
+        def collect(current: ast.AST) -> None:
+            if isinstance(current, ast.BinOp) and type(current.op) is operator_type:
+                collect(current.left)
+                collect(current.right)
+                return
+            operands.append(_expression_fingerprint(current, depth=depth + 1))
+
+        collect(node)
+        return (operator_name, *sorted(operands, key=repr))
+
+    operators = {
+        ast.Sub: "subtract",
+        ast.Div: "divide",
+        ast.Pow: "power",
+    }
+    operator_name = operators.get(type(node.op))
+    if operator_name is None:
+        raise ValueError("unsupported algebra operator")
+    return (
+        operator_name,
+        _expression_fingerprint(node.left, depth=depth + 1),
+        _expression_fingerprint(node.right, depth=depth + 1),
+    )
+
+
+def _equation_expressions(text: str) -> tuple[ast.AST, ast.AST]:
+    """Возвращает безопасно разобранные левую и правую части равенства."""
+    normalised = _normalise(text)
+    if normalised.count("=") != 1:
+        raise ValueError("not a single equation")
+    left, right = normalised.split("=", 1)
+    return _parse_expression(left), _parse_expression(right)
+
+
+def _equation_fingerprint(text: str) -> tuple[tuple[object, ...], tuple[object, ...]]:
+    """Структурный отпечаток двух сторон числового равенства."""
+    left, right = _equation_expressions(text)
+    return (
+        _expression_fingerprint(left),
+        _expression_fingerprint(right),
+    )
+
+
+def _constant_expression_value(node: ast.AST) -> Fraction | None:
+    """Вычисляет только полностью числовое подвыражение без переменных."""
+    if any(isinstance(item, ast.Name) for item in ast.walk(node)):
+        return None
+    try:
+        polynomial = _polynomial_from_ast(node)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return None
+    if not polynomial:
+        return Fraction(0)
+    if set(polynomial) == {()}:
+        return polynomial[()]
+    return None
+
+
+def _expression_matches_stage(student: ast.AST, correct: ast.AST) -> bool:
+    """Сравнивает форму шага, разрешая лишь вычисление до эталонной константы."""
+    student_fingerprint = _expression_fingerprint(student)
+    correct_fingerprint = _expression_fingerprint(correct)
+    if student_fingerprint == correct_fingerprint:
+        return True
+    if correct_fingerprint[0] != "number" or student_fingerprint[0] == "number":
+        return False
+    return _constant_expression_value(student) == correct_fingerprint[1]
+
+
+def _compare_equation_structure(student_answer: str, correct_answer: str) -> bool:
+    """Сопоставляет конкретную форму этапа, не схлопывая цепочку по residual."""
+    student_left, student_right = _equation_expressions(student_answer)
+    correct_left, correct_right = _equation_expressions(correct_answer)
+    return (
+        _expression_matches_stage(student_left, correct_left)
+        and _expression_matches_stage(student_right, correct_right)
+    ) or (
+        _expression_matches_stage(student_left, correct_right)
+        and _expression_matches_stage(student_right, correct_left)
+    )
+
+
+def _equation_polynomial(text: str) -> _Polynomial:
+    if text.count("=") != 1:
+        raise ValueError("not a single equation")
+    left, right = text.split("=", 1)
+    return _add_polynomials(
+        _parse_polynomial(left),
+        _scale_polynomial(_parse_polynomial(right), Fraction(-1)),
+    )
+
+
+def _proportional_polynomials(left: _Polynomial, right: _Polynomial) -> bool:
+    """Уравнения эквивалентны, если их разности отличаются на ненулевой множитель."""
+    if not left or not right:
+        return left == right
+    if set(left) != set(right):
+        return False
+    pivot = min(left)
+    factor = left[pivot] / right[pivot]
+    return factor != 0 and all(left[term] == right[term] * factor for term in left)
+
+
+def _normalise_algebraic(text: str) -> str:
+    """Нормализует школьные проценты для безопасного AST-парсинга."""
+    source = _normalise(text)
+    # Финальный знак процента уже снят как единица ответа. Оставшийся
+    # «· 100%» в школьной формуле означает перевод доли в проценты.
+    source = re.sub(r"(?<![\d.])100%", "100", source)
+    return re.sub(
+        r"(?<![\w.])(-?\d+(?:\.\d+)?)%",
+        r"(\1/100)",
+        source,
+    )
+
+
+def _normalise_calculation_expression(text: str) -> str:
+    """Сохраняет процент как коэффициент внутри арифметического действия."""
+    if "%" not in text or not re.search(r"[+\-*/·:×÷]", text):
+        return _normalise_algebraic(text)
+    source = re.sub(r"(?<![\d.])100%", "100", text)
+    source = re.sub(
+        r"(?<![\w.])(-?\d+(?:[.,]\d+)?)%",
+        r"(\1/100)",
+        source,
+    )
+    return _normalise_algebraic(source)
+
+
+def _compare_algebraic(
+    student_answer: str,
+    correct_answer: str,
+    *,
+    allow_equation_scaling: bool = True,
+) -> bool | None:
+    """Возвращает точное сравнение или None для неподдерживаемой записи."""
+    try:
+        student = _normalise_algebraic(student_answer)
+        correct = _normalise_algebraic(correct_answer)
+        student_is_equation = student.count("=") == 1
+        correct_is_equation = correct.count("=") == 1
+        if student_is_equation != correct_is_equation:
+            if student_is_equation:
+                left, right = student.split("=", 1)
+                left_polynomial = _parse_polynomial(left)
+                right_polynomial = _parse_polynomial(right)
+                expected = _parse_polynomial(correct)
+                if left_polynomial == right_polynomial == expected:
+                    return True
+            return None
+        if student_is_equation:
+            student_polynomial = _equation_polynomial(student)
+            correct_polynomial = _equation_polynomial(correct)
+            if not allow_equation_scaling:
+                return _compare_equation_structure(student, correct)
+            student_has_variable = any(term for term in student_polynomial)
+            correct_has_variable = any(term for term in correct_polynomial)
+            if (
+                not student_polynomial
+                or not correct_polynomial
+                or not student_has_variable
+                or not correct_has_variable
+            ):
+                return _compare_equation_structure(student, correct)
+            return _proportional_polynomials(
+                student_polynomial,
+                correct_polynomial,
+            )
+        return _parse_polynomial(student) == _parse_polynomial(correct)
+    except (SyntaxError, TypeError, ValueError, ZeroDivisionError):
+        return None
 
 
 # ── Number parsing ────────────────────────────────────────────
@@ -349,7 +688,11 @@ for _sym, _word in _SYMBOL_TO_WORD.items():
 # ── Main grading logic ────────────────────────────────────────
 
 def check_answer_rule_based(
-    student_answer: str, correct_answer: str, answer_type: str | None = None
+    student_answer: str,
+    correct_answer: str,
+    answer_type: str | None = None,
+    *,
+    allow_equation_scaling: bool = True,
 ) -> bool:
     """Rule-based check. Returns True if clearly correct."""
     sa = _normalise(student_answer)
@@ -394,18 +737,45 @@ def check_answer_rule_based(
         if sf is not None and cf is not None and sf == cf:
             return True
 
-    # ── 4. Compact string comparison (all spaces removed, : → /) ──
-    if _compact(student_answer) == _compact(correct_answer):
+    # ── 4. Exact algebraic equivalence without eval/LLM ──
+    algebraic = _compare_algebraic(
+        student_answer,
+        correct_answer,
+        allow_equation_scaling=allow_equation_scaling,
+    )
+    if algebraic is True:
         return True
 
-    # ── 5. Multi-value comparison (;  or , separated) ──
+    # ── 5. Compact string comparison (all spaces removed, : → /) ──
+    student_compact = _compact(student_answer)
+    correct_compact = _compact(correct_answer)
+    if student_compact == correct_compact:
+        return True
+    if student_compact.count("=") == correct_compact.count("=") == 1:
+        student_left, student_right = student_compact.split("=", 1)
+        correct_left, correct_right = correct_compact.split("=", 1)
+        if (
+            student_left
+            and student_right
+            and student_left == correct_right
+            and student_right == correct_left
+        ):
+            return True
+
+    # В strict step-mode уравнение уже прошло структурный checker выше.
+    # Не интерпретируем десятичную запятую внутри него как разделитель списка:
+    # иначе перестановка фрагментов могла превратить другой этап в «верный».
+    if not allow_equation_scaling and "=" in ca:
+        return False
+
+    # ── 6. Multi-value comparison (;  or , separated) ──
     ca_raw = _normalise_keep_separators(correct_answer)
     sa_raw = _normalise_keep_separators(student_answer)
     multi = _compare_multi_value(sa_raw, ca_raw)
     if multi is not None:
         return multi
 
-    # ── 6. Text-embedded number extraction ──
+    # ── 7. Text-embedded number extraction ──
     # If correct answer has text + number, and student typed just the number
     if sn is not None and cn is None:
         extracted = _extract_number_from_text(ca)
@@ -516,6 +886,323 @@ def check_answer(
 ) -> bool:
     """Synchronous rule-based check."""
     return check_answer_rule_based(student_answer, correct_answer, answer_type)
+
+
+def _is_proof_free_equation(text: str) -> bool:
+    """Находит запись, которая повторяет результат, но не показывает ход."""
+    if text.count("=") != 1:
+        return False
+    left, right = (part.strip() for part in text.split("=", 1))
+    if left.casefold() in {"ответ", "answer"}:
+        return True
+    try:
+        return _expression_fingerprint(
+            _parse_expression(_normalise_algebraic(left))
+        ) == _expression_fingerprint(
+            _parse_expression(_normalise_algebraic(right))
+        )
+    except (SyntaxError, TypeError, ValueError, ZeroDivisionError):
+        return _compact(left) == _compact(right)
+
+
+def classify_step_evidence(
+    student_answer: str, correct_answer: str, answer_type: str | None = None
+) -> bool | None:
+    """Классифицирует доказательство шага: верно, неверно или недостаточно.
+
+    ``None`` означает, что запись нельзя безопасно использовать ни как
+    положительное, ни как отрицательное mastery-evidence: OCR неполон,
+    синтаксис не поддержан или вместо вычисления повторён готовый ответ.
+    """
+    def calculations(text: str) -> list[str]:
+        return [
+            part.strip()
+            for part in re.split(
+                r"\s*;\s*|\s+(?:и|and)\s+",
+                text,
+                flags=re.IGNORECASE,
+            )
+            if part.strip()
+        ]
+
+    # Сначала проверяем поддержку синтаксиса. Иначе точное текстовое совпадение
+    # неподдерживаемой записи (например, ``√3600 = 60``) ложно станет proof.
+    if not is_step_evidence_readable(
+        student_answer
+    ) or not is_step_evidence_readable(correct_answer):
+        return None
+
+    # Уравнение против скалярного эталона обязано доказать вычисление ниже.
+    # Иначе тождество «75 = 75» превращается в ложное подтверждение хода решения.
+    if (
+        ("=" in student_answer) == ("=" in correct_answer)
+        and check_answer_rule_based(
+            student_answer,
+            correct_answer,
+            answer_type,
+            allow_equation_scaling=False,
+        )
+    ):
+        if _is_proof_free_equation(student_answer) or _is_proof_free_equation(
+            correct_answer
+        ):
+            return None
+        return True
+
+    # В тетради ребёнок может уточнить единицу («500 г смеси»), а Vision —
+    # опустить такое уточнение из эталона («80 г» вместо «80 г соли»).
+    # Сравниваем математическую запись без короткой подписи, но только если
+    # сама единица с обеих сторон совпадает буквально.
+    def without_rhs_unit_label(text: str) -> tuple[str, str | None]:
+        for unit in sorted(_UNIT_TO_BASE, key=len, reverse=True):
+            pattern = re.compile(
+                rf"(?<![A-Za-zА-Яа-яЁё])({re.escape(unit)})\s+"
+                r"[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё\s-]{0,39}$",
+                flags=re.IGNORECASE,
+            )
+            match = pattern.search(text)
+            if match is not None:
+                return f"{text[:match.start()]}{match.group(1)}", unit.casefold()
+        plain_unit = _UNITS_RE.search(text)
+        if plain_unit is not None:
+            return text, plain_unit.group(0).strip().casefold()
+        return text, None
+
+    student_math, student_unit = without_rhs_unit_label(student_answer)
+    correct_math, correct_unit = without_rhs_unit_label(correct_answer)
+    if (
+        (student_math != student_answer or correct_math != correct_answer)
+        and student_unit is not None
+        and student_unit == correct_unit
+        and check_answer_rule_based(
+            student_math,
+            correct_math,
+            answer_type,
+            allow_equation_scaling=False,
+        )
+    ):
+        return True
+
+    # Некоторые проверенные разборы хранят несколько скалярных результатов
+    # одним шагом: «20 и 60». Сопоставляем каждый результат с отдельным
+    # вычислением Vision, не полагаясь на порядок и не принимая тавтологии.
+    expected_calculations = calculations(correct_answer)
+    if "=" not in correct_answer and len(expected_calculations) > 1:
+        observed_calculations = calculations(student_answer)
+        if len(observed_calculations) != len(expected_calculations):
+            return None
+
+        classifications = [
+            [classify_step_evidence(observed, expected, answer_type)
+             for observed in observed_calculations]
+            for expected in expected_calculations
+        ]
+
+        def has_complete_match(expected_index: int, used: set[int]) -> bool:
+            if expected_index == len(expected_calculations):
+                return True
+            return any(
+                classification is True
+                and observed_index not in used
+                and has_complete_match(expected_index + 1, used | {observed_index})
+                for observed_index, classification in enumerate(
+                    classifications[expected_index]
+                )
+            )
+
+        if has_complete_match(0, set()):
+            return True
+        if any(
+            classification is None
+            for row in classifications
+            for classification in row
+        ):
+            return None
+        return False
+
+    # Vision иногда сохраняет подпись и несколько эквивалентных вычислений:
+    # «m соли = 20% · 300 г; 0,2 · 300 = 60 г». Для эталона-значения
+    # принимаем запись только когда каждое числовое равенство даёт эталон,
+    # а хотя бы одно равенство действительно содержит вычисление.
+    if "=" not in correct_answer and "=" in student_answer:
+        try:
+            expected = _parse_polynomial(_normalise_algebraic(correct_answer))
+        except (SyntaxError, TypeError, ValueError, ZeroDivisionError):
+            expected = None
+        if expected is not None:
+            evidence_valid = True
+            saw_computation = False
+            saw_named_assignment = False
+            saw_evidence = False
+            for calculation in calculations(student_answer):
+                if "=" not in calculation:
+                    evidence_valid = False
+                    break
+                parts = calculation.split("=")
+                suffix: list[_Polynomial] = []
+                parse_failure_index: int | None = None
+                for index in range(len(parts) - 1, -1, -1):
+                    normalised_part = _normalise_calculation_expression(parts[index])
+                    # В записи «x = 40 : 0,8 = 50» первый символ — имя
+                    # найденной величины, а не ещё одно числовое равенство.
+                    # Пропускаем только одиночную переменную: выражение вроде
+                    # «x + 1» по-прежнему обязано пройти математическую проверку.
+                    if index == 0 and re.fullmatch(r"[a-z]", normalised_part):
+                        if len(suffix) == 1:
+                            saw_named_assignment = True
+                        break
+                    try:
+                        suffix.append(_parse_polynomial(normalised_part))
+                    except (SyntaxError, TypeError, ValueError, ZeroDivisionError):
+                        parse_failure_index = index
+                        break
+                if not suffix or any(value != expected for value in suffix):
+                    evidence_valid = False
+                    break
+                if parse_failure_index not in {None, 0}:
+                    evidence_valid = False
+                    break
+                if parse_failure_index == 0:
+                    label = parts[0].strip()
+                    if not label or re.search(r"[\d+\-*/%·:]", label):
+                        evidence_valid = False
+                        break
+                if any(
+                    re.search(
+                        r"(?:\d|\))\s*(?:[+\-*/·:×÷])\s*(?:\d|\()",
+                        _normalise_algebraic(part),
+                    )
+                    for part in parts
+                ):
+                    saw_computation = True
+                saw_evidence = True
+            if evidence_valid and saw_evidence:
+                if saw_computation or saw_named_assignment:
+                    return True
+                # ``75 = 75`` и ``Ответ = 75`` читаются, но не доказывают
+                # вычисление. Просим нормальное фото вместо штрафа mastery.
+                return None
+            return False
+
+    # Если Vision вернул само вычисление, его структура уже была проверена выше.
+    # Сравнение только правых частей снова превратило бы любое истинное равенство
+    # с тем же итогом в ложное доказательство нужного шага.
+    if "=" not in student_answer:
+        return None if "=" in correct_answer else False
+
+    observed_calculations = calculations(student_answer)
+    expected_calculations = calculations(correct_answer)
+    if (
+        len(expected_calculations) < 2
+        or any(item.count("=") != 1 for item in observed_calculations)
+        or any(item.count("=") != 1 for item in expected_calculations)
+    ):
+        return False
+    if len(observed_calculations) < len(expected_calculations):
+        return None
+    if len(observed_calculations) > len(expected_calculations):
+        return False
+
+    unmatched = set(range(len(observed_calculations)))
+    for expected in expected_calculations:
+        match = next(
+            (
+                index
+                for index in unmatched
+                if check_answer_rule_based(
+                    observed_calculations[index],
+                    expected,
+                    answer_type,
+                    allow_equation_scaling=False,
+                )
+            ),
+            None,
+        )
+        if match is None:
+            return False
+        unmatched.remove(match)
+    return not unmatched
+
+
+def check_step_evidence(
+    student_answer: str, correct_answer: str, answer_type: str | None = None
+) -> bool:
+    """Совместимый boolean-wrapper для guided/manual callers."""
+    return classify_step_evidence(
+        student_answer,
+        correct_answer,
+        answer_type,
+    ) is True
+
+
+_UNREADABLE_MATH_RE = re.compile(
+    r"(?:\?|…|_{2,}|неразбор|не\s+видно|неясно|illegible|unreadable|unknown)",
+    flags=re.IGNORECASE,
+)
+
+
+def is_step_evidence_readable(student_answer: str) -> bool:
+    """Отличает проверяемую математическую запись от неполного OCR.
+
+    Функция не оценивает правильность. Она лишь подтверждает, что каждый
+    математический фрагмент можно безопасно разобрать; иначе фото должно
+    вернуться как ``unsure`` и не менять mastery.
+    """
+    if not student_answer.strip() or _UNREADABLE_MATH_RE.search(student_answer):
+        return False
+
+    saw_math = False
+    calculations = [
+        part.strip()
+        for part in re.split(
+            r"\s*;\s*|\s+(?:и|and)\s+",
+            student_answer,
+            flags=re.IGNORECASE,
+        )
+        if part.strip()
+    ]
+    for calculation in calculations:
+        parts = [part.strip() for part in calculation.split("=")]
+        if not parts or any(not part for part in parts):
+            return False
+        for index, part in enumerate(parts):
+            candidate = part
+            for unit in sorted(_UNIT_TO_BASE, key=len, reverse=True):
+                match = re.search(
+                    rf"(?<![A-Za-zА-Яа-яЁё])({re.escape(unit)})\s+"
+                    r"[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё\s-]{0,39}$",
+                    candidate,
+                    flags=re.IGNORECASE,
+                )
+                if match is not None:
+                    candidate = f"{candidate[:match.start()]}{match.group(1)}"
+                    break
+            try:
+                # Для readability достаточно безопасно разобрать структуру.
+                # Polynomial parser намеренно уже и отвергает валидные
+                # рациональные выражения с переменной в знаменателе.
+                _expression_fingerprint(
+                    _parse_expression(_normalise_algebraic(candidate))
+                )
+                saw_math = True
+            except (SyntaxError, TypeError, ValueError, ZeroDivisionError):
+                # В «m соли = 0,2 · 300 = 60 г» первый фрагмент — подпись
+                # величины. Подпись допустима только перед разобранным равенством.
+                is_leading_label = (
+                    index == 0
+                    and len(parts) > 1
+                    and not re.search(r"[\d+\-*/%·:×÷?]", part)
+                )
+                if not is_leading_label:
+                    return False
+    return saw_math
+
+
+def is_step_reference_supported(correct_answer: str) -> bool:
+    """Проверяет, что эталон шага пригоден для typed- и photo-проверки."""
+    return is_step_evidence_readable(correct_answer) and not _is_proof_free_equation(
+        correct_answer
+    )
 
 
 async def check_answer_smart(

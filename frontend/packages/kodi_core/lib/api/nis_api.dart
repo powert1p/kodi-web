@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import '../models/student.dart';
 import '../models/stats.dart';
@@ -40,6 +41,8 @@ class NisApiClient {
   final String baseUrl;
   String? token;
   String lang = 'ru';
+  final Random _attemptRandom = Random.secure();
+  int _attemptSequence = 0;
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
@@ -51,7 +54,8 @@ class NisApiClient {
   Future<Map<String, dynamic>> post(
     String path,
     Map<String, dynamic> body,
-  ) async => _post(path, body);
+  ) async =>
+      _post(path, body);
 
   Future<Map<String, dynamic>> _post(
     String path,
@@ -66,7 +70,7 @@ class NisApiClient {
       );
     } catch (e) {
       throw NetworkException(
-        'Нет подключения к серверу. Проверьте интернет или попробуйте позже.');
+          'Нет подключения к серверу. Проверьте интернет или попробуйте позже.');
     }
     final Map<String, dynamic> data;
     try {
@@ -93,7 +97,7 @@ class NisApiClient {
       );
     } catch (e) {
       throw NetworkException(
-        'Нет подключения к серверу. Проверьте интернет или попробуйте позже.');
+          'Нет подключения к серверу. Проверьте интернет или попробуйте позже.');
     }
     final Map<String, dynamic> data;
     try {
@@ -120,13 +124,16 @@ class NisApiClient {
   }
 
   Future<bool> checkPhone(String phone) async {
-    final res = await _post('/api/auth/phone/check', {'phone': phone, 'pin': ''});
+    final res =
+        await _post('/api/auth/phone/check', {'phone': phone, 'pin': ''});
     return res['exists'] as bool;
   }
 
   Future<String> phoneRegister(String phone, String name, String pin) async {
     final res = await _post('/api/auth/phone/register', {
-      'phone': phone, 'name': name, 'pin': pin,
+      'phone': phone,
+      'name': name,
+      'pin': pin,
     });
     token = res['access_token'] as String;
     return token!;
@@ -134,7 +141,8 @@ class NisApiClient {
 
   Future<String> phoneLogin(String phone, String pin) async {
     final res = await _post('/api/auth/phone/login', {
-      'phone': phone, 'pin': pin,
+      'phone': phone,
+      'pin': pin,
     });
     token = res['access_token'] as String;
     return token!;
@@ -170,16 +178,37 @@ class NisApiClient {
 
   // ── Practice ──────────────────────────────────────────────────
 
-  Future<Problem> getNextProblem({int count = 1, String? tag, String? nodeId}) async {
-    final params = 'count=$count&lang=$lang${tag != null ? '&tag=$tag' : ''}${nodeId != null ? '&node_id=$nodeId' : ''}';
+  Future<Problem> getNextProblem(
+      {int count = 1, String? tag, String? nodeId}) async {
+    final params =
+        'count=$count&lang=$lang${tag != null ? '&tag=$tag' : ''}${nodeId != null ? '&node_id=$nodeId' : ''}';
     final res = await _get('/api/practice/next?$params');
     return Problem.fromJson(res);
   }
 
-  Future<AnswerResult> submitAnswer(int problemId, String answer) async {
+  String newClientAttemptId(String scope) {
+    final cleaned = scope.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '');
+    final safeScope = cleaned.isEmpty
+        ? 'attempt'
+        : cleaned.substring(0, min(cleaned.length, 16));
+    final timestamp = DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+    final randomPart = List.generate(
+      2,
+      (_) => _attemptRandom.nextInt(1 << 30).toRadixString(36),
+    ).join();
+    _attemptSequence = (_attemptSequence + 1) & 0x3fffffff;
+    return '$safeScope-$timestamp-$randomPart-${_attemptSequence.toRadixString(36)}';
+  }
+
+  Future<AnswerResult> submitAnswer(
+    int problemId,
+    String answer, {
+    required String clientAttemptId,
+  }) async {
     final res = await _post('/api/practice/answer?lang=$lang', {
       'problem_id': problemId,
       'answer': answer,
+      'client_attempt_id': clientAttemptId,
     });
     return AnswerResult.fromJson(res);
   }

@@ -168,9 +168,13 @@ async def on_startup():
                 session_id  INTEGER     NOT NULL REFERENCES tutor_sessions(id) ON DELETE CASCADE,
                 role        VARCHAR(16) NOT NULL,
                 content     TEXT        NOT NULL,
+                decomp_idx  INTEGER,
+                step_n      SMALLINT,
                 created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
             )
             """,
+            "ALTER TABLE tutor_messages ADD COLUMN IF NOT EXISTS decomp_idx INTEGER",
+            "ALTER TABLE tutor_messages ADD COLUMN IF NOT EXISTS step_n SMALLINT",
             "CREATE INDEX IF NOT EXISTS idx_tutor_messages_session ON tutor_messages (session_id)",
             # ── телеметрия UX (Блок 1.0) ──
             """
@@ -213,6 +217,58 @@ async def on_startup():
             )
             """,
             "CREATE INDEX IF NOT EXISTS idx_drill_step_attempts_student_problem ON drill_step_attempts (student_id, problem_id, created_at)",
+            # ── единый production journey ученика ──
+            """
+            CREATE TABLE IF NOT EXISTS student_journeys (
+                id                  BIGINT      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                student_id          BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                stage               VARCHAR(40) NOT NULL DEFAULT 'profile',
+                revision            INTEGER     NOT NULL DEFAULT 0,
+                profile_data        JSONB       NOT NULL DEFAULT '{}'::jsonb,
+                diagnostic          JSONB       NOT NULL DEFAULT '{}'::jsonb,
+                route               JSONB       NOT NULL DEFAULT '{}'::jsonb,
+                activity            JSONB       NOT NULL DEFAULT '{}'::jsonb,
+                feedback            JSONB       NOT NULL DEFAULT '{}'::jsonb,
+                current_topic_id     VARCHAR(10),
+                current_problem_id   INTEGER     REFERENCES problems(id) ON DELETE SET NULL,
+                current_decomp_idx   INTEGER     REFERENCES decomposition_problems(idx) ON DELETE SET NULL,
+                created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+                updated_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
+                completed_at         TIMESTAMPTZ,
+                CONSTRAINT uq_student_journeys_student UNIQUE (student_id)
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_student_journeys_stage ON student_journeys (stage)",
+            """
+            CREATE TABLE IF NOT EXISTS journey_attempts (
+                id                  BIGINT      PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+                journey_id          BIGINT      NOT NULL REFERENCES student_journeys(id) ON DELETE CASCADE,
+                student_id          BIGINT      NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+                client_attempt_id   VARCHAR(64) NOT NULL,
+                kind                VARCHAR(30) NOT NULL,
+                stage               VARCHAR(40) NOT NULL,
+                topic_id            VARCHAR(10),
+                problem_id          INTEGER     REFERENCES problems(id) ON DELETE SET NULL,
+                step_n              SMALLINT,
+                payload_hash        VARCHAR(64),
+                answer_given        TEXT,
+                photo_ref           TEXT,
+                original_filename   TEXT,
+                status              VARCHAR(20) NOT NULL DEFAULT 'accepted',
+                verdict             VARCHAR(30),
+                confidence          FLOAT,
+                provider            VARCHAR(30),
+                model               VARCHAR(80),
+                counts_for_mastery  BOOLEAN     NOT NULL DEFAULT false,
+                response_payload    JSONB,
+                created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+                updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+                CONSTRAINT uq_journey_attempt_student_client
+                    UNIQUE (student_id, client_attempt_id)
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS idx_journey_attempts_journey_created ON journey_attempts (journey_id, created_at)",
+            "CREATE INDEX IF NOT EXISTS idx_journey_attempts_student_kind ON journey_attempts (student_id, kind)",
         ]:
             await conn.execute(text(stmt))
     logger.info("DB tables ensured.")

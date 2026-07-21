@@ -9,16 +9,18 @@ function source(path: string): string {
   return readFileSync(new URL(path, import.meta.url), 'utf8')
 }
 
-describe('AiPlus v11 «Лента решения» design contract', () => {
-  it('использует Onest для чтения и Tektur только как короткий акцент', () => {
+describe('AiPlus active design contract', () => {
+  it('использует Onest для чтения и Alumni Sans только для коротких stage labels', () => {
     const tokens = source('../theme/tokens.css')
     const fonts = source('../theme/fonts.css')
+    const journey = source('../features/journey/JourneyPage.css')
 
     expect(tokens).toContain("--font-sans: 'Onest'")
-    expect(tokens).toContain("--font-display: 'Tektur'")
+    expect(tokens).toContain("--font-stage: 'Alumni Sans'")
     expect(fonts).toContain("font-family: 'Onest'")
-    expect(fonts).toContain("font-family: 'Tektur'")
-    expect(`${tokens}\n${fonts}`).not.toMatch(/Literata|Alumni Sans|Unbounded/)
+    expect(fonts).toContain("font-family: 'Alumni Sans'")
+    expect(journey).toContain('font-family: var(--font-stage)')
+    expect(`${tokens}\n${fonts}`).not.toMatch(/Literata|Unbounded/)
   })
 
   it('не возвращает exact lockup и costume mascot, используя code-native mark и белок', () => {

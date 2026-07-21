@@ -118,6 +118,8 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
   int _bestCombo = 0;
   double _totalTimeSpent = 0;
   Problem? _currentProblem;
+  int? _pendingProblemId;
+  String? _pendingClientAttemptId;
 
   final Stopwatch _stopwatch = Stopwatch();
   StreamSubscription<void>? _timerSub;
@@ -136,10 +138,21 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
     Emitter<PracticeState> emit,
   ) async {
     if (_currentProblem == null || event.answer.isEmpty) return;
+    if (state is! PracticeProblemReady && state is! PracticeError) return;
     _stopTimer();
+    final problemId = _currentProblem!.problemId;
+    if (_pendingProblemId != problemId || _pendingClientAttemptId == null) {
+      _pendingProblemId = problemId;
+      _pendingClientAttemptId = api.newClientAttemptId('practice');
+    }
     emit(PracticeLoading());
     try {
-      final result = await api.submitAnswer(_currentProblem!.problemId, event.answer);
+      final result = await api.submitAnswer(
+        problemId,
+        event.answer,
+        clientAttemptId: _pendingClientAttemptId!,
+      );
+      _clearPendingAttempt();
       _count++;
       if (result.isCorrect) {
         _correct++;
@@ -174,6 +187,7 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
     if (_currentProblem == null) return;
     _stopTimer();
     _combo = 0;
+    _clearPendingAttempt();
     try {
       await api.skipProblem(_currentProblem!.problemId);
     } catch (e, st) {
@@ -218,6 +232,7 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
         nodeId: _nodeId,
       );
       _currentProblem = problem;
+      _clearPendingAttempt();
       _startTimer();
       emit(PracticeProblemReady(
         problem: problem,
@@ -248,6 +263,11 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
     _timerSub?.cancel();
     _timerSub = Stream.periodic(const Duration(seconds: 1))
         .listen((_) => add(_PracticeTimerTicked()));
+  }
+
+  void _clearPendingAttempt() {
+    _pendingProblemId = null;
+    _pendingClientAttemptId = null;
   }
 
   void _stopTimer() {

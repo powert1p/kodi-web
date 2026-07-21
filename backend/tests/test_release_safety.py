@@ -253,6 +253,7 @@ def test_compose_is_fail_closed_and_loopback_only() -> None:
     assert "${JWT_SECRET:?" in compose
     assert "GEMINI_API_KEY: ${GEMINI_API_KEY:-}" in compose
     assert "OPENAI_API_KEY: ${OPENAI_API_KEY:-}" in compose
+    assert "./error_photos:/app/data/error_photos" in compose
     assert "http://localhost:8000/ready" in compose
     assert "d.get('status')=='ready'" in compose
     assert 'FORWARDED_ALLOW_IPS: "172.30.57.1"' in compose

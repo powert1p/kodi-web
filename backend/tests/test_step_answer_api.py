@@ -132,6 +132,49 @@ async def test_step_answer_wrong_returns_step_grounded_hint_without_fingerprint_
 
 
 @pytest.mark.asyncio
+async def test_step_answer_does_not_accept_final_equation_for_an_earlier_stage(
+    step_answer_client,
+):
+    client, token, _student_id, problem_id, decomp_idx, step_n = step_answer_client
+    from db.base import async_session
+
+    async with async_session() as session:
+        await session.execute(
+            text(
+                "UPDATE problem_steps "
+                "SET expected_value = '0.05x+(500-x)*0.15=40' "
+                "WHERE decomp_idx = :didx AND n = :step_n"
+            ),
+            {"didx": decomp_idx, "step_n": step_n},
+        )
+        await session.commit()
+
+    response = await client.post(
+        "/api/trainer/step-answer",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "problem_id": problem_id,
+            "decomp_idx": decomp_idx,
+            "step_n": step_n,
+            "answer": "x=350",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json() == {
+        "correct": False,
+        "hint": "Проверь этот шаг ещё раз: Сократи 2/4",
+        "step_n": step_n,
+    }
+    state = await client.get(
+        f"/api/trainer/drill-state?problem_id={problem_id}&decomp_idx={decomp_idx}",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert state.status_code == 200, state.text
+    assert state.json() == {"solved_step_ns": []}
+
+
+@pytest.mark.asyncio
 async def test_step_answer_wrong_sanitizes_answer_leaking_instruction(step_answer_client):
     client, token, _student_id, problem_id, decomp_idx, step_n = step_answer_client
     from db.base import async_session

@@ -1,0 +1,1295 @@
+.journey-shell--workspace {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 88% 6%, color-mix(in srgb, var(--workspace-accent-wash), transparent 20%), transparent 24rem),
+    var(--workspace-paper);
+}
+
+.journey-shell--workspace::before,
+.journey-shell--workspace::after {
+  display: none;
+}
+
+.journey-shell--workspace .journey-main {
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+.learning-workspace,
+.learning-workspace * {
+  box-sizing: border-box;
+}
+
+.learning-workspace {
+  width: min(100%, var(--workspace-max-inline));
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 3rem) 4rem;
+  color: var(--workspace-ink);
+}
+
+.workbook-session {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  min-height: 5.25rem;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 0.0625rem solid var(--workspace-line);
+}
+
+.workbook-session__brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.workbook-session__topic {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+  padding-left: 1rem;
+  border-left: 0.0625rem solid var(--workspace-line);
+}
+
+.workbook-session__topic span {
+  overflow: hidden;
+  color: var(--workspace-muted);
+  font-size: 0.72rem;
+  font-weight: 720;
+  letter-spacing: 0.045em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.workbook-session__topic strong {
+  overflow: hidden;
+  max-width: 24rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workbook-session__progress {
+  display: flex;
+  min-height: var(--workspace-hit);
+  align-items: center;
+  gap: 0.55rem;
+  margin-left: auto;
+  padding: 0 0.85rem;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--workspace-surface), transparent 8%);
+  color: var(--workspace-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.workbook-session__progress span {
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 50%;
+  background: var(--workspace-context-strong);
+  box-shadow: 0 0 0 0.22rem color-mix(in srgb, var(--workspace-context-strong), transparent 84%);
+}
+
+.workbook-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 25rem);
+  align-items: start;
+  gap: clamp(2.5rem, 6vw, 5.5rem);
+  padding-top: clamp(2.5rem, 6vw, 5rem);
+}
+
+.workbook-task {
+  min-width: 0;
+  max-width: 43rem;
+  padding: 0.5rem 0 2rem;
+  scroll-margin-top: 6rem;
+}
+
+.workbook-task__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  margin-bottom: 1rem;
+  color: var(--workspace-muted);
+  font-size: 0.72rem;
+  font-weight: 760;
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
+}
+
+.workbook-task__meta span + span::before {
+  margin-right: 0.9rem;
+  color: var(--workspace-line);
+  content: '·';
+}
+
+.journey-main .workbook-task h1 {
+  margin: 0 0 1.6rem;
+  font-family: var(--font-sans);
+  font-size: clamp(1.85rem, 3.4vw, 2.9rem);
+  font-weight: 780;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+.workbook-task__statement {
+  overflow-wrap: anywhere;
+  font-size: var(--workspace-statement);
+  font-weight: 500;
+  line-height: 1.52;
+}
+
+.workbook-task__statement .katex {
+  font-size: 1.04em;
+}
+
+.workbook-task__summary {
+  display: flex;
+  min-height: 4.25rem;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: clamp(2rem, 5vw, 3.5rem);
+  padding: 0.9rem 1rem;
+  border-top: 0.0625rem solid var(--workspace-line);
+  border-bottom: 0.0625rem solid var(--workspace-line);
+  color: var(--workspace-muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.workbook-task__summary svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  color: var(--workspace-context-strong);
+}
+
+.workbook-task__summary span:not(.workbook-line, .workbook-pulse) {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.workbook-task__summary b {
+  overflow: hidden;
+  color: var(--workspace-ink);
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workbook-line {
+  width: 1.9rem;
+  height: 0.15rem;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: var(--workspace-accent);
+}
+
+.workbook-pulse {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--workspace-accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--workspace-accent), transparent 55%);
+  animation: workbook-pulse 1.6s ease-out infinite;
+}
+
+.workbook-composer {
+  position: sticky;
+  top: 1.5rem;
+  min-width: 0;
+  overflow: hidden;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: 1.75rem;
+  background: var(--workspace-surface);
+  box-shadow: var(--workspace-shadow);
+}
+
+.workbook-stage {
+  padding: 1.65rem 1.65rem 1.4rem;
+  border-bottom: 0.0625rem solid var(--workspace-line);
+  background: color-mix(in srgb, var(--workspace-context), transparent 48%);
+}
+
+.learning-workspace--revision .workbook-stage,
+.learning-workspace--uncertain .workbook-stage {
+  background: color-mix(in srgb, var(--workspace-danger-soft), transparent 28%);
+}
+
+.learning-workspace--correct .workbook-stage {
+  background: color-mix(in srgb, var(--workspace-context), transparent 22%);
+}
+
+.learning-workspace--processing .workbook-stage {
+  background: color-mix(in srgb, var(--workspace-accent-wash), transparent 32%);
+}
+
+.workbook-stage__heading {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.workbook-stage__heading > span,
+.guided-contract__format > span,
+.tutor-sheet__header span,
+.tutor-sheet__task > span {
+  color: var(--workspace-accent-deep);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.journey-main .workbook-stage__heading h2 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: clamp(1.45rem, 2.7vw, 1.9rem);
+  font-weight: 760;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+.workbook-stage > p,
+.guided-contract > p,
+.workbook-recovery > p {
+  margin: 1rem 0 0;
+  color: var(--workspace-muted);
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+.workbook-stage small {
+  display: block;
+  margin-top: 0.75rem;
+  color: var(--workspace-muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.workbook-action-area {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.25rem;
+}
+
+.workbook-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: 0.9rem;
+  background: var(--workspace-paper);
+}
+
+.workbook-mode-switch button {
+  min-height: var(--workspace-hit);
+  padding: 0.5rem 0.7rem;
+  border: 0;
+  border-radius: 0.68rem;
+  background: transparent;
+  color: var(--workspace-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.workbook-mode-switch button[aria-pressed='true'] {
+  background: var(--workspace-surface);
+  color: var(--workspace-ink);
+  box-shadow: 0 0.25rem 0.8rem rgb(23 45 39 / 0.08);
+}
+
+.workbook-answer-form,
+.workbook-photo-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.workbook-answer-form > label,
+.workbook-action-area--processing > label,
+.tutor-sheet__form label {
+  color: var(--workspace-muted);
+  font-size: 0.8rem;
+  font-weight: 720;
+}
+
+.workbook-answer-form input,
+.workbook-action-area--processing input,
+.tutor-sheet__form textarea {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.85rem 1rem;
+  border: 0.1rem solid var(--workspace-line);
+  border-radius: 0.95rem;
+  outline: none;
+  background: var(--workspace-surface);
+  color: var(--workspace-ink);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.45;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.workbook-answer-form input:focus-visible,
+.tutor-sheet__form textarea:focus-visible {
+  border-color: var(--workspace-context-strong);
+  box-shadow: 0 0 0 0.22rem color-mix(in srgb, var(--workspace-context-strong), transparent 78%);
+}
+
+.workbook-answer-form input:disabled,
+.workbook-action-area--processing input:disabled {
+  opacity: 1;
+  background: var(--workspace-paper);
+  color: var(--workspace-muted);
+}
+
+.workbook-primary-action {
+  display: flex;
+  width: 100%;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.8rem 1rem 0.8rem 1.15rem;
+  border: 0;
+  border-radius: 1rem;
+  background: var(--workspace-accent);
+  box-shadow: 0 0.25rem 0 var(--workspace-accent-deep);
+  color: var(--workspace-ink);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 780;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.workbook-primary-action > span {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.workbook-primary-action svg {
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: 0 0 auto;
+}
+
+.workbook-primary-action:not(:disabled):active {
+  transform: translateY(0.18rem);
+  box-shadow: 0 0.08rem 0 var(--workspace-accent-deep);
+}
+
+.workbook-primary-action:disabled {
+  box-shadow: none;
+  cursor: wait;
+  opacity: 0.56;
+}
+
+.workspace-secondary-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.workspace-secondary-actions:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.workspace-secondary-actions button,
+.workbook-text-action,
+.workbook-inline-actions button,
+.workbook-photo-file button,
+.tutor-sheet__return {
+  min-height: var(--workspace-hit);
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 0.8rem;
+  background: transparent;
+  color: var(--workspace-context-strong);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.workspace-secondary-actions button {
+  border: 0.0625rem solid var(--workspace-line);
+  background: var(--workspace-surface);
+}
+
+.workbook-text-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.workbook-text-action svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.workbook-photo-file,
+.workbook-saved {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: 0.95rem;
+  background: var(--workspace-surface);
+}
+
+.workbook-photo-file > svg,
+.workbook-saved > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+  color: var(--workspace-context-strong);
+}
+
+.workbook-photo-file > span,
+.workbook-saved > span {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  color: var(--workspace-muted);
+  font-size: 0.78rem;
+}
+
+.workbook-photo-file b,
+.workbook-saved b {
+  overflow: hidden;
+  color: var(--workspace-ink);
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workbook-photo-file button {
+  flex: 0 0 auto;
+}
+
+.workbook-saved {
+  margin-top: 1rem;
+}
+
+.workbook-feedback {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.workbook-feedback > p,
+.workbook-feedback > span {
+  margin: 0;
+  color: var(--workspace-muted);
+  line-height: 1.5;
+}
+
+.workbook-feedback--correct b {
+  color: var(--workspace-context-strong);
+}
+
+.workbook-feedback--incorrect b,
+.workbook-feedback--uncertain b {
+  color: var(--workspace-danger);
+}
+
+.guided-contract {
+  display: grid;
+  gap: 1rem;
+}
+
+.guided-contract__instruction {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.guided-contract__format {
+  padding: 0.95rem 1rem;
+  border: 0.0625rem solid color-mix(in srgb, var(--workspace-context-strong), transparent 55%);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--workspace-surface), transparent 8%);
+}
+
+.guided-contract__format p {
+  margin: 0.35rem 0 0;
+  color: var(--workspace-ink);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.workbook-mastery-note {
+  padding-top: 0.85rem;
+  border-top: 0.0625rem solid var(--workspace-line);
+  font-size: 0.78rem !important;
+}
+
+.workbook-inline-error,
+.workbook-field-error {
+  margin: 0.65rem 0 0;
+  color: var(--workspace-danger);
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.workbook-consent {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  color: var(--workspace-ink);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.workbook-consent input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0.05rem 0 0;
+  accent-color: var(--workspace-context-strong);
+}
+
+.workbook-confirmed,
+.workbook-mastery {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--workspace-surface), transparent 8%);
+}
+
+.workbook-confirmed b {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.workbook-confirmed svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--workspace-context-strong);
+}
+
+.workbook-confirmed span,
+.workbook-mastery p {
+  margin: 0;
+  color: var(--workspace-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.workbook-correction {
+  padding-left: 0.9rem;
+  border-left: 0.18rem solid var(--workspace-danger);
+}
+
+.workbook-mastery {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+}
+
+.workbook-mastery > span {
+  color: var(--workspace-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.workbook-mastery strong {
+  grid-row: span 2;
+  font-size: 1.65rem;
+}
+
+.workbook-draft-recovery {
+  margin: 1rem 1.25rem 0;
+  padding: 0.9rem 1rem;
+  border: 0.0625rem solid var(--workspace-danger);
+  border-radius: 1rem;
+  background: var(--workspace-danger-soft);
+}
+
+.workbook-draft-recovery p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.workbook-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+
+.tutor-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  background: rgb(23 45 39 / 0.4);
+  backdrop-filter: blur(0.2rem);
+  animation: workbook-fade 160ms ease-out;
+}
+
+.tutor-sheet {
+  display: grid;
+  grid-template-rows: auto auto minmax(5rem, 1fr) auto auto;
+  width: min(100%, 32rem);
+  max-height: 100dvh;
+  padding: 1.25rem 1.35rem max(1.25rem, env(safe-area-inset-bottom));
+  overflow: hidden;
+  border-left: 0.0625rem solid var(--workspace-line);
+  background: var(--workspace-surface);
+  box-shadow: var(--workspace-shadow);
+  animation: workbook-sheet-in 220ms var(--ease-proof);
+}
+
+.tutor-sheet__handle {
+  display: none;
+}
+
+.tutor-sheet__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+}
+
+.tutor-sheet__header > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.journey-main .tutor-sheet__header h2 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1.75rem;
+  font-weight: 780;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.tutor-sheet__header button {
+  display: grid;
+  width: var(--workspace-hit);
+  height: var(--workspace-hit);
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: 50%;
+  background: var(--workspace-surface);
+  color: var(--workspace-ink);
+  cursor: pointer;
+}
+
+.tutor-sheet__header button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.tutor-sheet__task {
+  max-height: 8rem;
+  padding: 0.9rem 1rem;
+  overflow: auto;
+  border: 0.0625rem solid var(--workspace-line);
+  border-radius: 1rem;
+  background: var(--workspace-paper);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.tutor-sheet__task > span {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--workspace-muted);
+}
+
+.tutor-sheet__history {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin: 1rem -0.25rem;
+  padding: 0 0.25rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.tutor-message {
+  width: fit-content;
+  max-width: 88%;
+  margin: 0;
+  padding: 0.8rem 0.95rem;
+  border-radius: 1rem 1rem 1rem 0.3rem;
+  background: var(--workspace-context);
+  color: var(--workspace-ink);
+  font-size: 0.92rem;
+  line-height: 1.48;
+  white-space: pre-wrap;
+}
+
+.tutor-message--user {
+  align-self: flex-end;
+  border-radius: 1rem 1rem 0.3rem;
+  background: var(--workspace-accent-wash);
+}
+
+.tutor-message--thinking {
+  color: var(--workspace-muted);
+}
+
+.tutor-sheet__form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.45rem;
+}
+
+.tutor-sheet__form label {
+  grid-column: 1 / -1;
+}
+
+.tutor-sheet__form textarea {
+  min-height: 3.25rem;
+  max-height: 8rem;
+  resize: vertical;
+}
+
+.tutor-sheet__form button {
+  min-width: 3.5rem;
+  min-height: 3.5rem;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  border-radius: 0.95rem;
+  background: var(--workspace-accent);
+  color: var(--workspace-ink);
+  font: inherit;
+  font-size: 0;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.tutor-sheet__form button svg {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.tutor-sheet__form button:disabled,
+.workspace-secondary-actions button:disabled,
+.workbook-text-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.tutor-sheet__return {
+  width: 100%;
+  margin-top: 0.4rem;
+}
+
+.workspace-live-region {
+  position: fixed;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.learning-workspace button:focus-visible,
+.learning-workspace [tabindex='-1']:focus-visible {
+  outline: 0.2rem solid var(--workspace-context-strong);
+  outline-offset: 0.16rem;
+}
+
+@keyframes workbook-pulse {
+  70%, 100% {
+    box-shadow: 0 0 0 0.55rem color-mix(in srgb, var(--workspace-accent), transparent 100%);
+  }
+}
+
+@keyframes workbook-fade {
+  from { opacity: 0; }
+}
+
+@keyframes workbook-sheet-in {
+  from { transform: translateX(1.5rem); opacity: 0; }
+}
+
+@media (max-width: 56rem) {
+  .learning-workspace {
+    padding-inline: clamp(1rem, 4vw, 1.5rem);
+    padding-bottom: 3rem;
+  }
+
+  .workbook-session {
+    position: sticky;
+    top: 0;
+    min-height: 4.5rem;
+    margin-inline: calc(clamp(1rem, 4vw, 1.5rem) * -1);
+    padding-inline: clamp(1rem, 4vw, 1.5rem);
+    background: color-mix(in srgb, var(--workspace-paper), transparent 6%);
+    backdrop-filter: blur(0.8rem);
+  }
+
+  .workbook-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    padding-top: 2rem;
+  }
+
+  .workbook-task {
+    max-width: none;
+    padding-bottom: 0;
+    scroll-margin-top: 5rem;
+  }
+
+  .workbook-composer {
+    position: static;
+  }
+}
+
+@media (max-width: 34rem) {
+  .learning-workspace {
+    padding-inline: 1rem;
+    padding-bottom: 2rem;
+  }
+
+  .workbook-session {
+    min-height: 4.25rem;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    gap: 0.65rem;
+  }
+
+  .workbook-session__brand .brand-signature__name,
+  .workbook-session__topic span {
+    display: none;
+  }
+
+  .workbook-session__topic {
+    flex: 1;
+    padding-left: 0.7rem;
+  }
+
+  .workbook-session__topic strong {
+    max-width: 9.5rem;
+    font-size: 0.78rem;
+  }
+
+  .workbook-session__progress {
+    min-height: 2.4rem;
+    padding-inline: 0.65rem;
+    font-size: 0.72rem;
+  }
+
+  .workbook-layout {
+    gap: 1.25rem;
+    padding-top: 1.6rem;
+  }
+
+  .workbook-task {
+    padding-top: 0;
+  }
+
+  .workbook-task__meta {
+    margin-bottom: 0.75rem;
+    font-size: 0.68rem;
+  }
+
+  .journey-main .workbook-task h1 {
+    margin-bottom: 1.1rem;
+    font-size: 1.65rem;
+    line-height: 1.08;
+  }
+
+  .workbook-task__statement {
+    font-size: 1.18rem;
+    line-height: 1.5;
+  }
+
+  .workbook-task__summary {
+    min-height: 3.75rem;
+    margin-top: 1.65rem;
+    padding-inline: 0.25rem;
+    font-size: 0.82rem;
+  }
+
+  .workbook-composer {
+    margin-inline: -0.25rem;
+    border-radius: 1.5rem;
+  }
+
+  .workbook-stage {
+    padding: 1.3rem 1.2rem 1.15rem;
+  }
+
+  .journey-main .workbook-stage__heading h2 {
+    font-size: 1.4rem;
+  }
+
+  .workbook-action-area {
+    padding: 1rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-layout {
+    gap: 0.75rem;
+    padding-top: 1rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-task__meta {
+    margin-bottom: 0.5rem;
+  }
+
+  .journey-main .learning-workspace[data-stage='guided_step'] .workbook-task h1 {
+    margin-bottom: 0.75rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-task__summary {
+    min-height: 3.25rem;
+    margin-top: 0.85rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-stage {
+    padding: 1rem 1.2rem 0.85rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-stage__heading {
+    gap: 0.35rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .guided-contract {
+    gap: 0.65rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .guided-contract__format {
+    padding: 0.65rem 0.85rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .guided-contract__format p {
+    margin-top: 0.2rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-mastery-note {
+    padding-top: 0.6rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-action-area {
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .workbook-mode-switch button {
+    font-size: 0.78rem;
+  }
+
+  .workbook-primary-action {
+    min-height: 3.6rem;
+    font-size: 0.92rem;
+  }
+
+  .workspace-secondary-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .tutor-backdrop {
+    align-items: flex-end;
+  }
+
+  .tutor-sheet {
+    grid-template-rows: auto auto auto minmax(5rem, 1fr) auto auto;
+    width: 100%;
+    max-height: min(92dvh, 48rem);
+    padding: 0.55rem 1rem max(0.75rem, env(safe-area-inset-bottom));
+    border-top: 0.0625rem solid var(--workspace-line);
+    border-left: 0;
+    border-radius: 1.5rem 1.5rem 0 0;
+    animation-name: workbook-sheet-up;
+  }
+
+  .tutor-sheet__handle {
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    margin: 0 auto 0.45rem;
+    border-radius: var(--radius-full);
+    background: var(--workspace-line);
+  }
+
+  .tutor-sheet__header {
+    padding-bottom: 0.75rem;
+  }
+
+  .journey-main .tutor-sheet__header h2 {
+    font-size: 1.45rem;
+  }
+
+  .tutor-sheet__task {
+    max-height: 5.8rem;
+    font-size: 0.82rem;
+  }
+
+  .tutor-sheet__history {
+    margin-block: 0.75rem;
+  }
+
+  .tutor-message {
+    max-width: 92%;
+    font-size: 0.88rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 34rem) and (max-width: 60rem) {
+  .learning-workspace {
+    padding-inline: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .workbook-session {
+    position: sticky;
+    top: 0;
+    min-height: 3.5rem;
+    margin-inline: 0;
+    padding-inline: 0;
+    background: color-mix(in srgb, var(--workspace-paper), transparent 6%);
+    backdrop-filter: blur(0.8rem);
+  }
+
+  .workbook-session__brand .brand-signature__name,
+  .workbook-session__topic span {
+    display: none;
+  }
+
+  .workbook-session__topic {
+    padding-left: 0.75rem;
+  }
+
+  .workbook-session__topic strong {
+    max-width: 12rem;
+    font-size: 0.78rem;
+  }
+
+  .workbook-session__progress {
+    min-height: 2.35rem;
+    padding-inline: 0.7rem;
+    font-size: 0.72rem;
+  }
+
+  .workbook-layout {
+    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+    gap: 1rem;
+    padding-top: 0.75rem;
+  }
+
+  .workbook-task {
+    max-width: none;
+    padding: 0.15rem 0 0;
+  }
+
+  .workbook-task__meta {
+    gap: 0.35rem 0.65rem;
+    margin-bottom: 0.4rem;
+    font-size: 0.64rem;
+  }
+
+  .workbook-task__meta span + span::before {
+    margin-right: 0.65rem;
+  }
+
+  .journey-main .workbook-task h1 {
+    margin-bottom: 0.55rem;
+    font-size: 1.35rem;
+    line-height: 1.08;
+  }
+
+  .workbook-task__statement {
+    font-size: 1rem;
+    line-height: 1.38;
+  }
+
+  .workbook-task__summary {
+    display: none;
+  }
+
+  .workbook-composer {
+    position: static;
+    border-radius: 1.2rem;
+  }
+
+  .workbook-stage {
+    padding: 0.65rem 0.75rem 0.55rem;
+  }
+
+  .workbook-stage__heading {
+    gap: 0.18rem;
+  }
+
+  .workbook-stage__heading > span,
+  .guided-contract__format > span {
+    font-size: 0.63rem;
+  }
+
+  .journey-main .workbook-stage__heading h2 {
+    font-size: 1.08rem;
+    line-height: 1.08;
+  }
+
+  .workbook-stage > p {
+    display: none;
+  }
+
+  .workbook-action-area {
+    gap: 0.4rem;
+    padding: 0.55rem 0.65rem 0.65rem;
+  }
+
+  .workbook-mode-switch button,
+  .workbook-answer-form input,
+  .workbook-primary-action {
+    min-height: var(--workspace-hit);
+  }
+
+  .workbook-answer-form,
+  .workbook-photo-actions {
+    gap: 0.4rem;
+  }
+
+  .workbook-answer-form input {
+    padding-block: 0.55rem;
+  }
+
+  .workbook-primary-action {
+    padding-block: 0.55rem;
+  }
+
+  .learning-workspace--revision .workbook-stage {
+    padding-block: 0.5rem;
+  }
+
+  .learning-workspace--revision .workbook-feedback {
+    grid-template-columns: max-content minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .learning-workspace--revision .workbook-feedback .workbook-stage__heading > span,
+  .learning-workspace--revision .workbook-feedback > small {
+    display: none;
+  }
+
+  .journey-main .learning-workspace--revision .workbook-feedback .workbook-stage__heading h2 {
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .learning-workspace--revision .workbook-feedback > p {
+    overflow: hidden;
+    font-size: 0.78rem;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .guided-contract {
+    gap: 0.35rem;
+  }
+
+  .guided-contract__instruction {
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+
+  .guided-contract__format {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.4rem 0.55rem;
+  }
+
+  .guided-contract__format p {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.25;
+  }
+
+  .guided-contract__format small {
+    flex: 0 0 auto;
+    margin: 0 0 0 auto;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-mastery-note {
+    display: none;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-action-area {
+    grid-template-columns: minmax(0, 1fr) minmax(9rem, 0.75fr);
+    gap: 0.4rem 0.5rem;
+    padding: 0.55rem 0.65rem 0.65rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-action-area > label,
+  .learning-workspace[data-stage='guided_step'] .workspace-secondary-actions {
+    grid-column: 1 / -1;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-answer-form input,
+  .learning-workspace[data-stage='guided_step'] .workbook-primary-action {
+    min-height: 3rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-answer-form input {
+    padding-block: 0.55rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workbook-primary-action {
+    padding-block: 0.55rem;
+  }
+
+  .learning-workspace[data-stage='guided_step'] .workspace-secondary-actions button {
+    min-height: var(--workspace-hit);
+    padding-block: 0.4rem;
+  }
+}
+
+@keyframes workbook-sheet-up {
+  from { transform: translateY(2rem); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workbook-pulse,
+  .tutor-backdrop,
+  .tutor-sheet {
+    animation: none;
+  }
+
+  .workbook-primary-action {
+    transition: none;
+  }
+}

@@ -11,7 +11,7 @@ from __future__ import annotations
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.bkt import MASTERY_THRESHOLD, get_or_create_mastery
+from core.bkt import get_or_create_mastery, is_mastered
 from db.models import Edge, Mastery, Node
 
 
@@ -43,6 +43,16 @@ async def get_mastery_map(
     return {row.node_id: row.p_mastery for row in result.all()}
 
 
+async def get_mastery_rows(
+    session: AsyncSession, student_id: int
+) -> dict[str, Mastery]:
+    """Return mastery rows for contract-aware practice decisions."""
+    result = await session.execute(
+        select(Mastery).where(Mastery.student_id == student_id)
+    )
+    return {row.node_id: row for row in result.scalars().all()}
+
+
 async def get_outer_fringe(
     session: AsyncSession,
     student_id: int,
@@ -51,16 +61,21 @@ async def get_outer_fringe(
     """Nodes where ALL prerequisites are mastered but the node itself is NOT.
 
     *threshold* controls what counts as "mastered":
-        - Default (None) uses MASTERY_THRESHOLD (0.85) — for practice mode.
+        - Default (None) uses the full practice mastery contract.
         - Pass 0.5 after diagnostic (mastered=0.8, failed=0.2).
 
     For nodes with NO prerequisites and p_mastery < threshold — they are also
     in the outer fringe (entry points like AR01).
     """
-    if threshold is None:
-        threshold = MASTERY_THRESHOLD
+    mastery_rows = await get_mastery_rows(session, student_id)
 
-    mastery_map = await get_mastery_map(session, student_id)
+    def mastered(node_id: str) -> bool:
+        row = mastery_rows.get(node_id)
+        if row is None:
+            return False
+        if threshold is None:
+            return is_mastered(row)
+        return row.p_mastery >= threshold
 
     # Fetch all nodes
     all_nodes = (await session.execute(select(Node.id))).scalars().all()
@@ -76,8 +91,7 @@ async def get_outer_fringe(
 
     fringe: list[str] = []
     for node_id in all_nodes:
-        own_mastery = mastery_map.get(node_id, 0.0)
-        if own_mastery >= threshold:
+        if mastered(node_id):
             continue  # already mastered
 
         prs = prereqs[node_id]
@@ -88,7 +102,7 @@ async def get_outer_fringe(
 
         # All prereqs must be mastered
         all_prereqs_ok = all(
-            mastery_map.get(p, 0.0) >= threshold for p in prs
+            mastered(p) for p in prs
         )
         if all_prereqs_ok:
             fringe.append(node_id)
@@ -130,7 +144,7 @@ async def backward_diagnose(
     Returns a list of unmastered prerequisite node IDs, ordered by depth
     (deepest = most fundamental gap first).
     """
-    mastery_map = await get_mastery_map(session, student_id)
+    mastery_rows = await get_mastery_rows(session, student_id)
     visited: set[str] = set()
     gaps: list[tuple[int, str]] = []  # (depth, node_id)
 
@@ -140,8 +154,8 @@ async def backward_diagnose(
         visited.add(node_id)
         prereqs = await get_prerequisites(session, node_id)
         for p in prereqs:
-            p_m = mastery_map.get(p, 0.0)
-            if p_m < MASTERY_THRESHOLD:
+            mastery = mastery_rows.get(p)
+            if mastery is None or not is_mastered(mastery):
                 gaps.append((depth, p))
                 await _walk(p, depth + 1)
 

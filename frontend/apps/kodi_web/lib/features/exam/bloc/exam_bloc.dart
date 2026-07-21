@@ -63,8 +63,7 @@ class ExamQuestionReady extends ExamState {
   final int timeMinutes;
   final Map<int, bool> results;
   @override
-  List<Object?> get props =>
-      [currentIndex, correct, answered, secondsLeft];
+  List<Object?> get props => [currentIndex, correct, answered, secondsLeft];
 }
 
 class ExamAnswerShown extends ExamState {
@@ -87,8 +86,7 @@ class ExamAnswerShown extends ExamState {
   final int timeMinutes;
   final Map<int, bool> results;
   @override
-  List<Object?> get props =>
-      [currentIndex, correct, answered, secondsLeft];
+  List<Object?> get props => [currentIndex, correct, answered, secondsLeft];
 }
 
 class ExamFinished extends ExamState {
@@ -137,6 +135,8 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
   int _secondsLeft = 0;
   int _timeMinutes = 0;
   final Map<int, bool> _results = {};
+  int? _pendingProblemId;
+  String? _pendingClientAttemptId;
 
   StreamSubscription<void>? _timerSub;
 
@@ -157,6 +157,7 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
       _correct = 0;
       _answered = 0;
       _results.clear();
+      _clearPendingAttempt();
       _secondsLeft = event.timeMinutes * 60;
       _startTimer();
       emit(_questionState());
@@ -175,13 +176,21 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
     Emitter<ExamState> emit,
   ) async {
     if (event.answer.isEmpty || _currentIndex >= _problems.length) return;
+    if (state is! ExamQuestionReady && state is! ExamError) return;
     final problem = _problems[_currentIndex];
+    final problemId = problem['problem_id'] as int;
+    if (_pendingProblemId != problemId || _pendingClientAttemptId == null) {
+      _pendingProblemId = problemId;
+      _pendingClientAttemptId = api.newClientAttemptId('exam');
+    }
     emit(ExamLoading());
     try {
-      final result = await api.post('/api/practice/answer', {
-        'problem_id': problem['problem_id'],
+      final result = await api.post('/api/practice/answer?lang=${api.lang}', {
+        'problem_id': problemId,
         'answer': event.answer,
+        'client_attempt_id': _pendingClientAttemptId,
       });
+      _clearPendingAttempt();
       final isCorrect = result['is_correct'] == true;
       _results[problem['problem_id']] = isCorrect;
       if (isCorrect) _correct++;
@@ -210,6 +219,7 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
     ExamProblemSkipped event,
     Emitter<ExamState> emit,
   ) {
+    _clearPendingAttempt();
     _answered++;
     _results[_problems[_currentIndex]['problem_id']] = false;
     _advanceOrFinish(emit);
@@ -270,12 +280,14 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
     _timerSub?.cancel();
     _problems.clear();
     _results.clear();
+    _clearPendingAttempt();
     emit(ExamInitial());
   }
 
   // ── Helpers ────────────────────────────────────────────────
 
   void _advanceOrFinish(Emitter<ExamState> emit) {
+    _clearPendingAttempt();
     if (_currentIndex + 1 >= _problems.length) {
       _finishExam(emit);
     } else {
@@ -309,6 +321,11 @@ class ExamBloc extends Bloc<ExamEvent, ExamState> {
     _timerSub?.cancel();
     _timerSub = Stream.periodic(const Duration(seconds: 1))
         .listen((_) => add(_ExamTimerTicked()));
+  }
+
+  void _clearPendingAttempt() {
+    _pendingProblemId = null;
+    _pendingClientAttemptId = null;
   }
 
   @override

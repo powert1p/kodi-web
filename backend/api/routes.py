@@ -40,19 +40,31 @@ import jwt
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, select, text
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from core.bkt import MASTERY_THRESHOLD, is_mastered, record_attempt
+from core.bkt import is_mastered, mastery_reached_clause, record_attempt
 from core.config import settings
 
 from core.grading import check_answer
 from core.selector import select_next_problem
 from db.base import async_session
-from db.models import Attempt, Edge, Mastery, Node, Problem, ProblemReport, Student, Topic, TopicEdge
+from db.models import (
+    Attempt,
+    Edge,
+    Mastery,
+    Node,
+    PracticeSubmission,
+    Problem,
+    ProblemReport,
+    Student,
+    Topic,
+    TopicEdge,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -245,8 +257,11 @@ class PhoneLoginBody(BaseModel):
     pin: str
 
 class AnswerBody(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
     problem_id: int
     answer: str
+    client_attempt_id: str = Field(min_length=1, max_length=64)
 
 class DiagnosticStartBody(BaseModel):
     mode: str = "exam"
@@ -492,7 +507,7 @@ async def stats_me(request: Request, lang: str = "ru"):
         mastered_result = await session.execute(
             select(func.count(Mastery.node_id)).where(
                 Mastery.student_id == student.id,
-                Mastery.p_mastery >= MASTERY_THRESHOLD,
+                mastery_reached_clause(),
             )
         )
         mastered_count = mastered_result.scalar() or 0
@@ -794,22 +809,72 @@ async def practice_next(
 
 
 @router.post("/practice/answer")
-async def practice_answer(request: Request, body: AnswerBody, lang: str = Query("ru")):
+async def practice_answer(
+    request: Request,
+    body: AnswerBody,
+    lang: str = Query("ru", pattern="^(ru|kz)$"),
+):
     session, student = await _get_current_student(request)
     try:
         problem = await session.get(Problem, body.problem_id)
         if not problem:
             raise HTTPException(status_code=404, detail="Задача не найдена")
 
+        claimed_id = (
+            await session.execute(
+                pg_insert(PracticeSubmission)
+                .values(
+                    student_id=student.id,
+                    client_attempt_id=body.client_attempt_id,
+                    problem_id=body.problem_id,
+                    answer_given=body.answer,
+                    lang=lang,
+                )
+                .on_conflict_do_nothing(
+                    index_elements=["student_id", "client_attempt_id"]
+                )
+                .returning(PracticeSubmission.id)
+            )
+        ).scalar_one_or_none()
+
+        if claimed_id is None:
+            previous = (
+                await session.execute(
+                    select(PracticeSubmission).where(
+                        PracticeSubmission.student_id == student.id,
+                        PracticeSubmission.client_attempt_id == body.client_attempt_id,
+                    )
+                )
+            ).scalar_one()
+            if (
+                previous.problem_id != body.problem_id
+                or previous.answer_given != body.answer
+                or previous.lang != lang
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "code": "idempotency_conflict",
+                        "message": "Этот идентификатор уже использован для другого ответа",
+                    },
+                )
+            if previous.response_payload is None:
+                raise HTTPException(
+                    status_code=409,
+                    detail={
+                        "code": "attempt_in_progress",
+                        "message": "Ответ ещё обрабатывается — повторите запрос",
+                    },
+                )
+            return previous.response_payload
+
         is_correct = check_answer(body.answer, problem.answer, problem.answer_type)
         mastery = await record_attempt(
             session, student.id, problem, body.answer, is_correct, source="practice"
         )
-        await session.commit()
-
         solution = problem.solution_ru if lang == "ru" else (problem.solution_kz or problem.solution_ru)
 
-        return {
+        response_payload = {
             "is_correct": is_correct,
             "correct_answer": problem.answer,
             "solution": solution,
@@ -817,6 +882,12 @@ async def practice_answer(request: Request, body: AnswerBody, lang: str = Query(
             "is_mastered": is_mastered(mastery),
             "llm_note": None,
         }
+        submission = await session.get(PracticeSubmission, claimed_id)
+        if submission is None:
+            raise RuntimeError("Не удалось сохранить idempotency record ответа")
+        submission.response_payload = response_payload
+        await session.commit()
+        return response_payload
     finally:
         await session.close()
 

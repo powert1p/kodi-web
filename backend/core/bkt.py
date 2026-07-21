@@ -8,20 +8,23 @@ Parameters per node (stored in `nodes` table):
     P(G) — bkt_p_g — probability of guessing correctly
     P(S) — bkt_p_s — probability of slipping (careless error)
 
-Mastery threshold: P(mastery) >= 0.85 → skill is considered mastered.
+Mastery requires P(mastery) >= 0.85, at least three correct attempts and
+accuracy >= 50%. The same contract is shared by practice, stats and graph.
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import func, select, text
+from sqlalchemy import and_, func, select, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import Attempt, Mastery, Node, Problem, Student
 
 MASTERY_THRESHOLD = 0.85
+MASTERY_MIN_CORRECT = 3
+MASTERY_MIN_ACCURACY = 0.5
 MASTERY_ALGO_VERSION = 1  # bump when BKT/exam mastery logic changes
 
 
@@ -78,18 +81,21 @@ async def get_or_create_mastery(
     student_id: int,
     node_id: str,
     initial_p: float = 0.1,
+    *,
+    for_update: bool = False,
 ) -> Mastery:
     """Get existing mastery row or create one with *initial_p*.
 
     Uses INSERT ON CONFLICT DO NOTHING to avoid race conditions when
     two concurrent requests try to create the same mastery row.
     """
-    result = await session.execute(
-        select(Mastery).where(
-            Mastery.student_id == student_id,
-            Mastery.node_id == node_id,
-        )
+    query = select(Mastery).where(
+        Mastery.student_id == student_id,
+        Mastery.node_id == node_id,
     )
+    if for_update:
+        query = query.with_for_update()
+    result = await session.execute(query.execution_options(populate_existing=True))
     mastery = result.scalar_one_or_none()
     if mastery is None:
         await session.execute(
@@ -98,12 +104,15 @@ async def get_or_create_mastery(
             .on_conflict_do_nothing(index_elements=["student_id", "node_id"])
         )
         await session.flush()
-        mastery = (await session.execute(
-            select(Mastery).where(
-                Mastery.student_id == student_id,
-                Mastery.node_id == node_id,
-            )
-        )).scalar_one()
+        query = select(Mastery).where(
+            Mastery.student_id == student_id,
+            Mastery.node_id == node_id,
+        )
+        if for_update:
+            query = query.with_for_update()
+        mastery = (
+            await session.execute(query.execution_options(populate_existing=True))
+        ).scalar_one()
     return mastery
 
 
@@ -120,31 +129,7 @@ async def record_attempt(
 
     Returns the updated Mastery row.
     """
-    # 1. Save attempt
-    attempt = Attempt(
-        student_id=student_id,
-        problem_id=problem.id,
-        node_id=problem.node_id,
-        answer_given=answer_given,
-        is_correct=is_correct,
-        response_time_ms=response_time_ms,
-        source=source,
-    )
-    session.add(attempt)
-
-    # Закрытие recurring_error означает, что ребёнок подтвердил перенос навыка.
-    # Любая более поздняя неверная попытка того же узла — новое доказательство
-    # пробела, поэтому очередь и аналитический прогресс должны открыться снова.
-    if not is_correct:
-        await session.execute(
-            text(
-                "UPDATE recurring_errors SET resolved = false "
-                "WHERE student_id = :sid AND node_id = :nid AND resolved = true"
-            ),
-            {"sid": student_id, "nid": problem.node_id},
-        )
-
-    # 2. Fetch node BKT params
+    # 1. Fetch node BKT params before taking the per-skill row lock.
     node = await session.get(Node, problem.node_id)
     p_t = max(0.001, min(0.999, node.bkt_p_t if node else 0.3))
     p_g = max(0.001, min(0.5, node.bkt_p_g if node else 0.05))
@@ -167,18 +152,36 @@ async def record_attempt(
                 problem.raw_score, node_min, node_max, p_g, p_s,
             )
 
-    # 3. Get / create mastery row
-    mastery = await get_or_create_mastery(session, student_id, problem.node_id)
+    # 2. Serialize every BKT read-modify-write for this student × skill.
+    mastery = await get_or_create_mastery(
+        session,
+        student_id,
+        problem.node_id,
+        for_update=True,
+    )
 
-    # 4. BKT update
+    # Закрытие recurring_error означает, что ребёнок подтвердил перенос навыка.
+    # Любая более поздняя неверная попытка того же узла — новое доказательство
+    # пробела, поэтому очередь и аналитический прогресс должны открыться снова.
+    if not is_correct:
+        await session.execute(
+            text(
+                "UPDATE recurring_errors SET resolved = false "
+                "WHERE student_id = :sid AND node_id = :nid AND resolved = true"
+            ),
+            {"sid": student_id, "nid": problem.node_id},
+        )
+
+    # 3. BKT update
+    now = datetime.now(timezone.utc)
     mastery.p_mastery = bkt_update(mastery.p_mastery, is_correct, p_t, p_g, p_s)
     mastery.attempts_total += 1
     if is_correct:
         mastery.attempts_correct += 1
-    mastery.last_attempt_at = datetime.now(timezone.utc)
+    mastery.last_attempt_at = now
 
-    # 4b. Spaced repetition: compute next_review_at
-    if mastery.p_mastery >= MASTERY_THRESHOLD:  # mastered → schedule review
+    # 4. Spaced repetition starts only after the complete mastery contract.
+    if is_mastered(mastery):
         _SR_INTERVALS = [1, 3, 7, 21, 60]  # days
         # Count consecutive correct answers (most recent first)
         from sqlalchemy import select as _sel
@@ -188,7 +191,7 @@ async def record_attempt(
                 Attempt.node_id == problem.node_id,
             ).order_by(Attempt.created_at.desc()).limit(10)
         )
-        # Start with current answer (not yet flushed to DB)
+        # Start with current answer; the Attempt row is added after this query.
         consec = 1 if is_correct else 0
         if is_correct:
             for (ok,) in recent.all():
@@ -198,16 +201,20 @@ async def record_attempt(
                     break
         interval_idx = min(max(consec - 1, 0), len(_SR_INTERVALS) - 1)
         days = _SR_INTERVALS[interval_idx]
-        mastery.next_review_at = datetime.now(timezone.utc) + timedelta(days=days)
+        mastery.next_review_at = now + timedelta(days=days)
     elif mastery.next_review_at is not None:
         # Lost mastery → clear scheduled review, needs immediate work
         mastery.next_review_at = None
 
-    # 5. Update daily streak
-    today = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    student = await session.get(Student, student_id)
+    # 5. Serialize streak updates across attempts for different skills too.
+    today = now.strftime('%Y-%m-%d')
+    student = (
+        await session.execute(
+            select(Student).where(Student.id == student_id).with_for_update()
+        )
+    ).scalar_one_or_none()
     if student is not None:
-        yesterday = (datetime.now(timezone.utc) - timedelta(days=1)).strftime('%Y-%m-%d')
+        yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%d')
         if student.last_active_date != today:
             if student.last_active_date == yesterday:
                 student.current_streak = (student.current_streak or 0) + 1
@@ -217,8 +224,18 @@ async def record_attempt(
             if (student.current_streak or 0) > (student.longest_streak or 0):
                 student.longest_streak = student.current_streak
 
-    # 6. Snapshot mastery after this attempt
+    # 6. Save the attempt after all reads so it cannot be counted twice in SR.
+    attempt = Attempt(
+        student_id=student_id,
+        problem_id=problem.id,
+        node_id=problem.node_id,
+        answer_given=answer_given,
+        is_correct=is_correct,
+        response_time_ms=response_time_ms,
+        source=source,
+    )
     attempt.p_mastery_after = mastery.p_mastery
+    session.add(attempt)
 
     await session.flush()
     return mastery
@@ -234,9 +251,18 @@ def is_mastered(mastery: Mastery) -> bool:
     """
     if mastery.p_mastery < MASTERY_THRESHOLD:
         return False
-    if mastery.attempts_correct < 3:
+    if mastery.attempts_correct < MASTERY_MIN_CORRECT:
         return False
     total = mastery.attempts_total
-    if total > 0 and mastery.attempts_correct / total < 0.5:
+    if total > 0 and mastery.attempts_correct / total < MASTERY_MIN_ACCURACY:
         return False
     return True
+
+
+def mastery_reached_clause():
+    """SQL predicate equivalent to :func:`is_mastered`."""
+    return and_(
+        Mastery.p_mastery >= MASTERY_THRESHOLD,
+        Mastery.attempts_correct >= MASTERY_MIN_CORRECT,
+        Mastery.attempts_correct >= Mastery.attempts_total * MASTERY_MIN_ACCURACY,
+    )

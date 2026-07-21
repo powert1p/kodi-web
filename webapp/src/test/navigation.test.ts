@@ -1,11 +1,15 @@
 import { createElement } from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApBottomBar } from '../components/ApBottomBar'
 import { AppShell } from '../components/AppShell'
 
 describe('основная навигация ученика', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('оставляет глобально только учебный путь и прогресс', () => {
     render(
       createElement(
@@ -47,5 +51,20 @@ describe('основная навигация ученика', () => {
 
     expect(screen.queryByRole('navigation', { name: /основ/i })).toBeNull()
     expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
+  it('позволяет безопасно сменить ученика на общем устройстве', () => {
+    const removeItem = vi.fn()
+    vi.stubGlobal('localStorage', { removeItem })
+    render(
+      createElement(
+        MemoryRouter,
+        { initialEntries: ['/'] },
+        createElement(AppShell, null, createElement('section', null, 'Маршрут ученика')),
+      ),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Сменить ученика' }))
+    expect(removeItem).toHaveBeenCalledWith('kodi.jwt')
   })
 })

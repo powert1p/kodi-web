@@ -20,6 +20,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from api.routes import limiter, router as api_router
+from api.routers.journey import router as journey_router
 from api.routers.learning import router as learning_router
 from api.routers.trainer import router as trainer_router
 from core.config import settings
@@ -98,6 +99,7 @@ app.add_middleware(
 app.include_router(api_router)
 app.include_router(trainer_router)
 app.include_router(learning_router)
+app.include_router(journey_router)
 
 
 @app.get("/health")

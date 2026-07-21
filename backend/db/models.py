@@ -168,6 +168,36 @@ class Attempt(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now())
 
 
+class PracticeSubmission(Base):
+    """Idempotency record for a logical practice-answer submission."""
+
+    __tablename__ = "practice_submissions"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "client_attempt_id",
+            name="uq_practice_submissions_student_attempt",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    client_attempt_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    problem_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="RESTRICT"), nullable=False
+    )
+    answer_given: Mapped[str] = mapped_column(Text, nullable=False)
+    lang: Mapped[str] = mapped_column(String(2), nullable=False)
+    response_payload: Mapped[dict | None] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), nullable=False
+    )
+
+
 class ProblemReport(Base):
     """Student report about a broken or disputed problem."""
 
@@ -383,7 +413,7 @@ class TutorSession(Base):
 
 
 class TutorMessage(Base):
-    """Одна реплика чата тьютора (user/assistant)."""
+    """Одна реплика чата тьютора в доверенном контексте шага."""
 
     __tablename__ = "tutor_messages"
     __table_args__ = (
@@ -396,6 +426,8 @@ class TutorMessage(Base):
     )
     role: Mapped[str] = mapped_column(String(16), nullable=False)  # 'user' | 'assistant'
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    decomp_idx: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    step_n: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
     )
@@ -574,4 +606,106 @@ class LearningAttempt(Base):
     response_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+
+
+class StudentJourney(Base):
+    """Единственная durable-позиция ребёнка в production NIS journey."""
+
+    __tablename__ = "student_journeys"
+    __table_args__ = (
+        UniqueConstraint("student_id", name="uq_student_journeys_student"),
+        Index("idx_student_journeys_stage", "stage"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    stage: Mapped[str] = mapped_column(
+        String(40), nullable=False, default="profile", server_default="profile"
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    profile_data: Mapped[dict] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=False, default=dict, server_default="{}"
+    )
+    diagnostic: Mapped[dict] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=False, default=dict, server_default="{}"
+    )
+    route: Mapped[dict] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=False, default=dict, server_default="{}"
+    )
+    activity: Mapped[dict] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=False, default=dict, server_default="{}"
+    )
+    feedback: Mapped[dict] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=False, default=dict, server_default="{}"
+    )
+    current_topic_id: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    current_problem_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="SET NULL"), nullable=True
+    )
+    current_decomp_idx: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("decomposition_problems.idx", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(),
+        onupdate=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class JourneyAttempt(Base):
+    """Idempotent evidence для diagnostic, guided и whole-photo действий."""
+
+    __tablename__ = "journey_attempts"
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id", "client_attempt_id", name="uq_journey_attempt_student_client"
+        ),
+        Index("idx_journey_attempts_journey_created", "journey_id", "created_at"),
+        Index("idx_journey_attempts_student_kind", "student_id", "kind"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    journey_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("student_journeys.id", ondelete="CASCADE"), nullable=False
+    )
+    student_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False
+    )
+    client_attempt_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    kind: Mapped[str] = mapped_column(String(30), nullable=False)
+    stage: Mapped[str] = mapped_column(String(40), nullable=False)
+    topic_id: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    problem_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("problems.id", ondelete="SET NULL"), nullable=True
+    )
+    step_n: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    payload_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    answer_given: Mapped[str | None] = mapped_column(Text, nullable=True)
+    photo_ref: Mapped[str | None] = mapped_column(Text, nullable=True)
+    original_filename: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="accepted", server_default="accepted"
+    )
+    verdict: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    provider: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    model: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    counts_for_mastery: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    response_payload: Mapped[dict | None] = mapped_column(
+        JSONB().with_variant(JSON, "sqlite"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now(),
+        onupdate=func.now(), nullable=False
     )
