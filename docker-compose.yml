@@ -51,9 +51,10 @@ services:
       # owner-гейт выгрузки телеметрии (/api/trainer/events/export); 0 = выгрузка никому
       OWNER_STUDENT_ID: ${OWNER_STUDENT_ID:-0}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
-      # Host ingress приходит в контейнер от фиксированного gateway compose-сети.
+      # Host ingress приходит от gateway compose-сети; на сервере ingress = cloudflared-туннель
+      # с фиксированным IP — его добавляют через .env (FORWARDED_ALLOW_IPS=172.30.57.1,172.30.57.4).
       # Не использовать "*": иначе клиент может подделать XFF и обойти rate limits.
-      FORWARDED_ALLOW_IPS: "172.30.57.1"
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-172.30.57.1}
       PORT: "8000"
     # Фото-датасет (детские работы) должен переживать rebuild контейнера
     volumes:
