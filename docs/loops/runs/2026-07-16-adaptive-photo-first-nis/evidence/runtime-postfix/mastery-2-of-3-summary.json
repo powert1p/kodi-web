@@ -1,0 +1,82 @@
+{
+  "verdict": "PASS",
+  "baseOrigin": "http://127.0.0.1:8412",
+  "screens": [
+    {
+      "name": "mastery-2-of-3-mobile",
+      "screenshot": "mastery-2-of-3-mobile-375x844.png",
+      "sha256": "22179d5e773f38ee3e628d67b92f43f423c1d9852798fd9b674d16781952235a",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Ход решения сошёлся",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Ход решения сошёлся",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "mastery-2-of-3-desktop",
+      "screenshot": "mastery-2-of-3-desktop-1280x900.png",
+      "sha256": "e894be64a08d826ce37960575551459d9fbee426c2ad634b2b39b6deb3ce22f6",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "heading": "Ход решения сошёлся",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Ход решения сошёлся",
+      "activeIsHeading": true,
+      "smallTargets": []
+    }
+  ],
+  "assets": [
+    "ApButton-CNpHBRDH.js",
+    "ApTextField-CSlUTxQO.js",
+    "JourneyPage-DmXkHuxR.js",
+    "LoginPage-vV5zXHS6.js",
+    "MathText-DxY09KHz.js",
+    "api-C0SOdu6f.js",
+    "image-vL1XAJmx.js",
+    "index-CxyVLgam.css",
+    "index-XZrS1W65.js",
+    "workbox-window.prod.es5-Bd17z0YL.js"
+  ],
+  "interaction": {
+    "mobile": {
+      "skipLink": {
+        "beforeTop": -80,
+        "activeText": "К содержанию",
+        "top": 16,
+        "height": 48,
+        "transitionDuration": "0s"
+      },
+      "reducedMotion": {
+        "matches": true,
+        "maxAnimation": 1e-05,
+        "maxTransition": 1e-05
+      }
+    },
+    "desktop": {
+      "skipLink": {
+        "beforeTop": -80,
+        "activeText": "К содержанию",
+        "top": 16,
+        "height": 48,
+        "transitionDuration": "0s"
+      },
+      "reducedMotion": {
+        "matches": true,
+        "maxAnimation": 1e-05,
+        "maxTransition": 1e-05
+      }
+    }
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestErrors": [],
+  "apiErrors": []
+}

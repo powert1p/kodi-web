@@ -1,0 +1,36 @@
+{
+  "scores": {
+    "time_to_first_value": 9.4,
+    "cognitive_focus": 9.3,
+    "pedagogical_sequence": 9.4,
+    "task_quality": 9.2,
+    "progress_legibility": 9.5,
+    "assistance_disclosure": 9.3,
+    "state_integrity": 9.6,
+    "premium_coherence": 9.2
+  },
+  "avg": 9.36,
+  "working_product": true,
+  "evidence": [
+    "PRODUCTION-PATH-SNAPSHOT.sha256 свежо проверен: совпали 19 из 19 frozen-файлов; набор содержит 18 PNG и summary.json.",
+    "path-375x844.png и path-1280x900.png сразу показывают курс «Подготовка к НИШ», текущий блок «Смеси и концентрации», следующий урок, его цель, длительность и единственный CTA.",
+    "Новые path-completed-375x844.png и path-completed-1280x900.png доказывают возврат после результата: «В этом блоке: 1 из 1 урока», освоенный урок, сохранённый результат и действие его просмотра.",
+    "worked, wrong-tier-1, independent и transfer показывают читаемую последовательность «Пример → Вместе → Сам → Перенос» и прогресс внутри шести шагов.",
+    "Задачи требуют сохранять массу вещества и пересчитывать концентрацию после добавления либо испарения воды; transfer меняет тип ситуации, а результат честно называет освоенный навык и объём самостоятельного evidence.",
+    "До попытки подсказка отсутствует; после неверного ответа появляется локальная подсказка про неизменную массу соли без раскрытия ответа.",
+    "resume-after-reload сохраняет точный шаг и значение «40», network-answer-preserved сохраняет «250» при сбое, result фиксирует 6/6, а completed path — 1/1.",
+    "В frozen production gate зафиксированы 176 backend tests, 89 Vitest tests, успешные lint, typecheck и production build; browser evidence имеет нулевые console, page, request и API errors, два viewport, keyboard focus, touch targets не меньше 44 px и отсутствие horizontal overflow.",
+    "Error, empty, lesson, result и completed-состояния используют единый AiPlus visual language и воспринимаются как части одного рабочего продукта."
+  ],
+  "top_deltas": [
+    {
+      "severity": "low",
+      "description": "Frozen screenshots визуально доказывают tier-1 поддержку после первой ошибки, но не содержат отдельного кадра усиленной поддержки после повторной ошибки."
+    },
+    {
+      "severity": "low",
+      "description": "На result-375x844 основной CTA возврата в путь находится ниже первого viewport и требует прокрутки, хотя верхняя ссылка «Мой путь» остаётся доступной."
+    }
+  ],
+  "verdict": "READY"
+}

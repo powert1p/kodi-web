@@ -1,0 +1,202 @@
+{
+  "01-375": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "stageViewportShare": 0.604,
+      "primaryVisible": true,
+      "minControlHeight": 48,
+      "minControlWidth": 48,
+      "fonts": "loaded",
+      "h1Font": "Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "01-1280": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "stageViewportShare": 0.6,
+      "primaryVisible": true,
+      "minControlHeight": 48,
+      "minControlWidth": 48,
+      "fonts": "loaded",
+      "h1Font": "Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "02-375": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "stageViewportShare": 0.604,
+      "primaryVisible": true,
+      "minControlHeight": 44,
+      "minControlWidth": 44,
+      "fonts": "loaded",
+      "h1Font": "Nunito, Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "02-1280": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "stageViewportShare": 0.622,
+      "primaryVisible": true,
+      "minControlHeight": 48,
+      "minControlWidth": 48,
+      "fonts": "loaded",
+      "h1Font": "Nunito, Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "03-375": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "stageViewportShare": 0.77,
+      "primaryVisible": true,
+      "minControlHeight": 48,
+      "minControlWidth": 48,
+      "fonts": "loaded",
+      "h1Font": "Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "03-1280": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "stageViewportShare": 0.889,
+      "primaryVisible": true,
+      "minControlHeight": 48,
+      "minControlWidth": 48,
+      "fonts": "loaded",
+      "h1Font": "Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "04-375": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "stageViewportShare": 0.687,
+      "primaryVisible": true,
+      "minControlHeight": 44,
+      "minControlWidth": 44,
+      "fonts": "loaded",
+      "h1Font": "Nunito, Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "04-1280": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "stageViewportShare": 0.756,
+      "primaryVisible": true,
+      "minControlHeight": 48,
+      "minControlWidth": 48,
+      "fonts": "loaded",
+      "h1Font": "Nunito, Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "05-375": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "stageViewportShare": 0.706,
+      "primaryVisible": true,
+      "minControlHeight": 44,
+      "minControlWidth": 63.75,
+      "fonts": "loaded",
+      "h1Font": "Alumni, Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  },
+  "05-1280": {
+    "details": {
+      "title": "AiPlus — выбор визуального направления",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 902,
+      "overflowX": false,
+      "stageViewportShare": 0.913,
+      "primaryVisible": true,
+      "minControlHeight": 44,
+      "minControlWidth": 76.609375,
+      "fonts": "loaded",
+      "h1Font": "Alumni, Onest, sans-serif",
+      "imagesLoaded": true
+    },
+    "errors": []
+  }
+}

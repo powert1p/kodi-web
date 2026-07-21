@@ -1,8 +1,8 @@
 # Module Map
 
-> **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-07-03 (граф v02, чистка dead code, тренажёр+тьютор).** Числа `~Lines` — реальный `wc -l`; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
+> **Источник истины — код; при расхождении доверяй коду. Актуализировано: 2026-07-16 (production journey, exact-once submissions).** Числа `~Lines` — ориентир; назначение — из docstring/классов/route-декораторов. Быстрая live-сверка: `wc -l backend/api/routes.py`, `ls backend/core/*.py`.
 
-**Масштаб:** 13 core-модулей без __init__ (scorers/classifiers удалены 2026-07-03), `routes.py` ~1070 строк (монолит, 19 эндпоинтов) + `routers/trainer.py` (16 эндпоинтов тренажёра), 5 Flutter-фич + 5 PWA-фич (webapp/), 20 DB-таблиц, 2525 задач / **114 нод графа v02 / 36 тем CC**.
+**Масштаб:** 17 core-модулей без `__init__`, `routes.py` ~1350 строк (19 эндпоинтов) + `routers/trainer.py` (18) + `routers/journey.py` (9), 5 Flutter-фич + production PWA (`webapp/`), **27 DB-таблиц**, 2525 задач / **114 нод графа v03 / 36 тем CC**.
 
 ## Backend: Core (`backend/core/`)
 
@@ -11,7 +11,7 @@
 | diagnostic.py | Двухфазный адаптивный диагностический движок (Тест на пробелы → Тест НИШ); общий traversal для всех фаз | `DiagnosticState`, `PHASE1_ANCHORS`, аддитивный скоринг (L1=15/L2=25/L3=30/L4=30%), `DIAG_MASTERY_THRESHOLD=0.5`, `write_mastery_to_db` | 1335 |
 | graph_viz.py | Рендер PNG карты знаний через graphviz (диагностический «туман войны» + полный/focused режим), цвета по mastery | `COLORS`, `CLUSTER_LABELS`, graphviz-render | 663 |
 | exam.py | Режим экзамена для сильных учеников: Phase A (15 `EXAM_HEADS`) → Phase B (5 самых неопределённых подтем по BKT-uncertainty); переиспользует helpers из `diagnostic.py` | `EXAM_HEADS`, `PRIOR=0.30`, `SLIP`/`GUESS` по sub_difficulty, weighted-accuracy для подтем | 599 |
-| grading.py | Проверка ответа: rule-based pipeline (8 правил — нормализация/exact/numeric/fraction/units/multi-value/text) + Claude LLM фолбэк при «неверно» | `check_answer`, `check_with_claude`, `_UNITS_RE`, `_DASHES` | 531 |
+| grading.py | Legacy exact-answer checker: rule-based pipeline для practice/diagnostic/exam/closure; не владеет semantic verdict полного решения в journey (ADR 002) | `check_answer`, `check_step_evidence`, `_UNITS_RE`, `_DASHES` | 531 |
 | selector.py | Выбор следующей задачи: блочное чередование (5 задач/тема), приоритет spaced-rep → weakest unmastered → review → challenge; внутри ноды — raw_score cascade (Tier 1-4) | `select_next_problem`, `_pick_problem_for_node`, `_REVIEW_STALE_DAYS=7` | 438 |
 | web_graph.py | Сборка JSON графа+статистики для фронта и HTML stats-страницы. Слой тем: `build_topics_payload` (topics/strands, общий для route graph_me и HTML-экспорта), `_strand_meta` (имена разделов из data-файла) | `generate_graph_data`, `build_topics_payload`, UX-порог 0.7 (НЕ трогать) | 449 |
 | bkt.py | Bayesian Knowledge Tracing: обновление `p_mastery` после каждого ответа (Corbett & Anderson) | `bkt_update`, `is_mastered`, `record_attempt`, `MASTERY_THRESHOLD=0.85`, `MASTERY_ALGO_VERSION` | 230 |
@@ -34,7 +34,7 @@
 | File | Назначение | Ключевое | ~Lines |
 |------|-----------|----------|--------|
 | seed.py | Загрузка графа (nodes+edges) и задач из JSON при пустой таблице; upsert по версии. **`seed_topics`** — идемпотентный upsert слоя тем, зовётся ВСЕГДА (не gated по nodes) | `seed_graph`, `seed_problems`, `seed_topics`, `PROBLEMS_VERSION="v10.1"` | 254 |
-| models.py | SQLAlchemy-модели, **20 таблиц**: ядро (`Node`,`Edge`,`Problem`,`Student`,`Mastery`,`Attempt`,`ProblemReport`,`Setting`,`Topic`,`TopicEdge`) + тренажёр (`MicroSkill`,`DecompositionProblem`,`ProblemStep`,`ProblemFingerprint`,`ErrorCapture`,`RecurringError`,`TutorSession`,`TutorMessage`) + пилот (`Event`,`StepSubmission`) | `__tablename__` ×20 | ~385 |
+| models.py | SQLAlchemy-модели, **27 таблиц**: ядро и таксономия (11, включая exact-once `PracticeSubmission`) + тренажёр/тьютор (8) + пилот (`Event`,`StepSubmission`) + guided learning (4) + production journey (`StudentJourney`,`JourneyAttempt`) | `__tablename__` ×27 | ~700 |
 | base.py | Async-движок (asyncpg), `async_session` factory, `Base` (DeclarativeBase), pool 10+5 | `engine`, `async_session`, `Base`, `get_session` | 24 |
 
 ## Backend: Scripts & Data
@@ -117,14 +117,16 @@
 - `core/llm_openai.py` — vision-диагноз; `vision_provider` (default **gemini** через OpenAI-compat base_url, OpenAI-фолбэк); grounded-промпт (канон. ответ+шаги+wrong_answer) + «диагноз с транскрипцией»; strict json_schema; lazy-клиент + timeout + sanitized-логи (без утечки ключа).
 - `api/routers/trainer.py` (НЕ растит routes.py) — GET /api/trainer/wrong-tasks, POST /api/trainer/diagnose (multipart фото, ≤8МБ, content-type allowlist, фото пишется ПОСЛЕ commit), GET /api/trainer/analytics (my_top + global_top для владельца).
 - `db/seed_decomposition.py` — сид банка. `run.py:on_startup` создаёт все 6 таблиц + сидит.
-**Frontend (новое, заменяет Flutter):** `webapp/` — mobile-PWA (React19+Vite+Tailwind v4+RR7+TanStack Query+vite-plugin-pwa+KaTeX), base `/app/`, served same-origin из backend (StaticFiles, Dockerfile node-stage). Дизайн-система `webapp/DESIGN_SYSTEM.md` (v6 «Тетрадь чемпиона», 2026-07-14: Unbounded+Golos, маршрут-сигнатура `components/route/`, токены `src/theme/tokens.css`). lib/{ladder,image,api,auth,types}.ts; features/{auth,hub,drill,closure,analytics}; components/{Button3D,Mascot,...}. Auth: phone+PIN (бэкенд /api/auth/phone/*), токен localStorage `kodi.jwt`. Старый Flutter `frontend/` + мок `cabinet/` — заморожены.
+**Frontend (новое, заменяет Flutter):** `webapp/` — responsive PWA (React19+Vite+Tailwind v4+RR7+TanStack Query+vite-plugin-pwa+KaTeX), base `/app/`, served same-origin из backend (StaticFiles, Dockerfile node-stage). Дизайн-система `webapp/DESIGN_SYSTEM.md` (v12 «Фокус-станция», 2026-07-16: Alumni Sans для stage headings + Onest для чтения, cream/forest/orange, code-native mark, evidence-контур и без mascot в primary journey; токены `src/theme/tokens.css`). Основной resumable flow — `features/journey/` + `lib/journeyApi.ts`; legacy review routes остаются в `features/{hub,drill,closure,analytics}`. Auth: phone+PIN (бэкенд `/api/auth/phone/*`), токен localStorage `kodi.jwt`. Старый Flutter `frontend/` + мок `cabinet/` — заморожены.
+
+**Production journey contract:** `api/routers/journey.py` владеет server-stage/revision/idempotency и AI photo submission; freshly rendered active stages отдают additive `workspace_version=1` envelope из того же authoritative state, что и legacy `next_step`. `lib/journeyApi.ts` читает envelope совместимо; pre-deploy stored replay может его не содержать. Semantic ownership и fail-closed vocabulary — ADR 002.
 
 ## Тренажёр: context-pack + чат-тьютор + закрытие ошибки (Обновлено: 2026-07-02)
 **Backend:**
 - `core/agent_context.py` — `build_agent_context(session, *, student_id, problem_id, decomp_idx=None)` → AgentContext (задача+канон. шаги+fingerprints+прошлые диагнозы+recurring_errors+mastery+тема). ЕДИНАЯ точка grounding: её потребляют и `/diagnose`, и чат.
 - `core/tutor.py` — `build_system_prompt` (сократический, correct_answer только «для тебя, НЕ называй ученику») + `generate_tutor_reply` (history-трим 20); `llm_openai.chat_reply(messages)` — текстовый chat-completions без vision.
 - `core/trainer.py` (+) — `build_problem_topics` (агрегат тем через nodes.topic_id, fallback через problems.node_id); WrongTask.id = **attempts.id** (стабильный, НЕ UUID — deep-link closure зависит от этого).
-- `api/routers/trainer.py` (+5 endpoints) — GET `/problem-topics`; POST `/verification/start|answer` (check_answer решает правильность, resolved по node_id); GET `/easier` (climb-down, pick_easier_decomp); POST `/tutor/chat` (rate-limit 15/min, session auto-create ON CONFLICT, 503 при LlmUnavailable).
+- `api/routers/trainer.py` (+5 endpoints) — GET `/problem-topics`; legacy closure-only POST `/verification/start|answer` использует `check_answer` и resolved по node_id, но не является verdict owner production journey; GET `/easier` (climb-down, pick_easier_decomp); POST `/tutor/chat` (rate-limit 15/min, session auto-create ON CONFLICT, 503 при LlmUnavailable).
 **Frontend (webapp/):** hub/`ProblemTopicsCard` (темы+closure_progress); drill/`TutorPanel` (multi-turn чат после диагноза, greeting локально без LLM); closure на живом API (`useClosure` → verification/*, инвалидация wrong-tasks+problem-topics после correct); analytics рендерит `my_top` (контракт BE, mock-fallback удалён).
 
 ## Тренажёр: MVP Заход 1 — класс/срез v2/теория/чат (Обновлено: 2026-07-10)

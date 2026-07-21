@@ -1,0 +1,1411 @@
+{
+  "375-login": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.08816429699842022,
+      "minControlHeight": 44,
+      "minInputFont": 16,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "a+AiPlusВходПривет! Введи номерВойдём через номер телефонаНомер телефонаПродолжитьКёди помогает восс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-login": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 900,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.126359375,
+      "minControlHeight": 44,
+      "minInputFont": 16,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "a+AiPlusВходПривет! Введи номерВойдём через номер телефонаНомер телефонаПродолжитьКёди помогает восс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-hub": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1786,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.12456240126382306,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессТвой короткий маршрутОдин мо",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-hub": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1352,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.029070746527777778,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессТвой короткий маршрутОдин мо",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1081,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюПроценты01 / 03Проценты: исходная задачаИсходная задача · ПроцентыБыло1230Цена товара 12",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-drill": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1054,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 62,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюПроценты01 / 03Проценты: исходная задачаИсходная задача · ПроцентыБыло1230Цена товара 12",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануМини-срезОдин вопрос за раз · без подсказок01 / 12Вопрос 1: ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-srez": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 900,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 62,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануМини-срезОдин вопрос за раз · без подсказок01 / 12Вопрос 1: ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-analytics": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1109,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессПрогресс · повторенияЧто пов",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-analytics": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 972,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессПрогресс · повторенияЧто пов",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-closure": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПеренос навыкаТа же мысль. Новые числа.Реши без подс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-closure": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 900,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 62,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПеренос навыкаТа же мысль. Новые числа.Реши без подс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-not-found": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 916,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогресс404Такого экрана нет.Вернись",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "1280-not-found": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 972,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогресс404Такого экрана нет.Вернись",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-login-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.08816429699842022,
+      "minControlHeight": 44,
+      "minInputFont": 16,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "a+AiPlusВходПривет! Введи номерВойдём через номер телефонаНомер телефонаНе удалось проверить номерПр",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-register-grade": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 930,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.08816429699842022,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "a+AiPlusРегистрацияВ какой класс идёшь?Подберём задачи по твоему уровнюТвой маршрут входа2 / 3Шаг 1 ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-register-pin": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1056,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.08816429699842022,
+      "minControlHeight": 44,
+      "minInputFont": 16,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "a+AiPlusРегистрацияПридумай PINМинимум 4 цифры — запомни егоТвой маршрут входа3 / 3Шаг 1 пройденШаг ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-hub-loading": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1270,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 0,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогресс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-hub-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 916,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессСвязь прерваласьПлан не загр",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-hub-onboarding": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1261,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.3030142180094787,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессПервый шагУзнаем, с чего нач",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-hub-empty": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1289,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.3030142180094787,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессОчередь пустаяНа сегодня всё",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-analytics-loading": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 988,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 0,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогресс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-analytics-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 964,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессСвязь прерваласьПрогресс не ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-analytics-empty": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 964,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusСегодняПрогрессодин точный шаг за разСегодняПрогрессПрогрессПовторений пока не в",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-loading": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 0,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плану",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануСвязь прерваласьРазбор не загрузилсяПроверь интернет и повто",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)",
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-first-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1249,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BUTTON",
+        "id": "",
+        "text": "Проверить шаг",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-inserted-rung": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1167,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "H2",
+        "id": "",
+        "text": "Разогреемся: сколько будет 10% от 200?",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-solved-reduced": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1089,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "H2",
+        "id": "",
+        "text": "Какой стала цена после роста?",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": {
+        "animationName": "none",
+        "animationDuration": "1e-05s"
+      }
+    },
+    "actionEvidence": {
+      "focusAfterStep": "Какой стала цена после роста?"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-solved-motion": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1089,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": false,
+      "activeElement": {
+        "tag": "H2",
+        "id": "",
+        "text": "Какой стала цена после роста?",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": {
+        "animationName": "routeNodeLock",
+        "animationDuration": "0.42s"
+      }
+    },
+    "actionEvidence": {
+      "focusAfterStep": "Какой стала цена после роста?"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-drill-finished": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 0,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюПроценты03 / 03Проценты: исходная задачаИсходная задача · ПроцентыБыло1230Цена товара 12",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "focusAfterStep1": "Какой стала цена после роста?"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-loading": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 0,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плану",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануСвязь прерваласьМини-срез не загрузилсяПроверь интернет и по",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-empty": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануМини-срезПока нечего проверять.Срез появится, когда наберётс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-wrong": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануМини-срезОдин вопрос за раз · без подсказок01 / 12Вопрос 1: ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "42"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-correct": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануМини-срезОдин вопрос за раз · без подсказок01 / 12Вопрос 1: ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "42"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-network": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануМини-срезОдин вопрос за раз · без подсказок01 / 12Вопрос 1: ",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "84"
+    },
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-srez-finished": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.3030142180094787,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануСрез пройденПлан стал точнее.В 1 задаче нашёлся шаг для разб",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "42"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-closure-loading": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПеренос навыкаТа же мысль. Новые числа.Реши без подс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-closure-start-error": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПеренос навыкаТа же мысль. Новые числа.Реши без подс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-closure-wrong": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 918,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПеренос навыкаТа же мысль. Новые числа.Реши без подс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "800"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-closure-network": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 918,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 0,
+      "maxSquirrelViewportRatio": 0,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПеренос навыкаТа же мысль. Новые числа.Реши без подс",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "1377"
+    },
+    "consoleErrors": [
+      "console: Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    ],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-closure-success": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1079,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.32345843206951025,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 2,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "BODY",
+        "id": "",
+        "text": "К содержаниюa+AiPlusК сегодняшнему плануПРОВЕРКАПодтверждено на новой задаче · ПроцентыЦена 800 ₸ вы",
+        "outlineWidth": "3px",
+        "outlineStyle": "none"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {
+      "preservedValue": "800"
+    },
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  },
+  "375-keyboard-focus": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1786,
+      "imagesLoaded": true,
+      "badAssetLoaded": false,
+      "squirrelCount": 1,
+      "maxSquirrelViewportRatio": 0.12456240126382306,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "primaryInViewport": 1,
+      "fontOnest": true,
+      "fontTektur": true,
+      "reducedMotion": true,
+      "activeElement": {
+        "tag": "A",
+        "id": "",
+        "text": "К содержанию",
+        "outlineWidth": "3px",
+        "outlineStyle": "solid"
+      },
+      "doneMotion": null
+    },
+    "actionEvidence": {},
+    "consoleErrors": [],
+    "unexpectedConsoleErrors": [],
+    "requestFailures": [],
+    "unexpectedApi": []
+  }
+}

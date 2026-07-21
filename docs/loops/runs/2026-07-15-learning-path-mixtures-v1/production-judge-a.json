@@ -1,0 +1,70 @@
+{
+  "scores": {
+    "time_to_first_value": 9.7,
+    "cognitive_focus": 9.4,
+    "pedagogical_sequence": 9.7,
+    "task_quality": 9.6,
+    "progress_legibility": 9.7,
+    "assistance_disclosure": 9.7,
+    "state_integrity": 9.8,
+    "premium_coherence": 9.2
+  },
+  "avg": 9.6,
+  "working_product": true,
+  "evidence": [
+    {
+      "axis": "time_to_first_value",
+      "finding": "Начальный path за один viewport показывает конкретный урок, его цель и единственный primary CTA; до первого value нужен один tap."
+    },
+    {
+      "axis": "cognitive_focus",
+      "finding": "Корневым экраном командует один текущий блок и один урок, а lesson states сохраняют один математический объект и одно следующее действие."
+    },
+    {
+      "axis": "pedagogical_sequence",
+      "finding": "Worked → guided fading → independent → transfer явно закреплены этапами «Пример / Вместе / Сам / Перенос» и соответствующими состояниями урока."
+    },
+    {
+      "axis": "task_quality",
+      "finding": "Задачи содержательно развивают пересчёт концентрации через сохранение массы вещества, изменение массы раствора и перенос на выпаривание."
+    },
+    {
+      "axis": "progress_legibility",
+      "finding": "После завершения mobile и desktop возвращаются в накопительный «Мой путь»: текущий блок показывает «1 из 1 урока», карточка — «Освоенный урок», справа завершены все четыре стадии. Это завершение блока, а не ложное завершение курса."
+    },
+    {
+      "axis": "assistance_disclosure",
+      "finding": "До попытки подсказка не конкурирует с задачей; после неверного шага появляется только локальная tier-1 помощь."
+    },
+    {
+      "axis": "state_integrity",
+      "finding": "Persisted completion подтверждён отдельными path-completed screenshots на 375×844 и 1280×900: после результата состояние возвращается на path как 1/1, показывает «Результат сохранён» и даёт открыть результат. Reload и network retry также сохраняют ввод."
+    },
+    {
+      "axis": "premium_coherence",
+      "finding": "Completed-state сохраняет AiPlus v11: warm paper, forest ink, disciplined orange, sage completion и единая типографическая и компонентная грамматика."
+    },
+    {
+      "axis": "working_product",
+      "finding": "Frozen набор содержит 19 файлов: 18 production screenshots и summary. Manifest фиксирует server result, persisted return at 1/1 и отсутствие console, page, request и API errors."
+    }
+  ],
+  "top_deltas": [
+    {
+      "severity": "low",
+      "location": "path-completed-375x844.png",
+      "delta": "Pale-sage фон правой половины bottom navigation слегка конкурирует с orange active-indicator вкладки «Путь»; стоит сделать выбранное состояние навигации однозначнее."
+    },
+    {
+      "severity": "low",
+      "location": "lesson progress header",
+      "delta": "Ещё сильнее развести четыре педагогические стадии и шесть внутренних шагов, хотя текущие подписи уже предотвращают существенную путаницу."
+    },
+    {
+      "severity": "low",
+      "location": "mobile micro-labels",
+      "delta": "Проверить uppercase-eyebrows на минимальный комфортный размер для слабого зрения."
+    }
+  ],
+  "verdict": "READY"
+}

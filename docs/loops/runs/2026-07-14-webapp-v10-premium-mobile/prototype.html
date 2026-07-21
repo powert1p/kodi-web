@@ -1,0 +1,1292 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AiPlus v10 — clean-slate directions</title>
+    <style>
+      @font-face {
+        font-family: "Onest";
+        src: url("./assets/fonts/onest-variable.woff2") format("woff2");
+        font-weight: 300 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Literata";
+        src: url("./assets/fonts/literata-variable.ttf") format("truetype");
+        font-weight: 200 900;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Sofia Condensed";
+        src: url("./assets/fonts/sofia-extra-condensed-variable.ttf") format("truetype");
+        font-weight: 100 1000;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: "Alumni";
+        src: url("./assets/fonts/alumni-sans-cyrillic.woff2") format("woff2");
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      :root {
+        color-scheme: light;
+        font-family: "Onest", system-ui, sans-serif;
+        font-synthesis: none;
+        --orange: #ffab32;
+        --orange-deep: #cb6810;
+        --paper: #f3efe6;
+        --paper-bright: #faf8f2;
+        --ink: #151716;
+        --ink-soft: #272b2b;
+        --muted: #6b6963;
+        --rule: #cfc8ba;
+        --blue: #526681;
+        --blue-pale: #e3e6e8;
+        --pine: #32664f;
+        --oxide: #a64b37;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100%;
+        background: var(--paper);
+        color: var(--ink);
+      }
+      body {
+        min-height: 100dvh;
+        overflow-x: clip;
+      }
+      button,
+      input,
+      a {
+        font: inherit;
+      }
+      button,
+      a {
+        min-width: 44px;
+        min-height: 44px;
+      }
+      button {
+        border: 0;
+        cursor: pointer;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+      }
+      .prototype {
+        position: relative;
+        min-height: 100dvh;
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .brand-lockup {
+        width: 112px;
+        height: 58px;
+        object-fit: cover;
+        border-radius: 0;
+      }
+      .eyebrow {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 720;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .icon-button {
+        display: grid;
+        place-items: center;
+        width: 48px;
+        height: 48px;
+        color: inherit;
+        background: transparent;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        font-size: 22px;
+      }
+      .primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 54px;
+        padding: 0 24px;
+        background: var(--orange);
+        color: #15130f;
+        font-weight: 780;
+        letter-spacing: -0.02em;
+      }
+      .primary:focus-visible,
+      .icon-button:focus-visible,
+      .nav-link:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #1f66ff;
+        outline-offset: 3px;
+      }
+      .formula {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.045em;
+        white-space: nowrap;
+      }
+      .bottom-nav {
+        position: relative;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        min-height: calc(68px + env(safe-area-inset-bottom));
+        padding: 0 18px env(safe-area-inset-bottom);
+        border-top: 1px solid var(--rule);
+        background: color-mix(in srgb, var(--paper) 96%, transparent);
+      }
+      .nav-link {
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 650;
+      }
+      .nav-link[aria-current="page"] {
+        color: var(--ink);
+      }
+      .nav-link[aria-current="page"]::before {
+        position: absolute;
+        top: 0;
+        width: 32px;
+        height: 3px;
+        background: var(--orange);
+        content: "";
+      }
+      .math-input {
+        width: 100%;
+        height: 58px;
+        border: 0;
+        border-bottom: 2px solid currentColor;
+        border-radius: 0;
+        background: transparent;
+        color: inherit;
+        font-size: 32px;
+        font-weight: 720;
+        font-variant-numeric: tabular-nums;
+        outline: none;
+      }
+      .mascot-photo {
+        object-fit: cover;
+        object-position: center 16%;
+      }
+
+      /* A — Atelier / solution thread */
+      .atelier {
+        display: grid;
+        grid-template-rows: 1fr auto;
+        background:
+          radial-gradient(circle at 8% 15%, rgb(255 255 255 / 0.52), transparent 28%),
+          var(--paper);
+      }
+      .atelier::before {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.24'/%3E%3C/svg%3E");
+        opacity: 0.035;
+        content: "";
+      }
+      .atelier-shell {
+        width: min(100%, 1180px);
+        min-height: 100%;
+        margin: 0 auto;
+        padding: 18px 22px 26px;
+      }
+      .atelier-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 62px;
+      }
+      .atelier h1 {
+        max-width: 760px;
+        margin: 30px 0 8px;
+        font-family: "Literata", serif;
+        font-size: clamp(48px, 12vw, 78px);
+        font-weight: 560;
+        line-height: 0.95;
+        letter-spacing: -0.065em;
+      }
+      .atelier-lead {
+        max-width: 470px;
+        margin: 0;
+        color: #4e4d48;
+        font-size: 17px;
+        line-height: 1.48;
+      }
+      .thread-queue {
+        position: relative;
+        margin-top: 34px;
+        padding-left: 36px;
+      }
+      .thread-queue::before {
+        position: absolute;
+        top: 8px;
+        bottom: 8px;
+        left: 8px;
+        width: 2px;
+        background: linear-gradient(var(--orange) 0 58%, var(--rule) 58%);
+        content: "";
+      }
+      .thread-task {
+        position: relative;
+        padding: 0 0 24px;
+      }
+      .thread-task + .thread-task {
+        padding-top: 20px;
+        border-top: 1px solid var(--rule);
+      }
+      .thread-task::before {
+        position: absolute;
+        top: 5px;
+        left: -34px;
+        width: 10px;
+        height: 10px;
+        border: 2px solid var(--paper);
+        border-radius: 50%;
+        background: var(--orange);
+        box-shadow: 0 0 0 1px var(--orange-deep);
+        content: "";
+      }
+      .thread-task + .thread-task::before {
+        top: 25px;
+        background: var(--paper);
+        box-shadow: 0 0 0 1px var(--rule);
+      }
+      .task-index {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 12px;
+        font-weight: 720;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .atelier .task-math {
+        margin: 0 0 14px;
+        font-family: "Literata", serif;
+        font-size: clamp(28px, 8vw, 46px);
+        font-weight: 540;
+        line-height: 1.1;
+        letter-spacing: -0.05em;
+      }
+      .task-note {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .thread-action {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 52px;
+        padding: 0;
+        border-top: 2px solid var(--ink);
+        border-bottom: 1px solid var(--rule);
+        background: transparent;
+        color: var(--ink);
+        font-weight: 760;
+      }
+      .thread-action span:last-child {
+        color: var(--orange-deep);
+        font-size: 24px;
+      }
+      .atelier-drill {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-height: 100dvh;
+      }
+      .atelier-drill .atelier-shell {
+        display: contents;
+      }
+      .atelier-drill .atelier-header {
+        padding: 18px 22px 8px;
+      }
+      .atelier-problem {
+        position: relative;
+        padding: 22px 24px 28px 48px;
+      }
+      .atelier-problem::before {
+        position: absolute;
+        top: 26px;
+        bottom: 8px;
+        left: 23px;
+        width: 2px;
+        background: var(--orange);
+        content: "";
+      }
+      .atelier-problem::after {
+        position: absolute;
+        bottom: 8px;
+        left: 23px;
+        width: 24px;
+        height: 2px;
+        background: var(--orange);
+        content: "";
+      }
+      .atelier-problem .statement {
+        max-width: 720px;
+        margin: 18px 0 30px;
+        color: #4c4b46;
+        font-size: 17px;
+        line-height: 1.55;
+      }
+      .atelier-question {
+        max-width: 740px;
+        margin: 0;
+        font-family: "Literata", serif;
+        font-size: clamp(31px, 8.5vw, 58px);
+        font-weight: 560;
+        line-height: 1.05;
+        letter-spacing: -0.055em;
+      }
+      .atelier-workbench {
+        padding: 22px 24px calc(22px + env(safe-area-inset-bottom));
+        background: var(--blue-pale);
+        border-top: 1px solid #b9c0c6;
+      }
+      .atelier-workbench .input-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 12px;
+        margin: 12px 0 18px;
+      }
+      .atelier-workbench .primary {
+        width: 100%;
+      }
+      .currency {
+        padding-bottom: 13px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+      .atelier-feedback {
+        display: grid;
+        grid-template-rows: minmax(365px, 50dvh) 1fr;
+        min-height: 100dvh;
+      }
+      .atelier-proof-stage {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 365px;
+        padding: 72px 38% 48px 24px;
+        overflow: hidden;
+        background: var(--ink);
+        color: var(--paper-bright);
+      }
+      .atelier-proof-stage::after {
+        position: absolute;
+        right: 37%;
+        bottom: 34px;
+        left: 24px;
+        height: 3px;
+        background: var(--orange);
+        content: "";
+      }
+      .atelier-proof-stage .proof-formula {
+        position: relative;
+        z-index: 2;
+        margin: 14px 0;
+        font-family: "Literata", serif;
+        font-size: clamp(31px, 8.8vw, 62px);
+        font-weight: 520;
+        line-height: 1.05;
+      }
+      .atelier-proof-stage .mascot-photo {
+        position: absolute;
+        top: 0;
+        right: -13%;
+        width: 54%;
+        height: 100%;
+        object-position: 46% 16%;
+        filter: saturate(0.92) contrast(1.03);
+      }
+      .atelier-closure {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 28px 24px 34px;
+      }
+      .atelier-closure h2 {
+        margin: 6px 0 12px;
+        font-family: "Literata", serif;
+        font-size: 35px;
+        font-weight: 560;
+        letter-spacing: -0.045em;
+      }
+      .closure-problem {
+        margin: 10px 0 24px;
+        font-size: 23px;
+        font-weight: 650;
+      }
+
+      /* B — Living equality / math object */
+      .equality {
+        min-height: 100dvh;
+        background: var(--paper-bright);
+      }
+      .equality-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 78px;
+        padding: 12px 18px;
+        border-bottom: 1px solid #d7d1c6;
+      }
+      .equality-main {
+        width: min(100%, 1180px);
+        margin: 0 auto;
+        padding: 30px 22px 90px;
+      }
+      .equality h1 {
+        margin: 24px 0 40px;
+        font-family: "Literata", serif;
+        font-size: clamp(46px, 11.5vw, 76px);
+        font-weight: 500;
+        line-height: 0.92;
+        letter-spacing: -0.065em;
+      }
+      .object-task {
+        position: relative;
+        padding: 18px 0 28px;
+        border-top: 1px solid var(--ink);
+      }
+      .object-task .object-formula {
+        margin: 28px 0 18px;
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: clamp(49px, 14vw, 90px);
+        font-weight: 760;
+        line-height: 0.88;
+        letter-spacing: -0.04em;
+      }
+      .focus-bracket {
+        position: relative;
+        display: inline-block;
+        padding: 1px 10px 5px;
+        color: var(--orange-deep);
+      }
+      .focus-bracket::before,
+      .focus-bracket::after {
+        position: absolute;
+        top: -4px;
+        bottom: -2px;
+        width: 9px;
+        border-block: 3px solid var(--orange);
+        content: "";
+      }
+      .focus-bracket::before {
+        left: 0;
+        border-left: 3px solid var(--orange);
+      }
+      .focus-bracket::after {
+        right: 0;
+        border-right: 3px solid var(--orange);
+      }
+      .object-annotation {
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        gap: 14px;
+        max-width: 560px;
+        margin: 20px 0;
+        color: #585751;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+      .object-annotation::before {
+        height: 2px;
+        margin-top: 9px;
+        background: var(--orange);
+        content: "";
+      }
+      .object-action {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        min-height: 56px;
+        margin-top: 28px;
+        padding: 0;
+        border-top: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        background: transparent;
+        font-weight: 780;
+      }
+      .object-action strong {
+        color: var(--orange-deep);
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: 28px;
+      }
+      .object-preview {
+        margin-top: 22px;
+        padding-top: 22px;
+        border-top: 1px solid #d7d1c6;
+        color: var(--muted);
+      }
+      .equality-drill {
+        display: grid;
+        grid-template-rows: auto auto minmax(265px, 1fr) auto;
+        min-height: 100dvh;
+      }
+      .equality-drill .problem-copy {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 22px 22px 26px;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .math-stage {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 34px 22px;
+        overflow: hidden;
+        background: var(--ink);
+        color: var(--paper-bright);
+      }
+      .math-stage::before {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(120deg, transparent 42%, rgb(255 171 50 / 0.08));
+        content: "";
+      }
+      .math-stage .stage-label {
+        position: relative;
+        margin-bottom: 24px;
+        color: #bbc1bd;
+      }
+      .math-stage .stage-formula {
+        position: relative;
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: clamp(50px, 14vw, 96px);
+        font-weight: 720;
+        line-height: 0.9;
+      }
+      .stage-slot {
+        color: var(--orange);
+      }
+      .equality-controls {
+        padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
+      }
+      .equality-controls .primary {
+        width: 100%;
+        margin-top: 18px;
+      }
+      .equality-result {
+        display: grid;
+        min-height: 100dvh;
+        background: var(--paper-bright);
+      }
+      .proof-object {
+        position: relative;
+        min-height: 58dvh;
+        padding: 90px 38% 52px 24px;
+        overflow: hidden;
+        background: var(--ink);
+        color: var(--paper-bright);
+      }
+      .proof-object .eyebrow {
+        color: var(--orange);
+      }
+      .proof-chain {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        gap: 12px;
+        margin-top: 32px;
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: clamp(42px, 12vw, 86px);
+        font-weight: 700;
+        line-height: 0.86;
+      }
+      .proof-chain span:last-child {
+        padding-bottom: 10px;
+        border-bottom: 4px solid var(--orange);
+      }
+      .proof-object .mascot-photo {
+        position: absolute;
+        top: 0;
+        right: -9%;
+        width: 48%;
+        height: 100%;
+        object-position: 47% 16%;
+      }
+      .proof-next {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 26px 22px 34px;
+      }
+      .proof-next h2 {
+        margin: 8px 0 10px;
+        font-family: "Literata", serif;
+        font-size: 34px;
+        font-weight: 520;
+        letter-spacing: -0.04em;
+      }
+
+      /* C — CUT / cinematic seam */
+      .cut {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        min-height: 100dvh;
+        background: var(--paper);
+      }
+      .cut-scene {
+        position: relative;
+        min-height: 66dvh;
+        padding: 16px 20px 34px;
+        overflow: hidden;
+      }
+      .cut-scene::after {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 4;
+        height: 4px;
+        background: var(--orange);
+        content: "";
+      }
+      .cut-header {
+        position: relative;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 64px;
+      }
+      .cut-copy {
+        position: relative;
+        z-index: 3;
+        max-width: 710px;
+        margin-top: 24px;
+      }
+      .cut-copy h1 {
+        margin: 8px 0 20px;
+        font-family: "Alumni", "Sofia Condensed", sans-serif;
+        font-size: clamp(62px, 17vw, 116px);
+        font-weight: 760;
+        line-height: 0.76;
+        letter-spacing: -0.045em;
+        text-transform: uppercase;
+      }
+      .cut-copy .cut-formula {
+        position: relative;
+        max-width: 560px;
+        margin-top: 30px;
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: clamp(44px, 13vw, 88px);
+        font-weight: 720;
+        line-height: 0.88;
+      }
+      .proof-bracket {
+        position: relative;
+        display: inline-block;
+        color: var(--orange-deep);
+      }
+      .proof-bracket::after {
+        position: absolute;
+        right: -5px;
+        bottom: -7px;
+        left: -5px;
+        height: 4px;
+        background: var(--orange);
+        content: "";
+      }
+      .cut-hub .mascot-photo {
+        position: absolute;
+        right: -16%;
+        bottom: -22%;
+        width: 62%;
+        height: 76%;
+        clip-path: polygon(18% 0, 100% 0, 100% 100%, 0 100%);
+        object-position: 48% 13%;
+        filter: saturate(0.9);
+      }
+      .control-track {
+        position: relative;
+        display: grid;
+        align-content: center;
+        min-height: 225px;
+        padding: 24px 20px calc(28px + env(safe-area-inset-bottom));
+        background: var(--blue);
+        color: #fffaf0;
+      }
+      .control-track .track-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        color: #dfe5eb;
+        font-size: 13px;
+      }
+      .control-track .primary {
+        width: 100%;
+      }
+      .next-preview {
+        margin: 16px 0 0;
+        color: #d8e0e8;
+        font-size: 13px;
+      }
+      .cut-drill {
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+      .cut-drill .cut-scene {
+        min-height: 61dvh;
+      }
+      .cut-problem {
+        position: relative;
+        z-index: 2;
+        max-width: 780px;
+        margin-top: 20px;
+      }
+      .cut-problem .statement {
+        max-width: 620px;
+        color: #565751;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+      .cut-question {
+        max-width: 650px;
+        margin: 32px 0 16px;
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: clamp(42px, 12vw, 78px);
+        font-weight: 700;
+        line-height: 0.92;
+        letter-spacing: -0.025em;
+      }
+      .cut-progress-seam {
+        position: absolute;
+        right: 18px;
+        bottom: 10px;
+        z-index: 5;
+        padding: 0 8px;
+        background: var(--orange);
+        color: var(--ink);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .cut-controls {
+        min-height: 270px;
+      }
+      .cut-controls .math-input {
+        color: #fffaf0;
+        border-color: #fffaf0;
+      }
+      .cut-controls .primary {
+        margin-top: 18px;
+      }
+      .cut-result {
+        grid-template-rows: minmax(0, 1fr) auto;
+      }
+      .cut-result .cut-scene {
+        min-height: 67dvh;
+        background: var(--ink);
+        color: var(--paper-bright);
+      }
+      .cut-result .cut-scene::before {
+        position: absolute;
+        inset: 0 0 0 72%;
+        background: var(--orange);
+        content: "";
+      }
+      .cut-result .result-copy {
+        position: relative;
+        z-index: 3;
+        max-width: 68%;
+        margin-top: 46px;
+      }
+      .cut-result .result-copy h1 {
+        margin: 12px 0 20px;
+        font-family: "Alumni", "Sofia Condensed", sans-serif;
+        font-size: clamp(62px, 17vw, 120px);
+        font-weight: 780;
+        line-height: 0.78;
+        letter-spacing: -0.045em;
+        text-transform: uppercase;
+      }
+      .cut-result .result-formula {
+        font-family: "Sofia Condensed", sans-serif;
+        font-size: clamp(37px, 10vw, 72px);
+        font-weight: 650;
+        line-height: 0.95;
+      }
+      .cut-result .mascot-photo {
+        position: absolute;
+        right: -14%;
+        bottom: -10%;
+        z-index: 2;
+        width: 54%;
+        height: 86%;
+        clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
+        object-position: 48% 13%;
+      }
+      .cut-result .control-track {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .cut-result .control-track .track-meta {
+        color: var(--muted);
+      }
+
+      @media (min-width: 800px) {
+        .brand-lockup {
+          width: 122px;
+          height: 64px;
+        }
+        .atelier {
+          grid-template-rows: 1fr;
+          padding-bottom: 0;
+        }
+        .atelier-shell {
+          padding: 26px 54px 42px;
+        }
+        .atelier-hub .atelier-shell {
+          display: grid;
+          grid-template-columns: 1.05fr 0.95fr;
+          grid-template-rows: auto 1fr;
+          column-gap: 94px;
+        }
+        .atelier-hub .atelier-header {
+          grid-column: 1 / -1;
+        }
+        .atelier-hub .atelier-intro {
+          align-self: center;
+          padding-bottom: 80px;
+        }
+        .atelier-hub .thread-queue {
+          align-self: center;
+          margin-top: 58px;
+        }
+        .atelier h1 {
+          margin-top: 50px;
+        }
+        .atelier .bottom-nav {
+          display: none;
+        }
+        .atelier-drill {
+          grid-template-columns: 82px minmax(0, 1fr) 390px;
+          grid-template-rows: auto 1fr;
+          min-height: 100vh;
+        }
+        .atelier-drill .atelier-header {
+          grid-column: 1 / -1;
+          padding: 26px 54px 12px;
+        }
+        .atelier-problem {
+          grid-column: 2;
+          align-self: center;
+          padding: 70px 70px 70px 44px;
+        }
+        .atelier-workbench {
+          grid-column: 3;
+          grid-row: 2;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 54px 44px;
+          border-top: 0;
+          border-left: 1px solid #b9c0c6;
+        }
+        .atelier-feedback {
+          grid-template-columns: 7fr 5fr;
+          grid-template-rows: 1fr;
+        }
+        .atelier-proof-stage {
+          min-height: 100vh;
+          padding: 80px 34% 80px 70px;
+        }
+        .atelier-proof-stage .mascot-photo {
+          right: -8%;
+          width: 48%;
+        }
+        .atelier-closure {
+          padding: 70px;
+        }
+        .equality-header {
+          padding-inline: 52px;
+        }
+        .equality-main {
+          padding: 40px 64px 80px;
+        }
+        .equality-hub .equality-main {
+          display: grid;
+          grid-template-columns: 3fr 7fr 2fr;
+          gap: 48px;
+          align-items: center;
+          min-height: calc(100vh - 78px);
+        }
+        .equality-hub h1 {
+          grid-column: 1;
+          align-self: start;
+          margin-top: 90px;
+          writing-mode: vertical-rl;
+          transform: rotate(180deg);
+        }
+        .equality-hub .object-task {
+          grid-column: 2;
+        }
+        .equality-hub .object-preview {
+          grid-column: 3;
+          align-self: end;
+          margin-bottom: 80px;
+        }
+        .equality-drill {
+          grid-template-columns: minmax(0, 7fr) minmax(360px, 5fr);
+          grid-template-rows: auto auto 1fr;
+        }
+        .equality-drill .equality-header {
+          grid-column: 1 / -1;
+        }
+        .equality-drill .problem-copy {
+          grid-column: 1;
+          width: 100%;
+          max-width: none;
+          margin: 0;
+          padding: 46px 70px 30px;
+        }
+        .equality-drill .math-stage {
+          grid-column: 1;
+          padding: 54px 70px 70px;
+        }
+        .equality-controls {
+          grid-column: 2;
+          grid-row: 2 / 4;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 60px;
+          border-left: 1px solid #d7d1c6;
+        }
+        .equality-result {
+          grid-template-columns: 7fr 5fr;
+        }
+        .proof-object {
+          min-height: 100vh;
+          padding: 120px 34% 90px 70px;
+        }
+        .proof-next {
+          padding: 70px;
+        }
+        .cut {
+          grid-template-columns: minmax(0, 8fr) minmax(360px, 4fr);
+          grid-template-rows: 1fr;
+          min-height: 100vh;
+        }
+        .cut-scene {
+          min-height: 100vh !important;
+          padding: 28px 54px 64px;
+        }
+        .cut-scene::after {
+          inset: 0 0 0 auto;
+          width: 4px;
+          height: auto;
+        }
+        .cut-copy {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-height: calc(100vh - 140px);
+          margin-top: 0;
+        }
+        .cut-hub .mascot-photo {
+          right: -10%;
+          bottom: -18%;
+          width: 46%;
+          height: 78%;
+        }
+        .control-track {
+          min-height: 100vh;
+          padding: 60px 50px;
+        }
+        .cut-progress-seam {
+          right: -2px;
+          bottom: 50%;
+          transform: rotate(-90deg) translateY(-100%);
+          transform-origin: right bottom;
+        }
+        .cut-drill .cut-problem {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-height: calc(100vh - 130px);
+        }
+        .cut-result .result-copy {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          min-height: calc(100vh - 130px);
+          margin-top: 0;
+        }
+        .cut-result .mascot-photo {
+          right: -10%;
+          width: 44%;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .primary,
+        .thread-action,
+        .object-action {
+          transition:
+            transform 150ms ease-out,
+            filter 150ms ease-out;
+        }
+        .primary:hover,
+        .thread-action:hover,
+        .object-action:hover {
+          transform: translateY(-1px);
+          filter: brightness(1.02);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app"></main>
+
+    <template id="atelier-hub">
+      <article class="prototype atelier atelier-hub">
+        <div class="atelier-shell">
+          <header class="atelier-header">
+            <img class="brand-lockup" src="./assets/aiplus-logo-lockup.jpg" alt="AiPlus" />
+            <span class="meta">Аян · 7 класс</span>
+          </header>
+          <section class="atelier-intro">
+            <p class="eyebrow">Сегодня · 14 июля</p>
+            <h1>Две ошибки.<br />Один спокойный разбор.</h1>
+            <p class="atelier-lead">Начнём с места, где проценты поменяли базу. Примерно 12 минут.</p>
+          </section>
+          <section class="thread-queue" aria-label="Ошибки на сегодня">
+            <article class="thread-task">
+              <div class="task-index"><span>01 · Проценты</span><span>Вернуться</span></div>
+              <p class="task-math formula">1200 + 15% − 10%</p>
+              <p class="task-note">Последний ответ: 1230 · сбой на шаге роста цены</p>
+              <button class="thread-action"><span>Разобрать текущий шаг</span><span>→</span></button>
+            </article>
+            <article class="thread-task">
+              <div class="task-index"><span>02 · Дроби</span><span>Почти</span></div>
+              <p class="task-math formula">3/4 + 5/6</p>
+            </article>
+          </section>
+        </div>
+        <nav class="bottom-nav" aria-label="Основная навигация">
+          <a class="nav-link" aria-current="page" href="#">Сегодня</a>
+          <a class="nav-link" href="#">Прогресс</a>
+        </nav>
+      </article>
+    </template>
+
+    <template id="atelier-drill">
+      <article class="prototype atelier atelier-drill">
+        <header class="atelier-header">
+          <button class="icon-button" aria-label="Закрыть разбор">←</button>
+          <span class="meta">Ошибка 1 из 2 · Шаг 1 из 3</span>
+          <span class="eyebrow">01/03</span>
+        </header>
+        <section class="atelier-problem">
+          <p class="eyebrow">Проценты · текущий шаг</p>
+          <p class="statement">Цена товара 1200 ₸ выросла на 15%, а затем снизилась на 10%. Найдите итоговую цену.</p>
+          <h1 class="atelier-question">Сколько тенге составляет рост на 15% от 1200?</h1>
+        </section>
+        <form class="atelier-workbench">
+          <p class="eyebrow">Твой расчёт</p>
+          <label class="input-row">
+            <span>
+              <span class="meta">Ответ</span>
+              <input class="math-input" aria-label="Ответ" value="180" />
+            </span>
+            <span class="currency">₸</span>
+          </label>
+          <button class="primary" type="button">Проверить шаг</button>
+        </form>
+      </article>
+    </template>
+
+    <template id="atelier-feedback">
+      <article class="prototype atelier atelier-feedback">
+        <section class="atelier-proof-stage">
+          <p class="eyebrow">Верно · шаг 1 собран</p>
+          <p class="proof-formula formula">1200 → 1380</p>
+          <p class="meta" style="color:#d7d3c9">Рост посчитан. Теперь новая база — 1380.</p>
+          <img class="mascot-photo" src="./assets/mascot-celebrate-v1.png" alt="Маскот AiPlus празднует верный шаг" />
+        </section>
+        <section class="atelier-closure">
+          <p class="eyebrow">Теперь без подсказки</p>
+          <h2>Проверь, что понял принцип.</h2>
+          <p class="closure-problem formula">800 ₸ +25% −20%</p>
+          <button class="primary">К проверочной задаче</button>
+        </section>
+      </article>
+    </template>
+
+    <template id="equality-hub">
+      <article class="prototype equality equality-hub">
+        <header class="equality-header">
+          <img class="brand-lockup" src="./assets/aiplus-logo-lockup.jpg" alt="AiPlus" />
+          <span class="meta">Аян · сегодня</span>
+        </header>
+        <main class="equality-main">
+          <h1>2 ошибки</h1>
+          <section class="object-task">
+            <p class="eyebrow">01 · Проценты · вернуться</p>
+            <p class="object-formula formula">1200 + <span class="focus-bracket">15%</span> − 10%</p>
+            <p class="object-annotation">Сбой появился здесь: прибавка найдена, но не добавлена к исходной цене.</p>
+            <button class="object-action"><span>Разобрать шаг</span><strong>→</strong></button>
+          </section>
+          <aside class="object-preview">
+            <p class="eyebrow">Следом</p>
+            <p class="formula" style="font-size:24px;color:var(--ink)">3/4 + 5/6</p>
+            <p class="meta">Общий знаменатель</p>
+          </aside>
+        </main>
+      </article>
+    </template>
+
+    <template id="equality-drill">
+      <article class="prototype equality equality-drill">
+        <header class="equality-header">
+          <button class="icon-button" aria-label="Закрыть разбор">←</button>
+          <span class="meta">Ошибка 1 из 2</span>
+          <span class="eyebrow">Шаг 1/3</span>
+        </header>
+        <p class="problem-copy">Цена товара 1200 ₸ выросла на 15%, а затем снизилась на 10%. Сначала найдём саму прибавку.</p>
+        <section class="math-stage">
+          <p class="stage-label eyebrow">Сколько составляет 15% от 1200?</p>
+          <div class="stage-formula formula">1200 × 0,15 = <span class="stage-slot">[180]</span></div>
+        </section>
+        <form class="equality-controls">
+          <label>
+            <span class="eyebrow">Ответ для активной скобки</span>
+            <input class="math-input" aria-label="Ответ" value="180" />
+          </label>
+          <button class="primary" type="button">Проверить шаг</button>
+          <p class="meta">После проверки число станет частью решения.</p>
+        </form>
+      </article>
+    </template>
+
+    <template id="equality-feedback">
+      <article class="prototype equality equality-result">
+        <section class="proof-object">
+          <p class="eyebrow">Равенство собрано</p>
+          <div class="proof-chain formula">
+            <span>1200 × 0,15 = 180</span>
+            <span>1200 + 180 = 1380</span>
+          </div>
+          <img class="mascot-photo" src="./assets/mascot-celebrate-v1.png" alt="Маскот AiPlus празднует собранное решение" />
+        </section>
+        <section class="proof-next">
+          <p class="eyebrow">Следующая неизвестная</p>
+          <h2>От какой цены теперь считать 10%?</h2>
+          <p class="closure-problem formula">1380 × 0,10 = [ ? ]</p>
+          <button class="primary">Продолжить доказательство</button>
+        </section>
+      </article>
+    </template>
+
+    <template id="cut-hub">
+      <article class="prototype cut cut-hub">
+        <section class="cut-scene">
+          <header class="cut-header">
+            <img class="brand-lockup" src="./assets/aiplus-logo-lockup.jpg" alt="AiPlus" />
+            <span class="meta">Аян · 7 класс</span>
+          </header>
+          <div class="cut-copy">
+            <p class="eyebrow">Сегодня · ошибка 01/02</p>
+            <h1>Найди<br />сбой</h1>
+            <p class="cut-formula formula">1200 + <span class="proof-bracket">15%</span> − 10%</p>
+          </div>
+          <img class="mascot-photo" src="./assets/mascot-coach-v1.png" alt="Маскот AiPlus показывает на текущий математический шаг" />
+        </section>
+        <section class="control-track">
+          <div class="track-meta"><span>Проценты · вернуться</span><span>≈ 7 минут</span></div>
+          <button class="primary">Разобрать этот шаг</button>
+          <p class="next-preview">Дальше: дроби · общий знаменатель</p>
+        </section>
+      </article>
+    </template>
+
+    <template id="cut-drill">
+      <article class="prototype cut cut-drill">
+        <section class="cut-scene">
+          <header class="cut-header">
+            <button class="icon-button" aria-label="Закрыть разбор">←</button>
+            <span class="meta">Ошибка 1 из 2</span>
+            <span class="eyebrow">Проценты</span>
+          </header>
+          <div class="cut-problem">
+            <p class="statement">Цена товара 1200 ₸ выросла на 15%, а затем снизилась на 10%. Найдите итоговую цену.</p>
+            <h1 class="cut-question">Сколько тенге составляет рост на 15% от 1200?</h1>
+          </div>
+          <span class="cut-progress-seam">Шаг 1 из 3 · ● ○ ○</span>
+        </section>
+        <form class="control-track cut-controls">
+          <div class="track-meta"><span>Твой ответ</span><span>текущий шаг</span></div>
+          <input class="math-input" aria-label="Ответ" value="180" />
+          <button class="primary" type="button">Проверить и встроить</button>
+          <p class="next-preview">Правильное число станет частью равенства.</p>
+        </form>
+      </article>
+    </template>
+
+    <template id="cut-feedback">
+      <article class="prototype cut cut-result">
+        <section class="cut-scene">
+          <header class="cut-header">
+            <img class="brand-lockup" src="./assets/aiplus-logo-lockup.jpg" alt="AiPlus" />
+            <span class="meta" style="color:#d7d3c9">Шаг 1 собран</span>
+          </header>
+          <div class="result-copy">
+            <p class="eyebrow" style="color:var(--orange)">Верно</p>
+            <h1>Ответ<br />встал<br />на место</h1>
+            <p class="result-formula formula">1200 + 180 = 1380</p>
+          </div>
+          <img class="mascot-photo" src="./assets/mascot-celebrate-v1.png" alt="Маскот AiPlus празднует верный ответ" />
+        </section>
+        <section class="control-track">
+          <div class="track-meta"><span>Следующий монтаж</span><span>Шаг 2/3</span></div>
+          <p style="margin:0 0 22px;font-size:23px;font-weight:680">Теперь вычти 10% от новой цены.</p>
+          <button class="primary">Перейти к шагу 2</button>
+        </section>
+      </article>
+    </template>
+
+    <script>
+      const params = new URLSearchParams(window.location.search)
+      const concept = params.get('concept') || 'atelier'
+      const screen = params.get('screen') || 'hub'
+      const template = document.getElementById(concept + '-' + screen)
+      if (!template) {
+        document.getElementById('app').textContent = 'Unknown concept or screen'
+      } else {
+        document.getElementById('app').append(template.content.cloneNode(true))
+        document.title = 'AiPlus v10 · ' + concept + ' · ' + screen
+      }
+    </script>
+  </body>
+</html>

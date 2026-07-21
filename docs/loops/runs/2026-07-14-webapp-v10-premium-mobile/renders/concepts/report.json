@@ -1,0 +1,326 @@
+{
+  "atelier-hub-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 52,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 48
+    },
+    "errors": []
+  },
+  "atelier-hub-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 52,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 78
+    },
+    "errors": []
+  },
+  "atelier-drill-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 48,
+      "minInputFont": 32,
+      "primaryVisible": true,
+      "largestHeading": 48
+    },
+    "errors": []
+  },
+  "atelier-drill-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 48,
+      "minInputFont": 32,
+      "primaryVisible": true,
+      "largestHeading": 78
+    },
+    "errors": []
+  },
+  "atelier-feedback-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 35
+    },
+    "errors": []
+  },
+  "atelier-feedback-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 35
+    },
+    "errors": []
+  },
+  "equality-hub-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 56,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 46
+    },
+    "errors": []
+  },
+  "equality-hub-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 911,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 56,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 76
+    },
+    "errors": []
+  },
+  "equality-drill-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 48,
+      "minInputFont": 32,
+      "primaryVisible": true,
+      "largestHeading": null
+    },
+    "errors": []
+  },
+  "equality-drill-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 48,
+      "minInputFont": 32,
+      "primaryVisible": true,
+      "largestHeading": null
+    },
+    "errors": []
+  },
+  "equality-feedback-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 34
+    },
+    "errors": []
+  },
+  "equality-feedback-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 900,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 34
+    },
+    "errors": []
+  },
+  "cut-hub-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 63.75
+    },
+    "errors": []
+  },
+  "cut-hub-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 916,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 116
+    },
+    "errors": []
+  },
+  "cut-drill-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 48,
+      "minInputFont": 32,
+      "primaryVisible": true,
+      "largestHeading": 45
+    },
+    "errors": []
+  },
+  "cut-drill-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 946,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 48,
+      "minInputFont": 32,
+      "primaryVisible": true,
+      "largestHeading": 78
+    },
+    "errors": []
+  },
+  "cut-feedback-375": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollWidth": 375,
+      "scrollHeight": 844,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 63.75
+    },
+    "errors": []
+  },
+  "cut-feedback-1280": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollWidth": 1280,
+      "scrollHeight": 926,
+      "overflowX": false,
+      "fonts": "loaded",
+      "imagesLoaded": true,
+      "minControlHeight": 54,
+      "minInputFont": null,
+      "primaryVisible": true,
+      "largestHeading": 120
+    },
+    "errors": []
+  }
+}

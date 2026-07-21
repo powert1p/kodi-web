@@ -1,0 +1,19 @@
+{
+  "review_order": ["C", "A", "B"],
+  "winner": "A",
+  "ranking": ["A", "C", "B"],
+  "scores": {
+    "A": {"typography": 8, "color": 8, "composition": 8, "motion": 5, "signature": 7, "craft": 7, "brief_fit": 8, "punch": 8, "avg": 7.38},
+    "B": {"typography": 8, "color": 7, "composition": 5, "motion": 5, "signature": 6, "craft": 4, "brief_fit": 5, "punch": 7, "avg": 5.88},
+    "C": {"typography": 7, "color": 8, "composition": 5, "motion": 5, "signature": 7, "craft": 5, "brief_fit": 6, "punch": 8, "avg": 6.38}
+  },
+  "verdict": "NOT_YET",
+  "required_deltas": [
+    "Два реальных сбоя на hub, active 1/3 в drill, current 1/12 в srez.",
+    "Tektur оставить коротким anchors, учебный текст держать в Onest.",
+    "Поднять contrast locked states и доказать checking/retry/completed.",
+    "Добавить purposeful motion без бесконечной декоративной анимации.",
+    "Зарезервировать mobile safe area под bottom navigation."
+  ],
+  "verification": {"images_reviewed": 18, "overflow": 0, "console_errors": 0, "min_target": 44}
+}

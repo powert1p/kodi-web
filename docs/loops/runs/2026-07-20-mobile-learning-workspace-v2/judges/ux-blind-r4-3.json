@@ -1,0 +1,31 @@
+{
+  "judge": "ux-blind-r4-3",
+  "scores": {
+    "first_action_clarity": 8.5,
+    "journey_continuity": 9,
+    "math_focus": 9,
+    "guided_instruction": 8.5,
+    "tutor_usefulness": 8.5,
+    "mobile_comfort": 8.5,
+    "accessibility_resilience": 8,
+    "premium_distinctiveness": 8.5
+  },
+  "average": 8.56,
+  "critical_flags": [],
+  "p0_p1": [],
+  "evidence": [
+    "first_action_clarity: fresh task shows meta + directive H1 + statement + one orange primary CTA inside first viewport at 375/390/1280 — chromium/typed/next-task-375x844.png, photo/task-375x844.png; typed-summary primary y=624.9 h57.6<844, photo primary y=681.5 h57.6<844; single primary per state, no competing CTA.",
+    "journey_continuity (standout): tutor is an in-surface sheet with the condition visible; telemetry escape_closed:true, focus_restored:'tutor-trigger', scroll_restored:[0,0] (photo/public-photo-cjm-summary.json). Drafts preserved across states (LearningWorkspace.tsx:178-232,466-486), correct-typed moves focus to task heading + smooth scroll (tsx:286-293), 409 stale-draft recovery (tsx:437-438,631-639). No route/page change — directly fixes owner 'кидает из страницы в страницу'.",
+    "correct typed completes without photo: typed-summary.json correct.advanced_without_photo=true, next_step=transfer_task (both browsers) — satisfies frozen rule and owner 'ответ верный но требует фото'.",
+    "photo invariant: wrong-photo (someone else's task) → stage photo_recovery reason 'wrong_photo', rendered 'На фото не видно решения этой задачи', attempt saved, no penalty (photo/real-heic.png, public-photo-cjm-summary.json). Same HEIC on its MATCHING task → verdict correct in 7.0s (matching-heic-r4/matching-heic-summary.json) — proves AI reads content, not a script/canned verdict.",
+    "tutor_usefulness: grounded, Socratic, non-answer-revealing reply — 'Как найти 25 процентов от 300 граммов?' (webkit) / 'Как ты вычислишь массу соли в 300 граммах 25-процентного раствора?' (chromium), 0.76-1.1s, rendered; tutor receives statement+active step (tsx:510-535). Fixes owner 'AI не отвечает ничего кроме дай следующий шаг' and 'подсказки сразу дают ответы'.",
+    "guided_instruction: guided contract renders prompt title + dedicated 'Что написать' format hint + 'Например: {example}' on foreign numbers + local honest feedback ('Пока не сходится'/'Шаг принят', no answer) + mastery-honesty note 'Уровень подтвердит следующая самостоятельная задача' (LearningWorkspace.tsx:855-876). Backend AI verdict, no script semantic check, guided does not raise mastery (BRIEF frozen rules; 696 backend tests pass). No live guided screenshot in artifacts — judged from code+tests+brief.",
+    "mobile_comfort/robustness: horizontal_overflow=0 at 375/390/844/932/1280 both browsers; console/page/request/http errors all []; targets mode_switch 44, primary 44-57.6, field 44-56; composer in document flow (keyboard-safe, no fixed-dock trap). Landscape fix confirmed: typed-incorrect-844x375.png + photo/task-844x375.png two-zone, primary in first screen (y=247.75/195 h44<375).",
+    "accessibility_resilience: header/main/article/section landmarks + aria-labels, H1/H2 hierarchy, labelled inputs + aria-describedby errors, role=alert/status, aria-live polite regions (tsx:720-725); tutor role=dialog aria-modal + Tab focus trap + Escape restore-to-trigger + body-scroll lock (tsx:333-395,701-718); visible 0.2rem focus outline; reduced-motion disables pulse/backdrop/sheet/transition (css:1285-1295); Cyrillic+KaTeX render clean.",
+    "premium_distinctiveness: distinctive AiPlus editorial system — warm paper + forest ink + single disciplined orange action + thin notebook lines + own brand mark (not Inter/generic). New two-zone workbook, NOT a token-reskin of the retired three-zone 'Фокус-станция'; no card-soup, real mastery evidence (1/3 post-correct, not fake progress), no copied mascot. Desktop = genuine condition-left / composer-right reflow, not a squished DOM (next-task-1280x900.png).",
+    "P2 NIT (not open P0/P1): portrait header — status pill 'Задача N' is truncated ('За…') and clipped under the shell 'Сменить ученика' control in every portrait shot (typed/next-task-375x844.png, photo/task-375x844.png). Cosmetic z-index/overlap seam; identical 'ЗАДАЧА N' repeats in task meta below, so no information loss.",
+    "P2 NIT (not open P0/P1): incorrect typed state shows a green CheckIcon + '{answer} · ответ проверен' in the evidence strip next to a WRONG answer (EvidenceStrip tsx:756-757; typed-incorrect-390x844.png). The word means 'answer was checked' but the green check reads as 'correct', mildly contradicting the honest 'Проверь вычисления' verdict directly below. Hidden in landscape (summary display:none). Does not reveal the answer and verdict itself is AI-honest — a clarity/status-semantics nit, not a critical flag."
+  ],
+  "confidence": 0.8,
+  "verdict": "READY"
+}

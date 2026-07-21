@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "renders": 30,
+  "truth": {
+    "remainder": "5/8",
+    "result": "1/4"
+  },
+  "critical_failures": 0,
+  "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+  "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8"
+}

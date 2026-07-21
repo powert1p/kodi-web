@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <defs>
+    <filter id="motion" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur stdDeviation="20 7"/>
+    </filter>
+    <linearGradient id="shadow" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#111827" stop-opacity="0.12"/>
+      <stop offset="0.48" stop-color="#111827" stop-opacity="0.76"/>
+      <stop offset="1" stop-color="#111827" stop-opacity="0.22"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1500" fill="#e7e1d2"/>
+  <g stroke="#aac5d6" stroke-width="3" opacity="0.45">
+    <path d="M0 220H1200M0 350H1200M0 480H1200M0 610H1200M0 740H1200M0 870H1200M0 1000H1200M0 1130H1200M0 1260H1200M0 1390H1200"/>
+  </g>
+  <g transform="rotate(11 600 750)" fill="#244675" font-family="DejaVu Sans, sans-serif" font-style="italic" filter="url(#motion)" opacity="0.42">
+    <text x="90" y="270" font-size="64">25 процентов от 300...</text>
+    <text x="120" y="520" font-size="78">0,25 · 3...</text>
+    <text x="70" y="790" font-size="74">300 + ...</text>
+    <text x="120" y="1080" font-size="76">... : 500 · ...</text>
+  </g>
+  <rect width="1200" height="1500" fill="url(#shadow)"/>
+  <path d="M-80 330 C260 170 630 500 1280 180V820C710 1050 350 700-100 940Z" fill="#111827" opacity="0.42"/>
+</svg>

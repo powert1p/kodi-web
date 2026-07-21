@@ -1,0 +1,34 @@
+{
+  "verdict": "PASS",
+  "base_origin": "https://wearing-ministers-indexes-mono.trycloudflare.com",
+  "viewports": [
+    "375x844 touch",
+    "1280x900"
+  ],
+  "screenshots": 11,
+  "checkpoints": [
+    "login-empty-mobile",
+    "registered-path-mobile",
+    "learning-worked-mobile",
+    "learning-wrong-support-mobile",
+    "learning-resume-mobile",
+    "learning-network-retry-mobile",
+    "learning-independent-mobile",
+    "learning-transfer-mobile",
+    "learning-result-mobile",
+    "learning-completed-path-mobile",
+    "learning-completed-path-desktop"
+  ],
+  "retry_id_reused": true,
+  "checks": [
+    "registration and single clear lesson CTA",
+    "worked example to guided practice",
+    "wrong answer support survives reload",
+    "network failure preserves answer and idempotency key",
+    "guided to independent to transfer",
+    "evidence-based result persists on mobile and desktop",
+    "zero unexpected console/page/request/API errors",
+    "zero horizontal overflow and critical touch/focus checks"
+  ],
+  "expected_cancellations": []
+}

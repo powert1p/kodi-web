@@ -1,0 +1,82 @@
+{
+  "verdict": "PASS",
+  "baseOrigin": "http://127.0.0.1:8414",
+  "screens": [
+    {
+      "name": "runtime-postfix-mobile",
+      "screenshot": "runtime-postfix-mobile-375x844.png",
+      "sha256": "2936df22d79c8215b87f1bb4be3523abbf7f11f2a5ee79e757a7f4c85b833e27",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Навык подтверждён",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Навык подтверждён",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "runtime-postfix-desktop",
+      "screenshot": "runtime-postfix-desktop-1280x900.png",
+      "sha256": "8060b4b67b842411d77e2c0f94eb59a2154e9905d0cdd9a360977bba97f77da7",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "heading": "Навык подтверждён",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Навык подтверждён",
+      "activeIsHeading": true,
+      "smallTargets": []
+    }
+  ],
+  "assets": [
+    "ApButton-CNpHBRDH.js",
+    "ApTextField-CSlUTxQO.js",
+    "JourneyPage-DmXkHuxR.js",
+    "LoginPage-vV5zXHS6.js",
+    "MathText-DxY09KHz.js",
+    "api-C0SOdu6f.js",
+    "image-vL1XAJmx.js",
+    "index-CxyVLgam.css",
+    "index-XZrS1W65.js",
+    "workbox-window.prod.es5-Bd17z0YL.js"
+  ],
+  "interaction": {
+    "mobile": {
+      "skipLink": {
+        "beforeTop": -80,
+        "activeText": "К содержанию",
+        "top": 16,
+        "height": 48,
+        "transitionDuration": "0s"
+      },
+      "reducedMotion": {
+        "matches": true,
+        "maxAnimation": 1e-05,
+        "maxTransition": 1e-05
+      }
+    },
+    "desktop": {
+      "skipLink": {
+        "beforeTop": -80,
+        "activeText": "К содержанию",
+        "top": 16,
+        "height": 48,
+        "transitionDuration": "0s"
+      },
+      "reducedMotion": {
+        "matches": true,
+        "maxAnimation": 1e-05,
+        "maxTransition": 1e-05
+      }
+    }
+  },
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestErrors": [],
+  "apiErrors": []
+}

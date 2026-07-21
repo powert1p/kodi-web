@@ -1,0 +1,913 @@
+{
+  "contract_version": "workspace-concepts.v1",
+  "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+  "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+  "truth": {
+    "remainder": "5/8",
+    "result": "1/4"
+  },
+  "expected_render_count": 30,
+  "actual_render_count": 30,
+  "records": [
+    {
+      "concept": "a",
+      "state": "independent",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=independent",
+      "screenshot": "round-concepts/evidence/screenshots/a-independent-375x844.png",
+      "screenshot_sha256": "16ea04b89e5f6a85e0dc26ce351243217f0b81e12810157d554645feb53d1f87",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 5,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 5,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "independent",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=independent",
+      "screenshot": "round-concepts/evidence/screenshots/a-independent-1280x900.png",
+      "screenshot_sha256": "0734692c64e6b36377f0686d15cada690c3230a2f9c102b05e55ae688d4fe9ee",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 28.16,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 5,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 5,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "needs_revision",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=needs_revision",
+      "screenshot": "round-concepts/evidence/screenshots/a-needs_revision-375x844.png",
+      "screenshot_sha256": "c926b859d083977570853316262db6b92d36e995fa4854cdaa4c5e9f84d91706",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "needs_revision",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=needs_revision",
+      "screenshot": "round-concepts/evidence/screenshots/a-needs_revision-1280x900.png",
+      "screenshot_sha256": "f3eae0f94d95a7f2d834f6b7833053e14bc48234f15a074425337080f5e069dd",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 28.16,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "hint_h2",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=hint_h2",
+      "screenshot": "round-concepts/evidence/screenshots/a-hint_h2-375x844.png",
+      "screenshot_sha256": "76a5dcf4bb87abbdbf032fa1b187aa4cb3f0bed66c95c1325646eccfa3dd109b",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "hint_h2",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=hint_h2",
+      "screenshot": "round-concepts/evidence/screenshots/a-hint_h2-1280x900.png",
+      "screenshot_sha256": "aa428c59b88cbb99902284a0985f516e46cbaf00eb7ae8a53e47bfc1e29432b4",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 28.16,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "tutor_open",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=tutor_open",
+      "screenshot": "round-concepts/evidence/screenshots/a-tutor_open-375x844.png",
+      "screenshot_sha256": "86727e85191b11d9862ec31f48e68f23e086d9bf3fb44fbc48182ee9da36bf74",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 7,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 7,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "tutor_open",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=tutor_open",
+      "screenshot": "round-concepts/evidence/screenshots/a-tutor_open-1280x900.png",
+      "screenshot_sha256": "0635c313e1c407dcf0a4a96cd607de20065dc214012eda7a8c0e8186cfc8f628",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 28.16,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 7,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 7,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "uncertain",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=uncertain",
+      "screenshot": "round-concepts/evidence/screenshots/a-uncertain-375x844.png",
+      "screenshot_sha256": "1df176820a6df5a4db2465b3149353bcc08c9260fc15d3d79380f28c997a3813",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "a",
+      "state": "uncertain",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=a&state=uncertain",
+      "screenshot": "round-concepts/evidence/screenshots/a-uncertain-1280x900.png",
+      "screenshot_sha256": "ef0909bd85b19666789698051fbe5635bb2e4d358b915faeeb9d4b7f728643ca",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 28.16,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Literata, serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "independent",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=independent",
+      "screenshot": "round-concepts/evidence/screenshots/b-independent-375x844.png",
+      "screenshot_sha256": "9316f7d9af32812fd25e768fe67de7272995e189c0c49d818b934518d530e8c6",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 5,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 5,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "independent",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=independent",
+      "screenshot": "round-concepts/evidence/screenshots/b-independent-1280x900.png",
+      "screenshot_sha256": "5c9c6ebcc7e3973d3607180ff690a32a4f0ad40d12ab99ea8afa6317bd581dcc",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 26.88,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 5,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 5,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "needs_revision",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=needs_revision",
+      "screenshot": "round-concepts/evidence/screenshots/b-needs_revision-375x844.png",
+      "screenshot_sha256": "b38aeef44dc53099e56f200c966b55ae1af49978dd175f67ae2f3dc245a7280d",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "needs_revision",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=needs_revision",
+      "screenshot": "round-concepts/evidence/screenshots/b-needs_revision-1280x900.png",
+      "screenshot_sha256": "279fe5d31739afd28c885176e6587d31dbeadbb583b6abfc4da8dd05c742ee6e",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 26.88,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "hint_h2",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=hint_h2",
+      "screenshot": "round-concepts/evidence/screenshots/b-hint_h2-375x844.png",
+      "screenshot_sha256": "ad9d3283edac3ab9c0ee1e9c2e6b5a53a51bd8745b37d164ef5b857f82447ef5",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "hint_h2",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=hint_h2",
+      "screenshot": "round-concepts/evidence/screenshots/b-hint_h2-1280x900.png",
+      "screenshot_sha256": "d6373a2c1ea73c33e2cad4e15b2d2adf4350bea69828f9d2c783cd947ffa119a",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 26.88,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "tutor_open",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=tutor_open",
+      "screenshot": "round-concepts/evidence/screenshots/b-tutor_open-375x844.png",
+      "screenshot_sha256": "7efe799859ed7ccd798fb7ebf46a9a28e71e1b222e79de3e301583b1437a1ea2",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 7,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 7,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "tutor_open",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=tutor_open",
+      "screenshot": "round-concepts/evidence/screenshots/b-tutor_open-1280x900.png",
+      "screenshot_sha256": "207e00156bf75d6874b5ab3cc7d476a7a7815d853351925e8cd5cf08f7ee0d86",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 26.88,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 7,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 7,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "uncertain",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=uncertain",
+      "screenshot": "round-concepts/evidence/screenshots/b-uncertain-375x844.png",
+      "screenshot_sha256": "02a0185586022bc21126bb72d252c72081f65e8174eefd25aa141ce208492b68",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "b",
+      "state": "uncertain",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=b&state=uncertain",
+      "screenshot": "round-concepts/evidence/screenshots/b-uncertain-1280x900.png",
+      "screenshot_sha256": "c95dd479339b5c6f7c695d39358c3e8f42329bad022e4c4ba1796f2648c513dc",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 26.88,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "Onest, Golos, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "independent",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=independent",
+      "screenshot": "round-concepts/evidence/screenshots/c-independent-375x844.png",
+      "screenshot_sha256": "66f79ab69de9089dfb35f53a14507c294feb807ab55a1a4f5eca54e7215c967f",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 5,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 5,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "independent",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=independent",
+      "screenshot": "round-concepts/evidence/screenshots/c-independent-1280x900.png",
+      "screenshot_sha256": "4dfb866b212c2d06fda78bea469ecc67277546f5c227b1f0aecd52a4c25cd02e",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 25.6,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 5,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 5,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "needs_revision",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=needs_revision",
+      "screenshot": "round-concepts/evidence/screenshots/c-needs_revision-375x844.png",
+      "screenshot_sha256": "cec5ab16c197a086939e7d783c5144c86afb058cbb3684ba56a577371a118ace",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "needs_revision",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=needs_revision",
+      "screenshot": "round-concepts/evidence/screenshots/c-needs_revision-1280x900.png",
+      "screenshot_sha256": "91d81ad50e57592099efdcb7e8fd52618ace7a6d37d98463b4c371b024445f84",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 25.6,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "hint_h2",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=hint_h2",
+      "screenshot": "round-concepts/evidence/screenshots/c-hint_h2-375x844.png",
+      "screenshot_sha256": "7b73a6aec247ac159218a96452e9e92f06cd69b6579155d9865de8d790270c95",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "hint_h2",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=hint_h2",
+      "screenshot": "round-concepts/evidence/screenshots/c-hint_h2-1280x900.png",
+      "screenshot_sha256": "e06b92cee13f2f3962578e31f2b25fd05ee39898b2c6093b6f98fc687c41ae05",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 25.6,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "tutor_open",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=tutor_open",
+      "screenshot": "round-concepts/evidence/screenshots/c-tutor_open-375x844.png",
+      "screenshot_sha256": "5c6279b30d5d7e6976d7ad46d5ef2bf075cad188f8e29b0792f33e36cd8c0e5a",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 7,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 7,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "tutor_open",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=tutor_open",
+      "screenshot": "round-concepts/evidence/screenshots/c-tutor_open-1280x900.png",
+      "screenshot_sha256": "3abfa245e44a1287a4d1d35f14fbaa610ea3a953327e44fc6d1747196bdd3405",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 28.16,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 7,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 7,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "uncertain",
+      "viewport": "375x844",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=uncertain",
+      "screenshot": "round-concepts/evidence/screenshots/c-uncertain-375x844.png",
+      "screenshot_sha256": "b1a4ab31ab17c40df037b359c6fa3a09ae9be0a90bf4d2ff0be407c46cf7e07e",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 18,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 844,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    },
+    {
+      "concept": "c",
+      "state": "uncertain",
+      "viewport": "1280x900",
+      "url": "file:///Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-17-unified-learning-workspace/prototype/index.html?concept=c&state=uncertain",
+      "screenshot": "round-concepts/evidence/screenshots/c-uncertain-1280x900.png",
+      "screenshot_sha256": "1ae2c7eced35ec1db0f629272a93e5897ac9dfe5a7a87e3d9b9004f9b4c3f3f1",
+      "rubric_sha256": "49d6de2eee2ad24ed2b07bbd95a84c78bae63897282dd2496b9723976555fa9d",
+      "state_matrix_sha256": "5cc8a4b47d48bc7b8b05e7f0e8a3392ff1d21fcba253914c491596a6da5fe0b8",
+      "checks": {
+        "targetFailures": [],
+        "unnamed": [],
+        "primaryCount": 1,
+        "missingText": [],
+        "statementSize": 25.6,
+        "taskVisible": true,
+        "contextVisible": true,
+        "overflow": 0,
+        "fontFamily": "\"M PLUS Rounded\", Onest, sans-serif",
+        "fontsReady": true,
+        "interactiveCount": 6,
+        "viewportHeight": 900,
+        "focus": {
+          "checked": 6,
+          "failures": []
+        },
+        "console_errors": [],
+        "page_errors": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "verdict": "PASS",
+  "phase": "provider-recovery",
+  "retryResponse": {
+    "method": "POST",
+    "path": "/api/journey/photo/retry",
+    "status": 200,
+    "elapsedMs": 3474
+  },
+  "retryUsedSavedPhoto": true,
+  "screens": [
+    {
+      "name": "saved-photo-before-retry-mobile",
+      "screenshot": "saved-photo-before-retry-mobile-375x844.png",
+      "sha256": "c34573de22ec8a45d3cae1307d19bb424e3c9ba0f6af9292cb4358d8746ef455",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Проверка на паузе",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка на паузе",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "saved-photo-retry-success-mobile",
+      "screenshot": "saved-photo-retry-success-mobile-375x844.png",
+      "sha256": "bc4ff6822ce7a848e889c74a291f21a294211147e4d92b04260573b7a391b015",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Ход решения сошёлся",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Ход решения сошёлся",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "saved-photo-retry-success-desktop",
+      "screenshot": "saved-photo-retry-success-desktop-1280x900.png",
+      "sha256": "ebab0262ed0a467948eac5cfacbb697cbec8f3c7c3b69518985d6646ec1ebe8b",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "heading": "Ход решения сошёлся",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Ход решения сошёлся",
+      "activeIsHeading": true,
+      "smallTargets": []
+    }
+  ],
+  "assets": [
+    "ApButton-pTAgmf8j.js",
+    "ApTextField-80vTTZ6-.js",
+    "JourneyPage-BFTDR3I5.js",
+    "LoginPage-xIef-3Hv.js",
+    "MathText-DCk1tgJY.js",
+    "api-BlB2iFTN.js",
+    "image-vL1XAJmx.js",
+    "index-77oHt_FS.js",
+    "index-m1PCe5Bi.css",
+    "workbox-window.prod.es5-Bd17z0YL.js"
+  ],
+  "interaction": {
+    "skipLink": {
+      "beforeTop": -80,
+      "activeText": "К содержанию",
+      "top": 16,
+      "height": 48,
+      "transitionDuration": "0s"
+    },
+    "reducedMotion": {
+      "matches": true,
+      "maxAnimation": 1e-05,
+      "maxTransition": 1e-05
+    }
+  },
+  "baseOrigin": "http://127.0.0.1:8414",
+  "fixture": "full-solution-correct.png",
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestErrors": [],
+  "apiErrors": []
+}

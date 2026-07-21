@@ -1,0 +1,88 @@
+{
+  "verdict": "PASS",
+  "baseOrigin": "http://127.0.0.1:8412",
+  "photoResponse": {
+    "method": "POST",
+    "status": 200,
+    "elapsedMs": 3502
+  },
+  "fixture": "reinforcement-329-correct.png",
+  "screens": [
+    {
+      "name": "final-evidence-task-mobile",
+      "screenshot": "final-evidence-task-mobile-375x844.png",
+      "sha256": "e41aad968a4de1d5bab290ab2952248cfc93fa8c021aa96c6c88e2de2c31d654",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Проверка переноса",
+      "headingFont": "Onest, \"Golos Text\", system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка переноса",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "mastery-3-of-3-mobile",
+      "screenshot": "mastery-3-of-3-mobile-375x844.png",
+      "sha256": "d8a9d3bc582ef1e1ad444550c01d228151e92f178b68e5f2146d752922a46f4e",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Ход решения сошёлся",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Ход решения сошёлся",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "topic-result-mobile",
+      "screenshot": "topic-result-mobile-375x844.png",
+      "sha256": "2936df22d79c8215b87f1bb4be3523abbf7f11f2a5ee79e757a7f4c85b833e27",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Навык подтверждён",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Навык подтверждён",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "topic-result-desktop",
+      "screenshot": "topic-result-desktop-1280x900.png",
+      "sha256": "8060b4b67b842411d77e2c0f94eb59a2154e9905d0cdd9a360977bba97f77da7",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "heading": "Навык подтверждён",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Навык подтверждён",
+      "activeIsHeading": true,
+      "smallTargets": []
+    }
+  ],
+  "assets": [
+    "ApButton-CNpHBRDH.js",
+    "ApTextField-CSlUTxQO.js",
+    "JourneyPage-DmXkHuxR.js",
+    "LoginPage-vV5zXHS6.js",
+    "MathText-DxY09KHz.js",
+    "api-C0SOdu6f.js",
+    "image-vL1XAJmx.js",
+    "index-CxyVLgam.css",
+    "index-XZrS1W65.js",
+    "workbox-window.prod.es5-Bd17z0YL.js"
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestErrors": [],
+  "apiErrors": []
+}

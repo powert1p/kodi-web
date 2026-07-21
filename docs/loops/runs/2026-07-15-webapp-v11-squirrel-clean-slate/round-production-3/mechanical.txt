@@ -1,0 +1,2 @@
+FAIL
+375-register-pin: touch target 24

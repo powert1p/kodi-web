@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "session_id": "019f60e0-559c-7680-87ba-3c09e65cc760",
+  "turn_id": "019f6c04-5868-74f2-abdb-05d78dfd42cf",
+  "cwd": "/Users/esetseitkamal/kodi-web",
+  "title": "Adaptive photo-first NIS production release",
+  "why": "Довести регистрацию нового ученика до полноценного адаптивного обучения: карта экзамена, диагностика, персональный маршрут, photo-first самостоятельное решение и guided-разбор только по явному запросу.",
+  "summary": "Exact linux/amd64 r13 прошёл source gates, visual benchmark, 80-state render matrix и живой CJM с реальным Gemini локально и через публичный production URL; image-only cutover выполнен с rollback tag и сохранением persistent данных.",
+  "result": "Production доступен на https://observer-terrorists-reputation-chosen.trycloudflare.com; регистрация, адаптация, диагностика, разные персональные маршруты, exact resume, unreadable/incorrect/correct photo verdicts и mastery после 3/4 самостоятельных решений подтверждены end-to-end.",
+  "next_step": "Провести первую наблюдаемую учебную сессию с реальным учеником и сравнить его затруднения с зафиксированным production CJM.",
+  "verification": [
+    ".venv/bin/pytest backend/tests/ -x -q: 640 passed",
+    "webapp npm test -- --run: 113 passed",
+    "webapp tsc/build: PASS",
+    "flutter analyze: No issues found",
+    "Flutter Chrome/core tests and flutter build web --release: PASS",
+    "state_matrix_gate.py against exact r13: PASS, 40 states and 80 screenshots",
+    "live_cjm_gate.py against exact r13 with real Gemini: PASS, 2 accounts and 19 screenshots",
+    "state_matrix_gate.py against public production: PASS, 40 states and 80 screenshots",
+    "live_cjm_gate.py against public production with real Gemini: PASS, no console/page/request/API errors",
+    "production SQL invariants: 0 duplicate idempotency keys and 0 orphan journeys",
+    "blind release review: READY without P0/P1/P2",
+    "visual benchmark: READY, 8.95/10, wow=true, critical flags=0"
+  ],
+  "artifacts": [
+    "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-16-adaptive-photo-first-nis/RELEASE-VERIFICATION.md",
+    "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-16-adaptive-photo-first-nis/evidence/live-cjm-production-r13/live-cjm-summary.json",
+    "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-16-adaptive-photo-first-nis/evidence/state-matrix-production-r13/state-matrix-summary.json"
+  ],
+  "docs": {
+    "structure_changed": true,
+    "updated": [
+      "/Users/esetseitkamal/kodi-web/docs/module-map.md",
+      "/Users/esetseitkamal/kodi-web/docs/data-state.md",
+      "/Users/esetseitkamal/kodi-web/docs/plan/current.md"
+    ],
+    "reason": "Journey API/core, exact-once submissions, mastery semantics and production verification surfaces are documented."
+  },
+  "learning": {
+    "status": "done",
+    "reason": "Candidates 20260716T190904Z-1874a2 and 20260716T191112Z-638593 added verified buildx save/load identity guidance and the wrap learning.status contract under standing consent."
+  },
+  "memory": {
+    "notes": [],
+    "reason": "No memory mutation requested; durable product state is stored in project docs and evidence."
+  },
+  "vault": {
+    "summary": [
+      "Adaptive photo-first NIS journey deployed as exact linux/amd64 r13.",
+      "Production CJM passed with two new accounts, different routes and real Gemini photo grading.",
+      "Mastery requires 3/4 independent solutions; guided help does not count.",
+      "Rollback image retained and persistent DB/photo data preserved.",
+      "Public quick tunnel URL is temporary and changes when kodi-tunnel restarts."
+    ],
+    "reason": "Store a compact release handoff only if the kodi-web vault mapping exists."
+  },
+  "graphify": {
+    "mode": "auto",
+    "reason": "Refresh only if this repository already owns a graphify artifact."
+  },
+  "git": {
+    "commit_docs": false,
+    "reason": "The worktree contains broad pre-existing user changes and the user did not request a commit."
+  }
+}

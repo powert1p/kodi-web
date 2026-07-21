@@ -1,6 +1,6 @@
 # Data State
 
-> Обновлено: 2026-07-10 (теория узлов). Качественный снимок схемы/контента. Точные счётчики — live-аудит из БД, не из этого файла.
+> Обновлено: 2026-07-17 (production journey contract v1 и exact-once submissions). Качественный снимок схемы/контента. Точные счётчики — live-аудит из БД, не из этого файла.
 
 ## Контент (сидится из `backend/data/*.json`)
 
@@ -17,7 +17,7 @@
 
 ## Схема и миграции
 
-- 10 таблиц, SQLAlchemy 2.0 async (`Mapped[...]`), asyncpg. Индексы под query-паттерны selector/stats (`ix_problems_node_id`, `ix_problems_raw_score`, `ix_attempts_student_node`).
+- **27 таблиц**, SQLAlchemy 2.0 async (`Mapped[...]`), asyncpg. Индексы под query-паттерны selector/stats/journey; актуальный перечень — `backend/db/models.py` (`__tablename__` ×27).
 - **Слой тем (2026-06-24):** `topics`(id CC/НИШ, strand, grade, order_idx, name_ru/kz), `topic_edges`(from→to, 61), колонка `nodes.topic_id` (FK логический, без констрейнта на existing-БД через `ALTER ... ADD COLUMN IF NOT EXISTS`). View-only — движок (BKT/diagnostic/practice/exam) их не читает.
 - **Нет migration-фреймворка** (нет Alembic). Схема: `create_all` (НЕ альтерит existing-таблицы) + hand-list `ALTER` в `run.py:24-45`, покрывающий только `students`/`problem_reports`.
 - ⚠️ **Migration-gap (AUDIT MIG-1):** FSRS-колонки `mastery` (`fsrs_stability`, `fsrs_difficulty`, `next_review_at`) НЕ в ALTER-листе. На **свежей БД** `create_all` строит полную схему — безопасно. При миграции **старой Railway-БД** без этих колонок → `UndefinedColumn` на practice-цикле.
@@ -51,3 +51,13 @@
 - **tutor_sessions** (id PK, UNIQUE(student_id, problem_id) — против гонки auto-create) и **tutor_messages** (FK session CASCADE, role/content) — история диалога с ИИ-тьютором. DDL идемпотентно в `run.py`. Итого таблиц: **18**.
 - `recurring_errors.resolved` выставляется closure-флоу **по node_id** верификационной задачи (не по micro_skill — ключи диагноза и декомпозиции расходятся, см. commit 89ba073).
 - **Каноническая таксономия = CC-слой** (strand→topic→node→micro_skill). Агрегат «проблемных тем» (`build_problem_topics`): error_captures→problems.node_id→nodes.topic_id→topics. **Deprecated (legacy, не удалять молча):** `node.tag` (15 плоских доменов) и `micro_skills.domain` — рантайм на них больше не группирует. `docs/specs/cc_topic_skill_tree.json` (remap 372→337) — архив, кодом не читается, remap решено НЕ делать.
+
+## Production learning journey (Обновлено: 2026-07-16)
+
+- **events**, **step_submissions** — пилотная телеметрия и фото шага.
+- **drill_step_attempts**, **verification_submissions**, **learning_sessions**, **learning_attempts** — typed-step, проверка переноса и durable learning flow; command-таблицы имеют unique idempotency keys.
+- **practice_submissions** — exact-once защита `/practice/answer` по `(student_id, client_attempt_id)` в одной транзакции с Attempt/BKT.
+- **student_journeys**, **journey_attempts** — единственная durable-позиция ребёнка, optimistic `revision`, профиль/диагностика/маршрут/фото и evidence diagnostic/guided/photo. Итого по `models.py`: **27 таблиц**.
+- **Verdict compatibility (ADR 002):** runtime хранит legacy `correct|incorrect` и precise recovery reasons; API projection нормализует `incorrect→needs_revision`, recovery/unknown→`uncertain` без потери причины. Unknown/malformed fail-closed и не меняет mastery.
+- **Mastery provenance:** новые journey attempts считаются evidence только через `kind + counts_for_mastery + support_used`; typed/guided/hinted/tutored действия formative-only. Исторический агрегат `Mastery.attempts_correct` не доказывает самостоятельность сам по себе.
+- **P0/P1 migration:** schema/backfill отсутствуют. Fresh active responses получают additive `workspace_version=1`; сохранённые до deploy `JourneyAttempt.response_payload`/503 snapshots могут остаться legacy и читаются compatibility adapter. Rollback не требует изменения данных.

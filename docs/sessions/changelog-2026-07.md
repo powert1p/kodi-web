@@ -110,3 +110,67 @@
 **Открытые вопросы:** 7 остаточных дизайн-дельт (RESULT.md §бэклог); Заход 2 «Мой путь»; хвост аудита банка; мёртвый diagnose-путь.
 **Файлы:** webapp/src/theme/tokens.css, webapp/src/components/route/*, webapp/DESIGN_SYSTEM.md, docs/loops/runs/2026-07-13-webapp-v6/RESULT.md
 **Issue:** —
+
+<!-- codex-wrap:9aefacdebc55b53e733e:begin -->
+## 2026-07-17 - Adaptive photo-first NIS production release
+
+- Why: Довести регистрацию нового ученика до полноценного адаптивного обучения: карта экзамена, диагностика, персональный маршрут, photo-first самостоятельное решение и guided-разбор только по явному запросу.
+- Result: Production доступен на https://observer-terrorists-reputation-chosen.trycloudflare.com; регистрация, адаптация, диагностика, разные персональные маршруты, exact resume, unreadable/incorrect/correct photo verdicts и mastery после 3/4 самостоятельных решений подтверждены end-to-end.
+- Next: Провести первую наблюдаемую учебную сессию с реальным учеником и сравнить его затруднения с зафиксированным production CJM.
+<!-- codex-wrap:9aefacdebc55b53e733e:end -->
+
+<!-- codex-wrap:e2cb4ce4da7fb9b0d7a0:begin -->
+## 2026-07-17 - Приём корректного HEIC-решения дробей
+
+- Why: Читаемое решение сравнения дробей отклонялось из-за слишком строгого сопоставления вариативного OCR с canonical steps.
+- Result: Исходный IMG_4978 HEIC на production пять раз подряд получил verdict correct с evidence_verified=true; сервис healthy и публичный ready зелёный.
+- Next: Повторно отправить тот же снимок из интерфейса ученика; переснимать страницу больше не требуется.
+<!-- codex-wrap:e2cb4ce4da7fb9b0d7a0:end -->
+
+<!-- codex-wrap:c2d482f49d2b4c85c2d7:begin -->
+## 2026-07-17 - AI-owned проверка фото решения r16
+
+- Why: Корректное рукописное решение IMG_4979.heic отклонялось из-за backend-проверки, которая не соответствовала продуктовому контракту AI-owned grading.
+- Result: r16 развёрнут image-only на production. IMG_4979.heic принят 3/3 для исходной задачи и отклонён 4/4 на обратном вопросе с failed_step=3; public app healthy и AI provider ready.
+- Next: На первой реальной учебной сессии проверить долю correct/incorrect/unsure на новых рукописных фото и разбирать только bounded evidence случаев unsure.
+<!-- codex-wrap:c2d482f49d2b4c85c2d7:end -->
+
+<!-- codex-wrap:42fc9847a5633347a518:begin -->
+## 2026-07-17 - Unified learning workspace design freeze
+
+- Why: Убрать полноэкранные переходы и собрать implementation-ready учебный UX с photo-first проверкой, typed-альтернативой, контекстным AI tutor и корректной mastery-семантикой.
+- Result: Готовы BRIEF, CJM, state map, AI UX contract, selected concept, 30 проверенных renders и dependency-ordered implementation backlog P0-P6. Production code и deploy намеренно не менялись в этом Goal.
+- Next: Создать следующий Goal на P0-P3: ADR и canonical docs, versioned journey workspace envelope, AI semantic services и durable support/resume state с backend tests.
+<!-- codex-wrap:42fc9847a5633347a518:end -->
+
+<!-- codex-wrap:08e50303bd8098ebbe38:begin -->
+## 2026-07-17 - AI-owned grading и journey workspace envelope v1
+
+- Why: Убрать backend exact-checker из semantic verdict и дать клиенту единое versioned состояние задачи вместо разрозненных переходов.
+- Result: AI владеет correct/needs_revision/uncertain, backend fail-closed валидирует результат; task, photo evidence, context, response capabilities, support и revision формируются из одного journey state, включая transfer retry и stale-revision recovery.
+- Next: P2: подключить React JourneyPage к hasJourneyWorkspace и собрать один стабильный учебный экран без переходов между отдельными страницами.
+<!-- codex-wrap:08e50303bd8098ebbe38:end -->
+
+<!-- codex-wrap:1236e4a74b02ad29223d:begin -->
+## 2026-07-17 - Unified learning workspace r20 production release
+
+- Why: Собрать разрозненные учебные экраны в один непрерывный рабочий флоу, передать смысловую проверку фото Gemini и довести приложение до проверенного production-состояния.
+- Result: Production r20 доступен на https://observer-terrorists-reputation-chosen.trycloudflare.com/app/; приложение и tunnel healthy, Gemini photo grading и tutor проверены реальными provider calls, persistent PostgreSQL и uploads при cutover не менялись.
+- Next: Провести наблюдаемую учебную сессию с реальным учеником и измерить время до первой самостоятельной отправки фото, число запросов подсказки и долю успешных transfer-задач.
+<!-- codex-wrap:1236e4a74b02ad29223d:end -->
+
+<!-- codex-wrap:f245ad18c9d5809dcf16:begin -->
+## 2026-07-20 - AI принимает эквивалентный typed-ответ
+
+- Why: Gemini ошибочно отклонял математически верный ответ 2 5/6 только из-за требуемой формы 17/6.
+- Result: Production r21 развёрнут поверх прежнего online-образа; реальный POST /api/journey/answer трижды получил от Gemini correct+format для 2 5/6, сохранил problem/stage и не изменил mastery.
+- Next: Пользователю обновить текущий экран и повторить 2 5/6; приложение должно показать, что смысл верный, и попросить только нужную форму записи.
+<!-- codex-wrap:f245ad18c9d5809dcf16:end -->
+
+<!-- codex-wrap:9c7ad11f9c9d43a05452:begin -->
+## 2026-07-20 - Production answer-or-photo mobile learning flow
+
+- Why: Довести учебный CJM до production: AI-проверка печатного ответа без обязательного фото, равноправный photo-flow и устойчивый mobile UX с живой keyboard-проверкой.
+- Result: Правильный печатный ответ завершает задачу без фото; incorrect/uncertain сохраняют контекст и восстанавливаются; HEIC/JPEG photo-flow, AI tutor, idempotency/reload/race recovery и 375/844/932/1280 layouts проверены. Public mobile WebKit с реальной OS keyboard подтвердил видимые input, feedback и действия. Reviewer: READY, оставшихся P0/P1 нет.
+- Next: Дать public приложение первой небольшой группе учеников и собрать продуктовые метрики реальной учебной сессии без изменения принятого answer-or-photo контракта.
+<!-- codex-wrap:9c7ad11f9c9d43a05452:end -->

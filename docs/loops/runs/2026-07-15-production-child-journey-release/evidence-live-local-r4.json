@@ -1,0 +1,60 @@
+{
+  "base_url": "http://127.0.0.1:8399",
+  "synthetic_account": {
+    "phone": "+770541853308",
+    "pin": "7319"
+  },
+  "fixture": "/Users/esetseitkamal/kodi-web/backend/tests/fixtures/sample_work.jpg",
+  "checks": {
+    "health": {
+      "status": "ok"
+    },
+    "ready": {
+      "status": "ready",
+      "checks": {
+        "database": true,
+        "pwa": true,
+        "ai_provider": true
+      }
+    },
+    "auth": {
+      "wrong_pin_rejected": true,
+      "student_id": 1784141854150841
+    },
+    "learning": {
+      "lesson": "mixtures-1",
+      "wrong_then_recovered": true,
+      "idempotent_retry": true,
+      "status": "completed",
+      "result": {
+        "title": "Теперь ты умеешь",
+        "skill": "Ты сохраняешь массу вещества и пересчитываешь концентрацию после изменения количества воды.",
+        "independent_completed": 2,
+        "transfer_completed": 1,
+        "without_support": 2,
+        "evidence_label": "2 самостоятельных задания, одно — с переносом на новую ситуацию"
+      }
+    },
+    "photo": {
+      "consent_denied_first": true,
+      "corrupt_rejected": true,
+      "live_gemini": {
+        "verdict": "unsure",
+        "hint": null,
+        "confidence": 1.0,
+        "step_n": 1
+      }
+    },
+    "tutor": {
+      "multi_turn": true,
+      "history_lengths": [
+        2,
+        4
+      ],
+      "first_reply": "Давай возьмём только один следующий переход. Какое правило подходит к текущему шагу?",
+      "adversarial_reply": "Давай возьмём только один следующий переход. Какое правило подходит к текущему шагу?",
+      "protected_values_absent": true
+    }
+  },
+  "verdict": "PASS"
+}

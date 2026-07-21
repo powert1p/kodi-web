@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <rect width="1200" height="1500" fill="#f8f5e9"/>
+  <g stroke="#b6d1df" stroke-width="2" opacity="0.65">
+    <path d="M0 210H1200M0 330H1200M0 450H1200M0 570H1200M0 690H1200M0 810H1200M0 930H1200M0 1050H1200M0 1170H1200M0 1290H1200M0 1410H1200"/>
+  </g>
+  <path d="M150 0V1500" stroke="#df9d9d" stroke-width="3" opacity="0.72"/>
+  <g transform="rotate(-0.6 600 750)" fill="#203f76" font-family="DejaVu Sans, sans-serif" font-style="italic">
+    <text x="205" y="155" font-size="46">Смесь растворов 5% и 15%</text>
+    <text x="205" y="292" font-size="50">Пусть x г — масса 5%-го раствора.</text>
+    <text x="205" y="432" font-size="54">0,05x + 0,15(500 − x) = 0,08 · 500</text>
+    <text x="250" y="592" font-size="62">0,05x + 75 − 0,15x = 40</text>
+    <text x="250" y="752" font-size="66">−0,10x = −35</text>
+    <text x="250" y="912" font-size="72">x = 350 г</text>
+    <path d="M245 940 C470 953 730 948 1015 936" fill="none" stroke="#203f76" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <text x="205" y="1110" font-size="50">Проверка: 17,5 + 22,5 = 40 г</text>
+    <text x="205" y="1270" font-size="58">Ответ: 350 г</text>
+  </g>
+</svg>

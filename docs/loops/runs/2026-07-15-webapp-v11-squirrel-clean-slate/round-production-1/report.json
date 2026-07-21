@@ -1,0 +1,170 @@
+{
+  "375-login": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 16,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "375-hub": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1786,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "375-drill": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1103,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "375-srez": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 844,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "375-analytics": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1173,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "375-closure": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 860,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 34,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "1280-login": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 900,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 16,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "1280-hub": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1352,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "1280-drill": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 1159,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 62,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "1280-srez": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 900,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 62,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "1280-analytics": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 972,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": null,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  },
+  "1280-closure": {
+    "details": {
+      "overflowX": false,
+      "scrollHeight": 900,
+      "imagesLoaded": true,
+      "minControlHeight": 44,
+      "minInputFont": 62,
+      "h1": 1,
+      "main": 1,
+      "fontOnest": true,
+      "fontTektur": true
+    },
+    "errors": []
+  }
+}

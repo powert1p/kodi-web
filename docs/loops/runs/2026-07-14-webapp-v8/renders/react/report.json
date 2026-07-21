@@ -1,0 +1,364 @@
+{
+  "375-hub": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 2,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-drill": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 6,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-srez": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 12,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-srez-feedback": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 12,
+    "smallTargets": [],
+    "primaryInViewport": true
+  },
+  "375-closure": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-closure-success": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 1,
+    "smallTargets": [],
+    "primaryInViewport": false,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-analytics": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 3,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-reduced-motion": {
+    "animationName": "none",
+    "strokeDashoffset": "0px"
+  },
+  "375-errors": [],
+  "375-request-failures": [],
+  "375-login": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "375-login-errors": [],
+  "375-login-request-failures": [],
+  "1280-hub": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 2,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-drill": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 6,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-srez": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 12,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-srez-feedback": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 12,
+    "smallTargets": [],
+    "primaryInViewport": true
+  },
+  "1280-closure": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-closure-success": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 1,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-analytics": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 3,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-reduced-motion": {
+    "animationName": "none",
+    "strokeDashoffset": "0px"
+  },
+  "1280-errors": [],
+  "1280-request-failures": [],
+  "1280-login": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": "Onest, \"Golos Text\", system-ui, sans-serif",
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "keyboardFocus": {
+      "tag": "A",
+      "label": "Кёди — к сегодняшнему плану",
+      "outlineStyle": "solid",
+      "outlineWidth": "3px"
+    }
+  },
+  "1280-login-errors": [],
+  "1280-login-request-failures": [],
+  "375-hub-loading": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-hub-error": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": null,
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-hub-empty": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-analytics-empty": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-srez-empty": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "tekturLoaded": true,
+    "onestLoaded": true,
+    "h1Font": null,
+    "proofNodes": 0,
+    "smallTargets": [],
+    "primaryInViewport": true,
+    "errors": [],
+    "requestFailures": []
+  }
+}

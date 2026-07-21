@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <rect width="1200" height="1500" fill="#f8f5e9"/>
+  <g stroke="#b6d1df" stroke-width="2" opacity="0.65">
+    <path d="M0 210H1200M0 330H1200M0 450H1200M0 570H1200M0 690H1200M0 810H1200M0 930H1200M0 1050H1200M0 1170H1200M0 1290H1200M0 1410H1200"/>
+  </g>
+  <path d="M150 0V1500" stroke="#df9d9d" stroke-width="3" opacity="0.72"/>
+  <g transform="rotate(-0.25 600 750)" fill="#203f76" font-family="DejaVu Sans, sans-serif" font-style="italic">
+    <text x="205" y="155" font-size="46">Соль добавляем к воде</text>
+    <text x="205" y="330" font-size="50">Пусть x г — масса соли.</text>
+    <text x="250" y="475" font-size="66">1) x : (200 + x) = 0,20</text>
+    <text x="250" y="655" font-size="66">2) x = 40 + 0,20x</text>
+    <text x="250" y="835" font-size="66">3) 0,80x = 40</text>
+    <text x="250" y="1015" font-size="66">4) x = 40 : 0,80 = 50</text>
+    <path d="M245 1045 C465 1057 735 1052 1010 1041" fill="none" stroke="#203f76" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <text x="205" y="1250" font-size="62">Ответ: 50 г соли</text>
+  </g>
+</svg>

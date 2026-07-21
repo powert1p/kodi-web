@@ -1,0 +1,152 @@
+{
+  "a-hub-375": {
+    "title": "Kodi concept A · hub",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "a-drill-375": {
+    "title": "Kodi concept A · drill",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "a-srez-375": {
+    "title": "Kodi concept A · srez",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "Onest, sans-serif",
+    "minTarget": 44
+  },
+  "a-375-errors": [],
+  "a-hub-1280": {
+    "title": "Kodi concept A · hub",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "a-drill-1280": {
+    "title": "Kodi concept A · drill",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "a-srez-1280": {
+    "title": "Kodi concept A · srez",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "Onest, sans-serif",
+    "minTarget": 44
+  },
+  "a-1280-errors": [],
+  "b-hub-375": {
+    "title": "Kodi concept B · hub",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "Literata, serif",
+    "minTarget": 44
+  },
+  "b-drill-375": {
+    "title": "Kodi concept B · drill",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "Literata, serif",
+    "minTarget": 44
+  },
+  "b-srez-375": {
+    "title": "Kodi concept B · srez",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "Literata, serif",
+    "minTarget": 44
+  },
+  "b-375-errors": [],
+  "b-hub-1280": {
+    "title": "Kodi concept B · hub",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "Literata, serif",
+    "minTarget": 44
+  },
+  "b-drill-1280": {
+    "title": "Kodi concept B · drill",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "Literata, serif",
+    "minTarget": 44
+  },
+  "b-srez-1280": {
+    "title": "Kodi concept B · srez",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "Literata, serif",
+    "minTarget": 44
+  },
+  "b-1280-errors": [],
+  "c-hub-375": {
+    "title": "Kodi concept C · hub",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "SofiaXC, Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "c-drill-375": {
+    "title": "Kodi concept C · drill",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "SofiaXC, Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "c-srez-375": {
+    "title": "Kodi concept C · srez",
+    "viewport": 375,
+    "scrollWidth": 375,
+    "overflow": false,
+    "h1Font": "SofiaXC, Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "c-375-errors": [],
+  "c-hub-1280": {
+    "title": "Kodi concept C · hub",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "SofiaXC, Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "c-drill-1280": {
+    "title": "Kodi concept C · drill",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "SofiaXC, Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "c-srez-1280": {
+    "title": "Kodi concept C · srez",
+    "viewport": 1280,
+    "scrollWidth": 1280,
+    "overflow": false,
+    "h1Font": "SofiaXC, Tektur, sans-serif",
+    "minTarget": 44
+  },
+  "c-1280-errors": []
+}

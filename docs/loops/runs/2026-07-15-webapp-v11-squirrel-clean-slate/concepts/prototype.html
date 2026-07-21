@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>AiPlus v11 — clean-slate concepts</title>
+    <link rel="stylesheet" href="./prototype.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <script>
+      const params = new URLSearchParams(location.search)
+      const concept = params.get('concept') || 'a'
+      const screen = params.get('screen') || 'hub'
+
+      const icon = (name) => {
+        const paths = {
+          arrow: '<path d="M19 12H5m6-6-6 6 6 6"/>',
+          chart: '<path d="M5 19V9m7 10V5m7 14v-7"/>',
+          home: '<path d="m4 11 8-7 8 7v9h-6v-6h-4v6H4z"/>',
+          spark: '<path d="m12 3 1.35 4.15L17.5 8.5l-4.15 1.35L12 14l-1.35-4.15L6.5 8.5l4.15-1.35L12 3Zm6 11 .75 2.25L21 17l-2.25.75L18 20l-.75-2.25L15 17l2.25-.75L18 14Z"/>',
+          check: '<path d="m5 12 4 4L19 6"/>',
+          play: '<path d="m9 7 7 5-7 5V7Z"/>',
+        }
+        return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name]}</svg>`
+      }
+
+      const brand = (variant = '') => `
+        <a class="brand ${variant}" href="#" aria-label="AiPlus, на главную">
+          <span class="brand-seed" aria-hidden="true"><b>a</b><i>+</i></span>
+          <span class="brand-word">AiPlus</span>
+        </a>`
+
+      const nav = () => `
+        <nav class="global-nav" aria-label="Основная навигация">
+          <a href="#" aria-current="page">${icon('home')}<span>Сегодня</span></a>
+          <a href="#">${icon('chart')}<span>Прогресс</span></a>
+        </nav>`
+
+      const focusHeader = (label, progress) => `
+        <header class="focus-header">
+          <button class="icon-button" aria-label="Вернуться">${icon('arrow')}</button>
+          <div class="focus-meter" aria-label="${progress}" role="progressbar">
+            <span style="--value:${progress.includes('4') ? '33%' : '50%'}"></span>
+          </div>
+          <span class="focus-label">${label}</span>
+        </header>`
+
+      const primary = (text) => `<button class="primary">${text}<span>${icon('arrow')}</span></button>`
+
+      const aHub = () => `
+        <div class="concept concept-a screen-hub">
+          <header class="a-header">${brand('brand-a')}<span class="day-mark">вт · 16 июля</span></header>
+          <main class="a-hub">
+            <section class="a-intro">
+              <p class="eyebrow">Твой короткий маршрут</p>
+              <h1>Один момент —<br />и дальше легче.</h1>
+              <p class="lead">Вернёмся к скобкам. Тут уже половина пути сделана.</p>
+            </section>
+            <section class="proof-tape" aria-label="Задача на сегодня">
+              <div class="tape-cap"><span>2 из 4</span><b>почти</b></div>
+              <div class="tape-line" aria-hidden="true">
+                <i class="done">1</i><i class="active">2</i><i>3</i><i>4</i>
+              </div>
+              <article class="tape-task">
+                <div class="task-kicker"><span class="spark-dot"></span>Почти получилось</div>
+                <h2 class="formula">3(x − 2) = 12</h2>
+                <p>Раскроем скобки и найдём, где потерялся знак.</p>
+                ${primary('Разобрать · 4 мин')}
+              </article>
+              <span class="tape-tail">следом — короткая проверка</span>
+            </section>
+            <aside class="a-companion">
+              <img src="../assets/squirrel-base.png" alt="Белка Кёди изучает решение в тетради" />
+              <p><b>Кёди рядом.</b><br />Ответ не скажет — шаг подхватит.</p>
+            </aside>
+          </main>
+          ${nav()}
+        </div>`
+
+      const aDrill = () => `
+        <div class="concept concept-a screen-focus">
+          ${focusHeader('Разбор', 'Шаг 2 из 4')}
+          <main class="a-drill">
+            <aside class="a-step-rail" aria-label="Маршрут решения">
+              <span class="rail-done">${icon('check')}</span><span class="rail-active">02</span><span>03</span><span>04</span>
+            </aside>
+            <section class="a-work">
+              <p class="eyebrow">Шаг 2 · раскрой скобки</p>
+              <div class="given"><span>Исходная задача</span><b class="formula">3(x − 2) = 12</b></div>
+              <article class="a-math-stage">
+                <div class="stage-index">02</div>
+                <h1>Что получится после раскрытия скобок?</h1>
+                <div class="formula main-formula">3x − 6 = 12</div>
+                <label class="answer-field"><span>Твой следующий шаг</span><input aria-label="Введите ответ" placeholder="Напиши выражение" /></label>
+                ${primary('Проверить шаг')}
+              </article>
+              <button class="quiet-action">Нужна подсказка?</button>
+            </section>
+          </main>
+        </div>`
+
+      const aSrez = () => `
+        <div class="concept concept-a screen-focus">
+          ${focusHeader('Мини-срез', 'Вопрос 4 из 12')}
+          <main class="a-srez">
+            <div class="a-srez-progress" aria-label="Вопрос 4 из 12">
+              ${Array.from({ length: 12 }, (_, i) => `<i class="${i < 3 ? 'done' : i === 3 ? 'active' : ''}">${i + 1}</i>`).join('')}
+            </div>
+            <section class="a-srez-stage">
+              <p class="eyebrow">4 класс · вопрос 04</p>
+              <h1>Посчитай по порядку действий</h1>
+              <div class="formula srez-formula">48 ÷ 6 + 7</div>
+              <label class="answer-field"><span>Ответ</span><input inputmode="decimal" aria-label="Введите ответ" placeholder="?" /></label>
+              ${primary('Ответить')}
+              <p class="privacy-note">Правильный ответ не покажем — только скажем, где стоит перепроверить.</p>
+            </section>
+          </main>
+        </div>`
+
+      const bHub = () => `
+        <div class="concept concept-b screen-hub">
+          <header class="b-header">${brand('brand-b')}<nav><a href="#" class="active">Сегодня</a><a href="#">Прогресс</a></nav><span>4 класс</span></header>
+          <main class="b-hub">
+            <div class="bench-ruler" aria-label="Прогресс на сегодня"><b>Старт</b>${Array.from({ length: 11 }, (_, i) => `<i class="${i < 5 ? 'filled' : ''}"></i>`).join('')}<strong>2 / 4</strong></div>
+            <section class="bench-context">
+              <p class="eyebrow">Матемастерская · сегодня</p>
+              <h1>Починим один знак.</h1>
+              <p>Четыре минуты — и скобки снова под контролем.</p>
+              <div class="bench-note"><span>01</span><p><b>Ты уже начал.</b><br />Осталось два шага.</p></div>
+            </section>
+            <section class="work-board">
+              <span class="board-clamp">почти</span>
+              <div class="board-grid" aria-hidden="true"></div>
+              <div class="board-content">
+                <span class="board-label">Точка возврата</span>
+                <h2 class="formula">3(x − 2) = 12</h2>
+                <p>Раскрытие скобок · 2 шага из 4</p>
+                ${primary('Продолжить разбор')}
+              </div>
+            </section>
+            <aside class="bench-coach">
+              <img src="../assets/squirrel-coach.png" alt="Белка-наставник с тетрадью и ручкой" />
+              <span>Я здесь, если знак снова убежит.</span>
+            </aside>
+          </main>
+          <div class="b-mobile-nav">${nav()}</div>
+        </div>`
+
+      const bDrill = () => `
+        <div class="concept concept-b screen-focus">
+          ${focusHeader('Мастерская · разбор', 'Шаг 2 из 4')}
+          <main class="b-drill">
+            <aside class="calibration-rail" aria-label="Шаг 2 из 4">
+              <span>01</span><span class="active">02</span><span>03</span><span>04</span>
+              <i style="--position:38%"></i>
+            </aside>
+            <section class="drill-board">
+              <div class="drill-board-top"><span>Раскрытие скобок</span><b>2 / 4</b></div>
+              <div class="source-line"><small>Исходная задача</small><b class="formula">3(x − 2) = 12</b></div>
+              <div class="work-surface">
+                <p class="eyebrow">Текущая операция</p>
+                <h1>Раскрой скобки</h1>
+                <div class="formula main-formula">3x − 6 = 12</div>
+                <label class="tool-input"><span>Следующая строка</span><input aria-label="Введите ответ" placeholder="Напиши выражение" /></label>
+                ${primary('Проверить')}
+              </div>
+              <button class="tool-hint"><span>?</span> Показать маленькую подсказку</button>
+            </section>
+          </main>
+        </div>`
+
+      const bSrez = () => `
+        <div class="concept concept-b screen-focus">
+          ${focusHeader('Мастерская · мини-срез', 'Вопрос 4 из 12')}
+          <main class="b-srez">
+            <div class="srez-ruler"><strong>04</strong>${Array.from({ length: 12 }, (_, i) => `<i class="${i < 3 ? 'done' : i === 3 ? 'active' : ''}"></i>`).join('')}<span>12</span></div>
+            <section class="srez-board">
+              <div class="paper-tab">4 класс</div>
+              <p class="eyebrow">Порядок действий</p>
+              <h1>Сначала деление,<br />потом сложение.</h1>
+              <div class="formula srez-formula">48 ÷ 6 + 7</div>
+              <label class="tool-input"><span>Ответ</span><input inputmode="decimal" aria-label="Введите ответ" placeholder="?" /></label>
+              ${primary('Готово')}
+            </section>
+            <p class="b-footnote">Без оценок. Нам важно понять, какой следующий разбор будет полезнее.</p>
+          </main>
+        </div>`
+
+      const cHub = () => `
+        <div class="concept concept-c screen-hub">
+          <header class="c-header">${brand('brand-c')}<span class="streak">${icon('spark')} 3 дня в ритме</span></header>
+          <main class="c-hub">
+            <div class="orbit orbit-large" aria-hidden="true"><i class="node one"></i><i class="node two active"></i><i class="node three"></i><i class="node four"></i></div>
+            <section class="orbit-copy">
+              <p class="eyebrow">Сегодня · один полезный виток</p>
+              <h1>Вернём скобки<br />на место.</h1>
+              <p>Тут уже почти всё сошлось. Подправим один шаг и закрепим.</p>
+            </section>
+            <section class="orbit-core">
+              <span class="orbit-status"><i></i>Почти получилось</span>
+              <div class="orbit-number">02<span>/04</span></div>
+              <h2 class="formula">3(x − 2) = 12</h2>
+              <p>Раскрытие скобок · около 4 минут</p>
+              ${primary('Войти в разбор')}
+            </section>
+            <aside class="orbit-companion">
+              <img src="../assets/squirrel-base.png" alt="Белка Кёди изучает задачу" />
+            </aside>
+          </main>
+          ${nav()}
+        </div>`
+
+      const cDrill = () => `
+        <div class="concept concept-c screen-focus">
+          ${focusHeader('Разбор · скобки', 'Шаг 2 из 4')}
+          <main class="c-drill">
+            <div class="orbit orbit-compact" aria-hidden="true"><i class="node one done"></i><i class="node two active"></i><i class="node three"></i><i class="node four"></i></div>
+            <section class="c-problem">
+              <p class="eyebrow">Шаг 2 · текущий виток</p>
+              <div class="c-source"><span>Было</span><b class="formula">3(x − 2) = 12</b></div>
+              <h1>Раскрой скобки</h1>
+              <div class="formula main-formula">3x − 6 = 12</div>
+              <label class="orbit-input"><span>Продолжи решение</span><input aria-label="Введите ответ" placeholder="Напиши выражение" /></label>
+              ${primary('Проверить шаг')}
+              <button class="quiet-action">Показать ориентир</button>
+            </section>
+          </main>
+        </div>`
+
+      const cSrez = () => `
+        <div class="concept concept-c screen-focus">
+          ${focusHeader('Мини-срез · 4 класс', 'Вопрос 4 из 12')}
+          <main class="c-srez">
+            <div class="question-orbit" aria-label="Вопрос 4 из 12">${Array.from({ length: 12 }, (_, i) => `<i class="${i < 3 ? 'done' : i === 3 ? 'active' : ''}"></i>`).join('')}</div>
+            <section class="c-srez-core">
+              <span class="question-index">04<small>/12</small></span>
+              <p class="eyebrow">Порядок действий</p>
+              <h1>Посчитай</h1>
+              <div class="formula srez-formula">48 ÷ 6 + 7</div>
+              <label class="orbit-input"><span>Твой ответ</span><input inputmode="decimal" aria-label="Введите ответ" placeholder="?" /></label>
+              ${primary('Ответить')}
+              <p class="privacy-note">Без оценки — только чтобы выбрать полезный следующий шаг.</p>
+            </section>
+          </main>
+        </div>`
+
+      const renders = {
+        a: { hub: aHub, drill: aDrill, srez: aSrez },
+        b: { hub: bHub, drill: bDrill, srez: bSrez },
+        c: { hub: cHub, drill: cDrill, srez: cSrez },
+      }
+
+      document.getElementById('app').innerHTML = (renders[concept]?.[screen] || aHub)()
+    </script>
+  </body>
+</html>

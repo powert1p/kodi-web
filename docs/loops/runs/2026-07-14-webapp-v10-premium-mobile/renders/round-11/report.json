@@ -1,0 +1,2349 @@
+{
+  "375-hub": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 2208,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Найти точный шаг",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-drill": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1096,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-closure": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 868,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Введите ответ контрольной",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-srez": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Введите ответ",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-analytics": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1373,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-login": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 864,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 16,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Номер телефона",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Продолжить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-hub": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 1642,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Найти точный шаг",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-drill": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 1235,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 78,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "По тетради",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-closure": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 901,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 78,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Введите ответ контрольной",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-srez": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 901,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 78,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Введите ответ",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-analytics": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 1064,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-login": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 900,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 16,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Номер телефона",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Продолжить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-hub-loading": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1409,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": false,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 0,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-hub-error": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 925,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Повторить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-hub-empty": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1465,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Пройти мини-срез",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-hub-new": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1465,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Начать мини-срез",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-drill-wrong": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1263,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-drill-reveal": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1513,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 2,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-drill-finished": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 844,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 3 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Закрепить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-photo-unsure": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 937,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-photo-mismatch": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 937,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-photo-network": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 965,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-photo-consent": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1093,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-closure-wrong": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 977,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Введите ответ контрольной",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Проверить решение",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-closure-network": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1005,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Введите ответ контрольной",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Проверить решение",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-closure-start-network": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Попробовать ещё раз",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-closure-success": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-closure-not-found": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-srez-empty": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-srez-error": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Повторить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-srez-feedback": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 845,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Следующий вопрос",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-srez-final": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 961,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К разбору",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-analytics-empty": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 989,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-analytics-error": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 989,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Повторить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-analytics-loading": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 997,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": false,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 0,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-404": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 925,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": false
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Сегодня",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "A",
+        "label": "Прогресс",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-login-register-grade": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 992,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": null,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "4",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "5",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "6",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-login-loading": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 864,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 16,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-login-error": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 890,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 16,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 0,
+      "localMathScrollers": 0,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "INPUT",
+        "label": "Номер телефона",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Продолжить",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "color(srgb 0.607843 0.278431 0.0431373 / 0.42) 0px -2px 0px 0px inset"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-reduced-motion": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1096,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 0,
+      "reducedMotion": true
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 3Было1230",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "320-long-math": {
+    "details": {
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "scrollHeight": 1214,
+      "overflowX": false,
+      "bodyScrollWidth": 320,
+      "clientWidth": 320,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 3,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 1Было123456789012345",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SPAN",
+        "label": "Предыдущий ответ: 123456789012345",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "375-long-math": {
+    "details": {
+      "viewport": {
+        "width": 375,
+        "height": 844
+      },
+      "scrollHeight": 1149,
+      "overflowX": false,
+      "bodyScrollWidth": 375,
+      "clientWidth": 375,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 42,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 2,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SUMMARY",
+        "label": "Исходная задача · шаг 1 из 1Было123456789012345",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "SPAN",
+        "label": "Предыдущий ответ: 123456789012345",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  },
+  "1280-long-math": {
+    "details": {
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "scrollHeight": 1643,
+      "overflowX": false,
+      "bodyScrollWidth": 1280,
+      "clientWidth": 1280,
+      "fonts": {
+        "status": "loaded",
+        "onest": true,
+        "literata": true,
+        "literataRequired": true
+      },
+      "imagesLoaded": true,
+      "smallTargets": [],
+      "minInputFont": 78,
+      "h1Count": 1,
+      "mainLandmarks": 1,
+      "bracketCount": 1,
+      "localMathScrollers": 1,
+      "reducedMotion": false
+    },
+    "focus": [
+      {
+        "tag": "A",
+        "label": "AiPlus — к сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "К сегодняшнему плану",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "P",
+        "label": "Предыдущий ответ: 123456789012345",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Ввод",
+        "outline": "solid",
+        "width": "3px",
+        "shadow": "none"
+      }
+    ],
+    "errors": [],
+    "requestFailures": []
+  }
+}

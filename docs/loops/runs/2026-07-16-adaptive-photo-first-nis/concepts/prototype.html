@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>AiPlus — adaptive photo-first concepts</title>
+    <link rel="stylesheet" href="./prototype.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">К содержанию</a>
+    <div id="app"></div>
+
+    <script>
+      const query = new URLSearchParams(location.search)
+      const concept = query.get('concept') || 'a'
+      const screen = query.get('screen') || 'route'
+
+      const icons = {
+        arrow: '<path d="M5 12h13m-5-5 5 5-5 5"/>',
+        back: '<path d="m14 6-6 6 6 6"/>',
+        camera: '<path d="M4 8.5h3l1.4-2h7.2l1.4 2h3v10H4z"/><circle cx="12" cy="13.5" r="3.2"/>',
+        check: '<path d="m5 12 4 4 10-10"/>',
+        pencil: '<path d="m5 16-1 4 4-1L19 8l-3-3L5 16Z"/><path d="m14 7 3 3"/>',
+        spark: '<path d="m12 3 1.2 3.8L17 8l-3.8 1.2L12 13l-1.2-3.8L7 8l3.8-1.2L12 3Z"/><path d="m18 14 .7 2.3L21 17l-2.3.7L18 20l-.7-2.3L15 17l2.3-.7L18 14Z"/>',
+      }
+
+      const icon = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name]}</svg>`
+
+      const brand = () => `
+        <a class="brand" href="#" aria-label="AiPlus, к маршруту">
+          <span class="brand-mark" aria-hidden="true"><i></i><b>a</b><em>+</em></span>
+          <span>AiPlus</span>
+        </a>`
+
+      const focusHeader = (label, trail = '') => `
+        <header class="focus-header">
+          <button class="icon-button" aria-label="Вернуться к маршруту">${icon('back')}</button>
+          <span class="focus-title">${label}</span>
+          ${trail ? `<span class="focus-trail">${trail}</span>` : '<span></span>'}
+        </header>`
+
+      const primary = (label, iconName = 'arrow') => `
+        <button class="primary-action"><span>${label}</span>${icon(iconName)}</button>`
+
+      const taskText = `
+        <p class="problem-text">В 300 г раствора содержится 25% соли. В раствор добавили
+        200 г воды. Каков процент соли в новом растворе?</p>`
+
+      const stepInput = `
+        <label class="answer-input">
+          <span>Масса соли в исходном растворе</span>
+          <span class="input-line"><input inputmode="decimal" aria-label="Масса соли в граммах" placeholder="Введи число" /><b>г</b></span>
+        </label>`
+
+      const aRoute = () => `
+        <div class="concept concept-a route-screen">
+          <header class="shell-header">${brand()}<span class="student-name">Саша · 6 класс</span></header>
+          <main id="main-content" class="atlas-layout">
+            <section class="atlas-intro">
+              <p class="eyebrow">Твой маршрут NIS · по диагностике</p>
+              <h1>Сначала укрепим<br /><span>отношения и пропорции</span></h1>
+              <p class="lead">Ты уверенно работаешь с дробями. В текстовых задачах теряется
+              связь между частями — начнём с неё и затем перейдём к смешанным задачам.</p>
+              <div class="diagnostic-proof" aria-label="Результат диагностики">
+                <span><b>7/12</b> решено</span><span><b>Сильная сторона</b> дроби</span>
+              </div>
+            </section>
+
+            <section class="atlas-next" aria-labelledby="a-next-title">
+              <span class="atlas-index">01</span>
+              <p class="eyebrow">Первый приоритет</p>
+              <h2 id="a-next-title">Смеси и концентрации</h2>
+              <p>Научишься сохранять массу вещества и пересчитывать долю после изменения воды.</p>
+              <ul class="lesson-facts"><li>4 содержательные задачи</li><li>самостоятельное решение по фото</li></ul>
+              ${primary('Начать тему')}
+            </section>
+
+            <ol class="atlas-thread" aria-label="План подготовки">
+              <li class="done"><i>${icon('check')}</i><div><b>Диагностика</b><span>Картина стартовых навыков сохранена</span></div></li>
+              <li class="active"><i>01</i><div><b>Отношения и пропорции</b><span>Текущий блок · 3 темы</span></div></li>
+              <li><i>02</i><div><b>Текстовые модели</b><span>Откроется после контрольной задачи</span></div></li>
+              <li><i>03</i><div><b>Графики и данные</b><span>Следующий блок маршрута</span></div></li>
+            </ol>
+          </main>
+        </div>`
+
+      const aPhoto = () => `
+        <div class="concept concept-a task-screen">
+          ${focusHeader('Смеси и концентрации', 'Самостоятельно')}
+          <main id="main-content" class="atlas-task-layout">
+            <aside class="evidence-thread" aria-label="Как проходит задача">
+              <span class="active"><i>1</i><b>Реши</b></span>
+              <span><i>2</i><b>Сфотографируй</b></span>
+              <span><i>3</i><b>Получи разбор</b></span>
+            </aside>
+            <section class="task-plane">
+              <p class="eyebrow">Задача 1 · отношения и проценты</p>
+              <h1>Реши целиком<br />на бумаге</h1>
+              ${taskText}
+              <p class="task-note">Покажи на фото весь ход решения. Мы проверим способ, а не только ответ.</p>
+              <div class="task-actions">
+                ${primary('Сфотографировать решение', 'camera')}
+                <button class="secondary-action">Не знаю, как решать</button>
+              </div>
+            </section>
+          </main>
+        </div>`
+
+      const aGuided = () => `
+        <div class="concept concept-a task-screen">
+          ${focusHeader('Смеси и концентрации', 'Разбор по шагам')}
+          <main id="main-content" class="atlas-task-layout guided-layout">
+            <aside class="evidence-thread guided-thread" aria-label="Шаги разбора">
+              <span class="active"><i>1</i><b>Найди вещество</b></span>
+              <span><i>2</i><b>Новая масса</b></span>
+              <span><i>3</i><b>Новая доля</b></span>
+            </aside>
+            <section class="task-plane guided-plane">
+              <p class="eyebrow">Та же задача · шаг 1 из 3</p>
+              <h1>Что в растворе<br />не изменится?</h1>
+              <details class="problem-disclosure"><summary>Показать условие</summary>${taskText}</details>
+              <p class="guided-prompt">Сначала найди массу соли: 25% от 300 г.</p>
+              ${stepInput}
+              <div class="task-actions">
+                ${primary('Проверить шаг')}
+                <button class="secondary-action">Вернуться к решению целиком</button>
+              </div>
+              <p class="mastery-note">Разбор поможет понять метод, но не засчитается как самостоятельное освоение.</p>
+            </section>
+          </main>
+        </div>`
+
+      const bRoute = () => `
+        <div class="concept concept-b route-screen">
+          <header class="notebook-header">${brand()}<span>Личный план · NIS</span><span class="student-name">Саша · 6 класс</span></header>
+          <main id="main-content" class="notebook-spread">
+            <aside class="margin-page">
+              <p class="margin-label">Диагностика · 16 июля</p>
+              <div class="score-mark"><strong>7</strong><span>из 12</span></div>
+              <dl>
+                <div><dt>Уверенно</dt><dd>Обыкновенные дроби</dd></div>
+                <div><dt>Точка роста</dt><dd>Модель отношения в условии</dd></div>
+              </dl>
+              <p class="margin-note">Маршрут собран по ответам, а не по среднему плану класса.</p>
+            </aside>
+            <section class="workbook-page">
+              <span class="page-number">01</span>
+              <p class="eyebrow">Следующая глава</p>
+              <h1>Отношения,<br />которые видно</h1>
+              <p class="chapter-lead">Начнём со смесей: здесь хорошо видно, какая величина
+              сохраняется, а какая меняется.</p>
+              <div class="chapter-task">
+                <span>Первая тема</span>
+                <h2>Смеси и концентрации</h2>
+                <p>4 задачи · самостоятельная работа на бумаге · контрольный перенос</p>
+              </div>
+              ${primary('Открыть главу')}
+              <ol class="chapter-index" aria-label="Персональный маршрут">
+                <li class="active"><b>01</b><span>Отношения и пропорции</span></li>
+                <li><b>02</b><span>Текстовые модели</span></li>
+                <li><b>03</b><span>Графики и данные</span></li>
+              </ol>
+            </section>
+          </main>
+        </div>`
+
+      const bPhoto = () => `
+        <div class="concept concept-b task-screen">
+          ${focusHeader('Глава 1 · смеси', 'Самостоятельная работа')}
+          <main id="main-content" class="workbook-task">
+            <aside class="task-margin">
+              <span class="margin-label">Способ работы</span>
+              <strong>Один лист.<br />Одно фото.</strong>
+              <p>Пиши так, как решаешь в тетради. Ответ без хода решения не покажет, где нужна помощь.</p>
+            </aside>
+            <section class="workbook-sheet">
+              <div class="sheet-heading"><span>Задача 1</span><span>отношения и проценты</span></div>
+              <h1>Найди новую<br />концентрацию</h1>
+              ${taskText}
+              <div class="writing-field" aria-hidden="true"><i></i><i></i><i></i></div>
+              <div class="task-actions">
+                ${primary('Сфотографировать решение', 'camera')}
+                <button class="secondary-action">Не знаю, как решать</button>
+              </div>
+            </section>
+          </main>
+        </div>`
+
+      const bGuided = () => `
+        <div class="concept concept-b task-screen">
+          ${focusHeader('Глава 1 · смеси', 'Разбор · 1 из 3')}
+          <main id="main-content" class="workbook-task guided-workbook">
+            <aside class="task-margin">
+              <span class="margin-label">Сейчас</span>
+              <strong>Ищем то,<br />что осталось.</strong>
+              <p>Воду добавили, но соли больше не стало.</p>
+              <ol class="margin-steps"><li class="active">Масса соли</li><li>Новая масса</li><li>Новая доля</li></ol>
+            </aside>
+            <section class="workbook-sheet">
+              <div class="sheet-heading"><span>Шаг 1</span><span>без фото</span></div>
+              <h1>Сколько соли было<br />в начале?</h1>
+              <details class="problem-disclosure"><summary>Показать условие</summary>${taskText}</details>
+              <p class="guided-prompt">Найди 25% от 300 г.</p>
+              ${stepInput}
+              <div class="task-actions">
+                ${primary('Проверить шаг')}
+                <button class="secondary-action">Вернуться к самостоятельному решению</button>
+              </div>
+              <p class="mastery-note">После разбора будет новая задача, которую нужно решить самостоятельно.</p>
+            </section>
+          </main>
+        </div>`
+
+      const cRoute = () => `
+        <div class="concept concept-c route-screen">
+          <header class="station-header">${brand()}<span class="student-name">Саша · 6 класс</span></header>
+          <main id="main-content" class="station-layout">
+            <div class="confidence-lens route-lens" aria-label="Диагностика завершена: 7 из 12">
+              <span class="lens-kicker">диагностика</span><strong>7<small>/12</small></strong><span>маршрут готов</span>
+            </div>
+            <section class="station-copy">
+              <p class="eyebrow">Маршрут · отношения и пропорции</p>
+              <h1>Смеси и<br />концентрации</h1>
+              <p>Ты знаешь дроби. Теперь научимся видеть отношение величин внутри текстовой задачи.</p>
+              <div class="station-reason"><i>${icon('spark')}</i><span><b>Почему сейчас</b>В диагностике именно модель отношения останавливала решение.</span></div>
+              ${primary('Начать тему')}
+            </section>
+            <nav class="chapter-switcher" aria-label="Персональный маршрут">
+              <span class="complete">Диагностика ${icon('check')}</span>
+              <span class="active"><b>01</b> Отношения</span>
+              <span><b>02</b> Текстовые задачи</span>
+              <span><b>03</b> Графики</span>
+            </nav>
+          </main>
+        </div>`
+
+      const cPhoto = () => `
+        <div class="concept concept-c task-screen">
+          ${focusHeader('Смеси · задача 1', 'Самостоятельно')}
+          <main id="main-content" class="station-task">
+            <div class="mode-mark" aria-label="Режим: самостоятельное решение">
+              ${icon('pencil')}<span><b>Самостоятельно</b>одно фото целого решения</span>
+            </div>
+            <section class="station-problem">
+              <p class="eyebrow">Задача 1 · отношения и проценты</p>
+              <h1>Реши целиком<br />в тетради</h1>
+              ${taskText}
+              <p class="task-note">Одно фото всего решения — так мы увидим твой способ.</p>
+              <div class="task-actions">
+                ${primary('Сфотографировать решение', 'camera')}
+                <button class="secondary-action">Не знаю, как решать</button>
+              </div>
+            </section>
+          </main>
+        </div>`
+
+      const cGuided = () => `
+        <div class="concept concept-c task-screen">
+          ${focusHeader('Смеси · задача 1', 'Разбор · 1/3')}
+          <main id="main-content" class="station-task guided-station">
+            <div class="confidence-lens task-lens guided-lens" aria-label="Шаг 1 из 3">
+              <span class="lens-kicker">разбор</span><strong>1<small>/3</small></strong><span>масса соли</span>
+            </div>
+            <section class="station-problem">
+              <p class="eyebrow">Та же задача · без фото на шагах</p>
+              <h1>Найдём то,<br />что не изменилось</h1>
+              <details class="problem-disclosure"><summary>Показать условие</summary>${taskText}</details>
+              <p class="guided-prompt">В растворе было 25% соли. Сколько это граммов от 300 г?</p>
+              <p class="mastery-note mastery-note-prominent">Разбор не повышает уровень. Его подтвердит новая самостоятельная задача.</p>
+              ${stepInput}
+              <div class="task-actions">
+                ${primary('Проверить шаг')}
+                <button class="secondary-action">Вернуться к решению целиком</button>
+              </div>
+            </section>
+          </main>
+        </div>`
+
+      const cRecovery = () => `
+        <div class="concept concept-c task-screen">
+          ${focusHeader('Смеси · задача 1', 'Фото сохранено')}
+          <main id="main-content" class="station-task recovery-station">
+            <div class="mode-mark preserved-mark" aria-label="Фото решения сохранено">
+              ${icon('camera')}<span><b>Фото сохранено</b>повторно загружать не нужно</span>
+            </div>
+            <section class="station-problem">
+              <p class="eyebrow">Проверка решения</p>
+              <h1>Не удалось<br />прочитать запись</h1>
+              <div class="local-recovery" role="alert" aria-live="assertive">
+                <b>На фото размыта нижняя часть решения.</b>
+                <span>Пересними лист целиком при хорошем свете. Текущий снимок останется здесь, пока новый не загрузится.</span>
+              </div>
+              <div class="photo-proof" aria-label="Предыдущее фото решения сохранено">
+                ${icon('check')}<span><b>solution-01.jpg</b>предыдущая попытка сохранена</span>
+              </div>
+              <div class="task-actions">
+                ${primary('Переснять фото', 'camera')}
+                <button class="secondary-action">Вернуться к условию</button>
+              </div>
+            </section>
+          </main>
+        </div>`
+
+      const renders = {
+        a: { route: aRoute, photo: aPhoto, guided: aGuided },
+        b: { route: bRoute, photo: bPhoto, guided: bGuided },
+        c: { route: cRoute, photo: cPhoto, guided: cGuided, recovery: cRecovery },
+      }
+
+      document.getElementById('app').innerHTML = (renders[concept]?.[screen] || aRoute)()
+      document.documentElement.dataset.concept = concept
+      document.documentElement.dataset.screen = screen
+    </script>
+  </body>
+</html>

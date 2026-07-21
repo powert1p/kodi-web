@@ -1,0 +1,22 @@
+{
+  "judge": "blind-visual-ux-r19b",
+  "scores": {
+    "orientation": 8.7,
+    "continuity": 9.0,
+    "cognitive_load": 8.6,
+    "math_focus": 9.0,
+    "submission_clarity": 8.6,
+    "pedagogical_clarity": 9.1,
+    "responsive_accessibility": 8.6,
+    "premium_distinctiveness": 8.6
+  },
+  "average": 8.8,
+  "closed_findings": [
+    "Incorrect-photo feedback localises the failed step without exposing the numeric answer.",
+    "The mobile tutor is inline and leaves the complete task condition visible."
+  ],
+  "critical_flags": [],
+  "p0_p1": [],
+  "verdict": "READY",
+  "confidence": 0.91
+}

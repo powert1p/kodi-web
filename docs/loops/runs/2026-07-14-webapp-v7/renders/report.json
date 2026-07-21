@@ -1,0 +1,222 @@
+{
+  "375-hub": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "BUTTON",
+      "type": "button",
+      "label": "Начать разбор",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "375-srez": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "INPUT",
+      "type": null,
+      "label": "Введите ответ",
+      "outlineStyle": "none",
+      "outlineWidth": "2px"
+    }
+  },
+  "375-drill": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "BUTTON",
+      "type": "button",
+      "label": "Назад к списку разборов",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "375-analytics": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "A",
+      "type": null,
+      "label": "К содержанию",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "375-closure": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "BUTTON",
+      "type": "button",
+      "label": "К срезу",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "375-reduced-motion": {
+    "animationName": "none",
+    "transitionDuration": "0s"
+  },
+  "375-errors": [],
+  "375-request-failures": [],
+  "375-login": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 375,
+    "rootClientWidth": 375,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "KODIматематика без догадокРазбор по делуПонимай каждый шаг. Не угадывай ответ.Кё",
+    "keyboardFocus": {
+      "tag": "INPUT",
+      "type": "tel",
+      "label": null,
+      "outlineStyle": "none",
+      "outlineWidth": "2px"
+    }
+  },
+  "375-login-errors": [],
+  "375-login-request-failures": [],
+  "1280-hub": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "A",
+      "type": null,
+      "label": "К содержанию",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "1280-srez": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "A",
+      "type": null,
+      "label": "К содержанию",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "1280-drill": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "A",
+      "type": null,
+      "label": "К содержанию",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "1280-analytics": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "A",
+      "type": null,
+      "label": "К содержанию",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "1280-closure": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "К содержаниюKODIРазбираем ошибки. По делу.РазборСрезПрогрессAI-практикаЖивой учи",
+    "keyboardFocus": {
+      "tag": "A",
+      "type": null,
+      "label": "К содержанию",
+      "outlineStyle": "solid",
+      "outlineWidth": "2px"
+    }
+  },
+  "1280-reduced-motion": {
+    "animationName": "none",
+    "transitionDuration": "0s"
+  },
+  "1280-errors": [],
+  "1280-request-failures": [],
+  "1280-login": {
+    "title": "Работа над ошибками",
+    "bodyScrollWidth": 1280,
+    "rootClientWidth": 1280,
+    "overflow": false,
+    "alumniCyrillic": true,
+    "alumniKazakh": false,
+    "h1Font": "\"Alumni Sans\", \"Golos Text\", sans-serif",
+    "activeText": "KODIматематика без догадокРазбор по делуПонимай каждый шаг. Не угадывай ответ.Кё",
+    "keyboardFocus": {
+      "tag": "INPUT",
+      "type": "tel",
+      "label": null,
+      "outlineStyle": "none",
+      "outlineWidth": "2px"
+    }
+  },
+  "1280-login-errors": [],
+  "1280-login-request-failures": []
+}

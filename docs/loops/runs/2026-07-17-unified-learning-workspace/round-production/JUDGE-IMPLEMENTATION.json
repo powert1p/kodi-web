@@ -1,0 +1,18 @@
+{
+  "judge": "fresh-final-implementation-checker",
+  "findings": [],
+  "closed_findings": [
+    "Raw correction values are not rendered before an explicit reveal.",
+    "Workspace task and feedback revisions preserve scroll and external focus.",
+    "Legacy practice revisions also preserve scroll and external focus while onboarding retains its intentional reset."
+  ],
+  "verification": {
+    "journey_page_tests": "20/20 passed",
+    "frontend_tests": "119/119 passed",
+    "workspace_state_matrix": "42 states / 84 screenshots passed"
+  },
+  "critical_flags": [],
+  "p0_p1": [],
+  "verdict": "READY",
+  "confidence": 0.96
+}

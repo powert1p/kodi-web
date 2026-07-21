@@ -1,0 +1,24 @@
+{
+  "screenshots": 18,
+  "console_errors": [],
+  "page_errors": [],
+  "request_errors": [],
+  "api_errors": [],
+  "checks": [
+    "375x844 and 1280x900",
+    "cumulative path and current curriculum block",
+    "daily queue mental model absent",
+    "one primary action",
+    "worked → guided → independent → transfer",
+    "tier-1 help only after wrong answer",
+    "exact answer restored after reload",
+    "network error preserves answer",
+    "server result evidence",
+    "completed lesson returns to cumulative path at 1/1",
+    "keyboard focus follows activity",
+    "touch target >=44px",
+    "horizontal overflow absent",
+    "loading geometry, error, empty, result",
+    "reduced motion equivalent"
+  ]
+}

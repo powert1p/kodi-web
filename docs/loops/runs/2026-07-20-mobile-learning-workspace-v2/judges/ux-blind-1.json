@@ -1,0 +1,27 @@
+{
+  "judge": "ux-blind-1",
+  "scores": {
+    "first_action_clarity": 8.7,
+    "journey_continuity": 9.1,
+    "math_focus": 9.1,
+    "guided_instruction": 8.5,
+    "tutor_usefulness": 8.6,
+    "mobile_comfort": 8.7,
+    "accessibility_resilience": 8.5,
+    "premium_distinctiveness": 8.8
+  },
+  "average": 8.75,
+  "critical_flags": [],
+  "p0_p1": [],
+  "evidence": [
+    "/tmp/kodi-final-candidate/release-r3-final-chromium/typed/next-task-375x844.png: задача, режим и единственное текущее действие читаются сразу; mobile composition не выглядит как card soup.",
+    "/tmp/kodi-final-candidate/release-r3-final-chromium/photo/feedback-375x844.png и /tmp/kodi-final-candidate/release-r3-final-chromium/typed/typed-incorrect-844x375.png: condition сохраняется рядом с локальным feedback, primary CTA один, math остаётся главным содержанием.",
+    "/tmp/kodi-final-candidate/release-r3-final-webkit-18_2/typed/next-task-375x844.png, /tmp/kodi-final-candidate/release-r3-final-webkit-18_2/photo/feedback-375x844.png и /tmp/kodi-final-candidate/release-r3-final-webkit-18_2/photo/real-heic.png: parity, recovery без потери задачи и читаемые mobile states.",
+    "/tmp/kodi-final-candidate/release-r3-final-chromium/photo/public-photo-cjm-summary.json: contextual tutor rendered; Escape, focus и scroll restoration passed; real HEIC recovery и correct JPEG feedback остаются на одной surface.",
+    "webapp/src/features/journey/LearningWorkspace.tsx:286-395,840-875,987-1039,1212-1301: сохранение draft/focus, явный guided contract с format hint, единственный primary CTA и modal tutor с focus trap.",
+    "webapp/src/features/journey/LearningWorkspace.css:824-828,1020-1064,1067-1250,1257-1266: видимый focus, mobile sheet, landscape-specific layout и reduced-motion support.",
+    "docs/loops/runs/2026-07-20-mobile-learning-workspace-v2/EVIDENCE-SNAPSHOT.md:17-81: frozen mechanical, Chromium и WebKit gates passed; overflow, console and target-size checks clean."
+  ],
+  "confidence": 0.9,
+  "verdict": "READY"
+}

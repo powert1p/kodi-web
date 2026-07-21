@@ -1,0 +1,28 @@
+{
+  "scores": {
+    "math_focus": 9.2,
+    "composition": 8.7,
+    "typography": 8.9,
+    "source_transformation": 9.2,
+    "color_atmosphere": 9.0,
+    "ux_states_craft": 8.6,
+    "motion_interaction": 8.6,
+    "premium_distinctiveness": 8.8
+  },
+  "avg": 8.88,
+  "wow": true,
+  "verdict": "READY",
+  "evidence": [
+    "Все 46 записей snapshot.sha256 проверены: 44 renders, report.json и mechanical.txt совпадают.",
+    "На Hub, Drill, Closure и Srez математическая задача и поле действия визуально доминируют; в active Drill/Srez mascot отсутствует.",
+    "Desktop-композиции трансформируются под широкий экран, а не растягивают mobile stack.",
+    "Code-native seed mark не копирует старый lockup; используются реальные squirrel WebP.",
+    "Network-состояния сохраняют ответы, focus переводится на следующую инструкцию, reduced-motion эквивалентен обычному состоянию."
+  ],
+  "top_deltas": [
+    "medium: На mobile Closure wrong/network recovery CTA после длинного условия оказывается ниже первого экрана.",
+    "low: Skeleton Drill/Srez можно точнее приблизить к геометрии authored happy path.",
+    "low: mechanical-code.txt и revision production-кода можно включить в следующую audit-chain."
+  ],
+  "not_mvp_or_generic": true
+}

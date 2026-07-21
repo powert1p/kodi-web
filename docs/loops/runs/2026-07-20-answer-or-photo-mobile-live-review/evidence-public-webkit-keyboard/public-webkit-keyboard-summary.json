@@ -1,0 +1,82 @@
+{
+  "status": "FAIL",
+  "base_url": "https://awesome-seas-gba-expanded.trycloudflare.com",
+  "browser": "Playwright WebKit",
+  "browser_executable": "/tmp/kodi-pw-browsers-149/webkit-2104/pw_run.sh",
+  "viewport": [
+    844,
+    375
+  ],
+  "emulation": "iPhone Safari 17.5 user agent + touch/mobile context",
+  "os_keyboard": "macOS Accessibility Keyboard enabled and captured externally",
+  "started_at": "2026-07-20T20:55:41+0500",
+  "console_errors": [],
+  "page_errors": [],
+  "request_failures": [],
+  "http_errors": [],
+  "provisioning": {
+    "account": "fresh synthetic browser registration",
+    "diagnostic_answers": [
+      {
+        "content_idx": 321,
+        "forced_wrong": true
+      },
+      {
+        "content_idx": 320,
+        "forced_wrong": false
+      },
+      {
+        "content_idx": 127,
+        "forced_wrong": false
+      },
+      {
+        "content_idx": 1144,
+        "forced_wrong": false
+      },
+      {
+        "content_idx": 1409,
+        "forced_wrong": false
+      },
+      {
+        "content_idx": 876,
+        "forced_wrong": false
+      }
+    ],
+    "initial_task": {
+      "revision": 17,
+      "stage": "independent_task",
+      "problem_id": 1766,
+      "content_idx": 1765,
+      "statement": "В 300 г раствора содержится 25% соли. В раствор добавили 200 г воды. Каков процент соли в новом растворе?"
+    }
+  },
+  "incorrect": {
+    "answer": "0",
+    "status": 200,
+    "elapsed_seconds": 1.384,
+    "pending_visible_ms": 2,
+    "task": {
+      "revision": 18,
+      "stage": "independent_task",
+      "problem_id": 1766,
+      "content_idx": 1765,
+      "statement": "В 300 г раствора содержится 25% соли. В раствор добавили 200 г воды. Каков процент соли в новом растворе?"
+    },
+    "photo_required": false,
+    "typed_feedback": {
+      "verdict": "incorrect",
+      "message": "Проверь вычисления и попробуй ещё раз.",
+      "error_focus": "calculation",
+      "counts_for_mastery": true
+    },
+    "preserved_answer": {
+      "value": "0"
+    }
+  },
+  "failure": {
+    "type": "AssertionError",
+    "message": "{'inner_width': 844, 'inner_height': 375, 'visual_viewport': {'width': 844, 'height': 375, 'offset_left': 0, 'offset_top': 0, 'scale': 1}, 'scroll_width': 844, 'horizontal_overflow': 0, 'active_element': 'div', 'field': None, 'feedback': {'x': 43.59375, 'y': 386.75, 'width': 768.015625, 'height': 23, 'right': 811.609375, 'bottom': 409.75}, 'primary': {'x': 274.640625, 'y': 321.7200012207031, 'width': 180.1875, 'height': 44, 'right': 454.828125, 'bottom': 365.7200012207031}, 'mode_switch': {'x': 461.21875, 'y': 323, 'width': 180.1875, 'height': 44, 'right': 641.40625, 'bottom': 367}}",
+    "traceback": "Traceback (most recent call last):\n  File \"/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-20-answer-or-photo-mobile-live-review/public_webkit_keyboard_gate.py\", line 168, in run\n    result[\"geometry\"] = keyboard_geometry(page)\n                         ~~~~~~~~~~~~~~~~~^^^^^^\n  File \"/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-20-answer-or-photo-mobile-live-review/public_webkit_keyboard_gate.py\", line 69, in keyboard_geometry\n    assert metrics[\"active_element\"] == \"short-answer\", metrics\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: {'inner_width': 844, 'inner_height': 375, 'visual_viewport': {'width': 844, 'height': 375, 'offset_left': 0, 'offset_top': 0, 'scale': 1}, 'scroll_width': 844, 'horizontal_overflow': 0, 'active_element': 'div', 'field': None, 'feedback': {'x': 43.59375, 'y': 386.75, 'width': 768.015625, 'height': 23, 'right': 811.609375, 'bottom': 409.75}, 'primary': {'x': 274.640625, 'y': 321.7200012207031, 'width': 180.1875, 'height': 44, 'right': 454.828125, 'bottom': 365.7200012207031}, 'mode_switch': {'x': 461.21875, 'y': 323, 'width': 180.1875, 'height': 44, 'right': 641.40625, 'bottom': 367}}\n"
+  },
+  "finished_at": "2026-07-20T20:55:58+0500"
+}

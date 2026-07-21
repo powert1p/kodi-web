@@ -1,0 +1,28 @@
+{
+  "scores": {
+    "math_focus": 9.3,
+    "composition": 8.8,
+    "typography": 8.8,
+    "source_transformation": 8.7,
+    "color_atmosphere": 9.1,
+    "ux_states_craft": 9.2,
+    "motion_interaction": 8.6,
+    "premium_distinctiveness": 8.8
+  },
+  "avg": 8.91,
+  "wow": true,
+  "verdict": "READY",
+  "evidence": [
+    "Все 46 записей snapshot.sha256 проверены; просмотрены 37 mobile states и семь desktop baselines.",
+    "Hub ставит реальную задачу раньше вторичного рассказа, а Drill и Srez убирают mascot из active state.",
+    "Onest, Tektur и отдельная math typography формируют выразительную кириллическую систему.",
+    "Палитра cream, forest, sage и disciplined orange сохраняет спокойную учебную атмосферу.",
+    "Loading, error, empty, wrong, network, solved и finished состояния согласованы; mechanical evidence зелёный."
+  ],
+  "top_deltas": [
+    "low: Вторичный контент mobile Hub можно компактнее собрать после primary task.",
+    "low: Более режиссированный crop белок усилит cohesion в onboarding и celebration.",
+    "low: Tektur в конструкции «Ответ =» местами можно ещё сильнее подчинить математическому условию."
+  ],
+  "not_mvp_or_generic": true
+}

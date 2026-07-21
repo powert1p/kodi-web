@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>AiPlus — выбор визуального направления</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script>
+      const concept = new URLSearchParams(location.search).get('concept') || '1'
+      document.documentElement.dataset.concept = concept
+    </script>
+  </head>
+  <body>
+    <section class="concept studio" id="concept-1" aria-labelledby="studio-title">
+      <div class="concept-label"><span>Вариант</span> 01</div>
+      <header class="studio-header">
+        <div class="brand-crop" aria-label="AiPlus">
+          <img src="assets/aiplus-logo-reference.jpg" alt="Логотип AiPlus" />
+        </div>
+        <button class="icon-button" type="button" aria-label="Закрыть разбор">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>
+        </button>
+      </header>
+
+      <main class="studio-grid">
+        <aside class="studio-context">
+          <p class="eyebrow">Разбор · сегодня</p>
+          <h1 id="studio-title">Проценты</h1>
+          <p class="context-copy">Разложим ошибку на четыре спокойных шага.</p>
+          <div class="progress-line" aria-label="Шаг 1 из 4"><span></span></div>
+          <p class="progress-caption"><strong>1</strong> из 4</p>
+        </aside>
+
+        <article class="studio-stage" aria-label="Рабочая область задачи">
+          <div class="stage-kicker"><span>Задача</span><span>№ 04</span></div>
+          <p class="problem-copy">
+            Цена <mark>1200 ₸</mark> выросла на <mark>15%</mark>, затем снизилась на
+            <mark>10%</mark>. Какой стала цена?
+          </p>
+          <section class="studio-step">
+            <div>
+              <p class="step-label">Сначала найдём прибавку</p>
+              <p class="equation">1200 × 0,15 = <span>?</span></p>
+            </div>
+            <span class="step-index" aria-hidden="true">01</span>
+          </section>
+          <div class="answer-row">
+            <label class="answer-field">Ответ<input inputmode="decimal" value="180" aria-label="Ответ" /></label>
+            <button class="primary-button" type="button">Проверить</button>
+          </div>
+        </article>
+
+        <aside class="studio-coach" aria-label="Подсказка маскота">
+          <div class="mascot-crop mascot-crop--studio">
+            <img src="assets/aiplus-mascot-reference.jpg" alt="Маскот AiPlus в синем свитшоте" />
+          </div>
+          <p>Сначала найдём прибавку — не итоговую цену.</p>
+        </aside>
+      </main>
+    </section>
+
+    <section class="concept route" id="concept-2" aria-labelledby="route-title">
+      <div class="concept-label"><span>Вариант</span> 02</div>
+      <header class="route-header">
+        <div class="brand-crop brand-crop--compact" aria-label="AiPlus">
+          <img src="assets/aiplus-logo-reference.jpg" alt="Логотип AiPlus" />
+        </div>
+        <div class="route-summary"><strong>Проценты</strong><span>1 / 4</span></div>
+        <button class="icon-button" type="button" aria-label="Закрыть разбор">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>
+        </button>
+      </header>
+
+      <main class="route-layout">
+        <aside class="lesson-path" aria-label="Маршрут урока">
+          <p>Маршрут</p>
+          <ol>
+            <li class="is-active"><span>1</span><b>Прибавка</b></li>
+            <li><span>2</span><b>Новая цена</b></li>
+            <li><span>3</span><b>Скидка</b></li>
+            <li><span>4</span><b>Проверка</b></li>
+          </ol>
+          <div class="route-coach">
+            <div class="mascot-crop mascot-crop--route">
+              <img src="assets/aiplus-mascot-reference.jpg" alt="Маскот AiPlus в синем свитшоте" />
+            </div>
+            <p>Идём по одному действию.</p>
+          </div>
+        </aside>
+
+        <article class="route-stage">
+          <p class="eyebrow">Шаг 1 · прибавка</p>
+          <h1 id="route-title">Найди 15% от 1200</h1>
+          <p class="route-problem">
+            Цена 1200 ₸ выросла на 15%, затем снизилась на 10%. Какой стала цена?
+          </p>
+          <div class="route-equation" aria-label="1200 умножить на 0,15">
+            <span>1200</span><i>×</i><span>0,15</span><i>=</i><strong>?</strong>
+          </div>
+          <div class="route-answer">
+            <label>Твой ответ<input inputmode="decimal" value="180" aria-label="Твой ответ" /></label>
+            <button class="primary-button" type="button">Проверить</button>
+          </div>
+          <p class="micro-hint">Это прибавка. Итоговую цену найдём на следующем шаге.</p>
+        </article>
+      </main>
+    </section>
+
+    <section class="concept board" id="concept-3" aria-labelledby="board-title">
+      <div class="concept-label"><span>Вариант</span> 03</div>
+      <header class="board-header">
+        <button class="icon-button" type="button" aria-label="Назад">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+        </button>
+        <div class="brand-crop brand-crop--compact" aria-label="AiPlus">
+          <img src="assets/aiplus-logo-reference.jpg" alt="Логотип AiPlus" />
+        </div>
+        <p><strong>1</strong> / 4</p>
+      </header>
+
+      <main class="board-shell">
+        <aside class="board-coach" aria-label="Подсказка маскота">
+          <div class="mascot-crop mascot-crop--board">
+            <img src="assets/aiplus-mascot-reference.jpg" alt="Маскот AiPlus в синем свитшоте" />
+          </div>
+          <p>Сейчас только прибавка.</p>
+        </aside>
+
+        <article class="math-board">
+          <div class="board-topline">
+            <p class="eyebrow">Проценты · разбираем ошибку</p>
+            <span>шаг 01</span>
+          </div>
+          <h1 id="board-title">Цена 1200 ₸ выросла на 15%, затем снизилась на 10%.</h1>
+          <p class="board-question">Какой стала цена?</p>
+          <section class="marker-step">
+            <p>Сначала найдём 15% от начальной цены</p>
+            <div class="board-equation"><span>1200</span><b>×</b><span>0,15</span><b>=</b><strong>?</strong></div>
+          </section>
+          <div class="board-actions">
+            <label>Ответ<input inputmode="decimal" value="180" aria-label="Ответ" /></label>
+            <button class="primary-button" type="button">Проверить</button>
+          </div>
+        </article>
+      </main>
+    </section>
+
+    <section class="concept club" id="concept-4" aria-labelledby="club-title">
+      <div class="concept-label concept-label--light"><span>Вариант</span> 04</div>
+      <header class="club-header">
+        <div class="brand-crop brand-crop--compact" aria-label="AiPlus">
+          <img src="assets/aiplus-logo-reference.jpg" alt="Логотип AiPlus" />
+        </div>
+        <div class="club-progress"><span style="--progress: 25%"></span></div>
+        <button class="icon-button icon-button--light" type="button" aria-label="Закрыть разбор">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" /></svg>
+        </button>
+      </header>
+
+      <main class="club-shell">
+        <aside class="club-coach" aria-label="Подсказка маскота">
+          <div class="mascot-crop mascot-crop--club">
+            <img src="assets/aiplus-mascot-reference.jpg" alt="Маскот AiPlus в синем свитшоте" />
+          </div>
+          <div>
+            <p class="eyebrow">Шаг 1 из 4</p>
+            <p>Сначала найдём прибавку — не итоговую цену.</p>
+          </div>
+        </aside>
+
+        <article class="club-stage">
+          <p class="club-topic">Разбор · проценты</p>
+          <h1 id="club-title">Найдём 15% от 1200</h1>
+          <p class="club-problem">Цена 1200 ₸ выросла на 15%, а затем снизилась на 10%.</p>
+          <div class="club-equation"><span>1200</span><i>×</i><span>0,15</span><i>=</i><strong>?</strong></div>
+          <div class="club-actions">
+            <label>Ответ<input inputmode="decimal" value="180" aria-label="Ответ" /></label>
+            <button class="primary-button" type="button">Проверить</button>
+          </div>
+          <p class="club-note">После проверки перейдём к новой цене.</p>
+        </article>
+      </main>
+    </section>
+
+    <section class="concept poster" id="concept-5" aria-labelledby="poster-title">
+      <div class="concept-label"><span>Вариант</span> 05</div>
+      <header class="poster-header">
+        <div class="brand-crop brand-crop--compact" aria-label="AiPlus">
+          <img src="assets/aiplus-logo-reference.jpg" alt="Логотип AiPlus" />
+        </div>
+        <p>Разбор 01 / 04</p>
+        <button class="poster-close" type="button" aria-label="Закрыть">Закрыть</button>
+      </header>
+
+      <main class="poster-layout">
+        <article class="poster-stage">
+          <p class="eyebrow">Проценты · текущий шаг</p>
+          <h1 id="poster-title">15%</h1>
+          <p class="poster-command">от 1200</p>
+          <p class="poster-problem">Цена выросла на 15%, затем снизилась на 10%. Сейчас считаем только прибавку.</p>
+          <div class="poster-proof"><span>1200</span><i>×</i><span>0,15</span><i>=</i><strong>?</strong></div>
+          <div class="poster-actions">
+            <label>Ответ<input inputmode="decimal" value="180" aria-label="Ответ" /></label>
+            <button class="primary-button" type="button">Проверить</button>
+          </div>
+        </article>
+
+        <aside class="poster-rail" aria-label="Подсказка маскота">
+          <div class="poster-rail-copy">
+            <p>Не итог.</p>
+            <p>Только прибавка.</p>
+          </div>
+          <div class="mascot-crop mascot-crop--poster">
+            <img src="assets/aiplus-mascot-reference.jpg" alt="Маскот AiPlus в синем свитшоте" />
+          </div>
+          <p class="poster-coach">Я рядом. Одно действие — одна проверка.</p>
+        </aside>
+      </main>
+    </section>
+  </body>
+</html>

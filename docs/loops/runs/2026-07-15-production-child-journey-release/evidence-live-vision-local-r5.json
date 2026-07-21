@@ -1,0 +1,27 @@
+{
+  "base_url": "http://127.0.0.1:8399",
+  "synthetic_account": "+770543056301",
+  "problem_id": 5,
+  "decomp_idx": 2,
+  "step_n": 1,
+  "expected_value": "91",
+  "results": [
+    {
+      "fixture": "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-15-production-child-journey-release/fixtures/step-1-match.png",
+      "expected": "match",
+      "actual": "match",
+      "confidence": 1.0,
+      "hint": null,
+      "correct": true
+    },
+    {
+      "fixture": "/Users/esetseitkamal/kodi-web/docs/loops/runs/2026-07-15-production-child-journey-release/fixtures/step-1-mismatch.png",
+      "expected": "mismatch",
+      "actual": "mismatch",
+      "confidence": 1.0,
+      "hint": "Перепутал знаки: вычел 28 вместо сложения, а 45 прибавил (63 − 28 + 45).",
+      "correct": true
+    }
+  ],
+  "verdict": "PASS"
+}

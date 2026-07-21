@@ -1,0 +1,30 @@
+{
+  "base_url": "https://wearing-ministers-indexes-mono.trycloudflare.com",
+  "problem_id": 3,
+  "decomp_idx": 2,
+  "step_n": 1,
+  "expected_value": "91",
+  "results": [
+    {
+      "fixture": "/tmp/kodi-step-1-match-rotated.png",
+      "expected": "match",
+      "actual": "match",
+      "confidence": 1.0,
+      "hint": null,
+      "attempts": 1,
+      "correct": true,
+      "grounded_hint": true
+    },
+    {
+      "fixture": "/tmp/kodi-step-1-mismatch-lowres.png",
+      "expected": "mismatch",
+      "actual": "mismatch",
+      "confidence": 1.0,
+      "hint": "Проверь этот шаг ещё раз: Действия одного уровня выполняй слева направо. Сначала сложи: 63 + 28.",
+      "attempts": 1,
+      "correct": true,
+      "grounded_hint": true
+    }
+  ],
+  "verdict": "PASS"
+}

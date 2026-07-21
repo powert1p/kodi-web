@@ -1,0 +1,35 @@
+{
+  "scores": {
+    "time_to_first_value": 9.5,
+    "cognitive_focus": 9.4,
+    "pedagogical_sequence": 9.5,
+    "task_quality": 9.2,
+    "progress_legibility": 9.5,
+    "assistance_disclosure": 9.5,
+    "state_integrity": 9.5,
+    "premium_coherence": 9.1
+  },
+  "avg": 9.4,
+  "working_product": true,
+  "evidence": [
+    "Первый mobile viewport сразу показывает конкретный урок, его смысл и единственную primary action; дневная очередь отсутствует.",
+    "Worked → guided fading → independent → transfer последовательно отражены в учебных состояниях и route nodes.",
+    "Задания проверяют содержательный метод сохранения массы вещества и его перенос на новую ситуацию.",
+    "Помощь появляется только после попытки, относится к текущему micro-skill и не раскрывает ответ.",
+    "Wrong, network-preserve, reload-resume, result, error и empty сохраняют честный контекст и согласованный прогресс.",
+    "Новые completed screenshots закрывают прежний evidence gap: путь возвращается с «В этом блоке: 1 из 1 урока», карточка помечена как завершённая, результат сохранён, CTA ведёт к сохранённому результату.",
+    "На completed desktop все четыре стадии «Разобрать → Доделать → Решить → Перенести» подтверждены зелёными nodes; mobile сохраняет тот же статус и CTA в первом viewport.",
+    "Warm paper, forest ink, orange и sage последовательно выдержаны во всех состояниях и viewport."
+  ],
+  "top_deltas": [
+    {
+      "severity": "low",
+      "delta": "Формулировка «Освоенный урок» немного сильнее доказательства одного короткого прохождения; «Завершённый урок» была бы семантически консервативнее."
+    },
+    {
+      "severity": "low",
+      "delta": "На desktop pill курса визуально отделён от подписи текущего блока; более тесная группировка сделала бы curriculum hierarchy ещё буквальнее."
+    }
+  ],
+  "verdict": "READY"
+}

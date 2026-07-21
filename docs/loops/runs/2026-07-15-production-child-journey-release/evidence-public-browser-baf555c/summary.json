@@ -1,0 +1,48 @@
+{
+  "verdict": "PASS",
+  "base_origin": "https://wearing-ministers-indexes-mono.trycloudflare.com",
+  "viewports": [
+    "375x844 touch",
+    "1280x900"
+  ],
+  "screenshots": 18,
+  "checkpoints": [
+    "login-empty-mobile",
+    "registered-path-mobile",
+    "relogin-recovered-mobile",
+    "review-mobile",
+    "login-path-desktop",
+    "review-desktop",
+    "closure-start-error-desktop",
+    "closure-start-recovered-desktop",
+    "drill-start-mobile",
+    "tutor-two-turn-recovered-mobile",
+    "photo-consent-mobile",
+    "photo-error-mobile",
+    "photo-match-step-two-mobile",
+    "drill-finished-mobile",
+    "closure-task-mobile",
+    "closure-wrong-mobile",
+    "closure-success-mobile",
+    "closure-return-path-mobile"
+  ],
+  "checks": [
+    "registration without preselected photo consent",
+    "wrong PIN and successful recovery",
+    "synthetic wrong task appears in review journey",
+    "real two-turn Gemini tutor after UI retry",
+    "photo consent gate, provider retry, real Gemini match",
+    "server-verified drill completion",
+    "closure start retry, wrong answer, correct transfer answer",
+    "resolved task removed from active review queue",
+    "zero unexpected console/page/request/API errors",
+    "zero horizontal overflow and >=44px critical touch targets"
+  ],
+  "console_errors": [],
+  "page_errors": [],
+  "request_errors": [],
+  "expected_cancellations": [
+    "POST /api/trainer/events: 1 response bodies aborted after matching HTTP 200"
+  ],
+  "api_errors": []
+}

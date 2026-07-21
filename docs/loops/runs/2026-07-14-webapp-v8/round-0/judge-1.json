@@ -1,0 +1,19 @@
+{
+  "review_order": ["B", "C", "A"],
+  "winner": "A",
+  "ranking": ["A", "C", "B"],
+  "scores": {
+    "A": {"typography": 8, "color": 8, "composition": 8, "motion": 4, "signature": 7, "craft": 8, "brief_fit": 7, "punch": 8, "avg": 7.25},
+    "B": {"typography": 8, "color": 7, "composition": 8, "motion": 4, "signature": 6, "craft": 5, "brief_fit": 6, "punch": 8, "avg": 6.50},
+    "C": {"typography": 8, "color": 6, "composition": 7, "motion": 4, "signature": 8, "craft": 4, "brief_fit": 6, "punch": 9, "avg": 6.50}
+  },
+  "verdict": "NOT_YET",
+  "required_deltas": [
+    "Сделать thought trace честным и сквозным: hub, drill и srez.",
+    "Добавить однократный reveal и переход active node с reduced-motion fallback.",
+    "Вернуть CTA «Начать разбор».",
+    "Показать в drill реальные secondary actions «Метод» и «Спросить Кёди».",
+    "Сделать рабочую область спокойнее без потери cobalt/volt identity."
+  ],
+  "verification": {"images_reviewed": 18, "hash_entries_ok": 20, "overflow": 0, "console_errors": 0, "min_target": 44}
+}

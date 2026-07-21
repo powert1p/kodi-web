@@ -1,0 +1,63 @@
+{
+  "run": "state-matrix-r11",
+  "bar": {
+    "minimumAxis": 8.0,
+    "minimumAverage": 8.5,
+    "minimumMathFocus": 8.5,
+    "minimumPremiumDistinctiveness": 8.5,
+    "minimumReadyJudges": 3,
+    "minimumWowJudges": 2
+  },
+  "judges": [
+    {
+      "id": "blind-release-review",
+      "criticalFlags": [],
+      "productTruth": 9.0,
+      "nextActionClarity": 8.9,
+      "mathFocus": 9.3,
+      "compositionResponsive": 8.9,
+      "typographyCraft": 8.8,
+      "premiumDistinctiveness": 9.0,
+      "signatureEvidence": 8.9,
+      "interactionAccessibility": 9.1,
+      "average": 8.99,
+      "wow": true,
+      "verdict": "READY"
+    },
+    {
+      "id": "visual-judge-b",
+      "criticalFlags": [],
+      "productTruth": 9.2,
+      "nextActionClarity": 9.1,
+      "mathFocus": 9.4,
+      "compositionResponsive": 9.0,
+      "typographyCraft": 8.8,
+      "premiumDistinctiveness": 8.9,
+      "signatureEvidence": 9.1,
+      "interactionAccessibility": 9.0,
+      "average": 9.06,
+      "wow": true,
+      "verdict": "READY"
+    },
+    {
+      "id": "visual-judge-c",
+      "criticalFlags": [],
+      "productTruth": 8.2,
+      "nextActionClarity": 8.8,
+      "mathFocus": 8.9,
+      "compositionResponsive": 8.4,
+      "typographyCraft": 8.7,
+      "premiumDistinctiveness": 8.6,
+      "signatureEvidence": 9.0,
+      "interactionAccessibility": 8.9,
+      "average": 8.69,
+      "wow": true,
+      "verdict": "READY"
+    }
+  ],
+  "result": {
+    "readyJudges": 3,
+    "wowJudges": 3,
+    "verdict": "READY"
+  }
+}

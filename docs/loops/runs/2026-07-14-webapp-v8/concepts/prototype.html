@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kodi clean-slate concepts</title>
+  <style>
+    @font-face { font-family: Tektur; src: url('../../../../../webapp/src/theme/fonts/tektur-variable.ttf'); font-weight: 400 900; font-display: swap; }
+    @font-face { font-family: Onest; src: url('../../../../../webapp/src/theme/fonts/onest-variable.ttf'); font-weight: 300 900; font-display: swap; }
+    @font-face { font-family: Literata; src: url('./fonts/literata-variable.ttf'); font-weight: 200 900; font-display: swap; }
+    @font-face { font-family: SofiaXC; src: url('./fonts/sofia-extra-condensed-variable.ttf'); font-weight: 200 900; font-display: swap; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); }
+    body { margin: 0; min-height: 100dvh; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.5; overflow-x: hidden; }
+    button, input { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .app { min-height: 100dvh; position: relative; isolation: isolate; }
+    .topbar { position: relative; z-index: 20; display: flex; align-items: center; justify-content: space-between; min-height: 72px; padding: 16px clamp(18px, 4vw, 64px); border-bottom: 1px solid var(--line); }
+    .brand { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; color: inherit; font-family: var(--display); font-size: 22px; font-weight: 850; letter-spacing: -.04em; text-decoration: none; }
+    .brand-dot { color: var(--accent); }
+    .desktop-nav { display: flex; gap: 8px; }
+    .desktop-nav a { min-height: 44px; display: grid; place-items: center; padding: 0 16px; color: var(--muted); text-decoration: none; border: 1px solid transparent; }
+    .desktop-nav a[aria-current="page"] { color: var(--text); border-color: var(--line-strong); }
+    .screen { padding-bottom: 110px; }
+    .eyebrow { margin: 0 0 10px; color: var(--accent-ink); font-family: var(--display); font-size: 13px; font-weight: 750; letter-spacing: .11em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { font-family: var(--display); }
+    h1 { margin-bottom: 20px; font-size: clamp(48px, 8vw, 112px); line-height: .88; letter-spacing: -.055em; }
+    h2 { margin-bottom: 14px; font-size: clamp(34px, 4vw, 62px); line-height: .94; letter-spacing: -.04em; }
+    h3 { margin-bottom: 8px; font-size: clamp(22px, 2.2vw, 34px); line-height: 1; }
+    .lede { max-width: 640px; color: var(--muted); font-size: clamp(18px, 2vw, 24px); line-height: 1.45; }
+    .button { min-height: 54px; display: inline-flex; align-items: center; justify-content: space-between; gap: 24px; padding: 0 22px; border: 1px solid var(--button-border); background: var(--button); color: var(--button-text); font-family: var(--display); font-weight: 750; text-decoration: none; transition: transform 180ms ease, background 180ms ease; }
+    .button:hover { transform: translateY(-2px); }
+    .button:active { transform: translateY(0); }
+    .button.secondary { background: transparent; color: var(--text); border-color: var(--line-strong); }
+    .hero { position: relative; min-height: 580px; display: grid; align-items: stretch; overflow: hidden; }
+    .hero-copy { position: relative; z-index: 3; padding: clamp(38px, 7vw, 104px) clamp(18px, 7vw, 110px); }
+    .hero-actions { display: flex; align-items: center; gap: 18px; margin-top: 34px; }
+    .count { font-family: var(--display); font-variant-numeric: tabular-nums; }
+    .visual-field { position: relative; min-height: 320px; overflow: hidden; }
+    .trace-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .trace-svg path { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 9 9; animation: trace 6s linear infinite; }
+    .trace-svg circle { fill: var(--bg); stroke: var(--accent); stroke-width: 3; }
+    @keyframes trace { to { stroke-dashoffset: -72; } }
+    .section { padding: clamp(44px, 7vw, 104px) clamp(18px, 7vw, 110px); }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+    .section-note { max-width: 300px; color: var(--muted); font-size: 14px; }
+    .task-list { list-style: none; margin: 0; padding: 0; }
+    .task { position: relative; display: grid; grid-template-columns: minmax(56px, .35fr) minmax(0, 3fr) minmax(160px, 1fr); gap: 22px; align-items: start; padding: 30px 0; border-top: 1px solid var(--line-strong); }
+    .task:last-child { border-bottom: 1px solid var(--line-strong); }
+    .task-index { font-family: var(--display); font-size: 44px; line-height: .9; color: var(--accent); }
+    .task-copy p { max-width: 700px; margin: 10px 0 0; color: var(--muted); font-size: 18px; }
+    .task-meta { justify-self: end; text-align: right; color: var(--muted); font-size: 13px; }
+    .task-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 10px; color: var(--text); font-family: var(--display); font-weight: 700; text-decoration: none; }
+    .coach { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; max-width: 580px; padding: 22px; border: 1px solid var(--line-strong); }
+    .kodi { width: 56px; height: 56px; position: relative; border-radius: 48% 48% 45% 45%; background: #ff7a23; box-shadow: inset 10px 8px 0 rgba(255,255,255,.14); }
+    .kodi::before, .kodi::after { content: ''; position: absolute; top: -10px; width: 24px; height: 16px; background: #2da66f; }
+    .kodi::before { left: 7px; border-radius: 100% 0; transform: rotate(18deg); }
+    .kodi::after { right: 7px; border-radius: 0 100%; transform: rotate(-18deg); }
+    .kodi span::before, .kodi span::after { content: ''; position: absolute; top: 23px; width: 5px; height: 5px; border-radius: 50%; background: #131928; }
+    .kodi span::before { left: 17px; } .kodi span::after { right: 17px; }
+    .bottom-nav { position: fixed; z-index: 50; left: 12px; right: 12px; bottom: 12px; min-height: 70px; display: none; grid-template-columns: repeat(2,1fr); padding: 8px; background: var(--nav-bg); border: 1px solid var(--line-strong); box-shadow: 0 18px 50px rgba(0,0,0,.18); }
+    .bottom-nav a { min-height: 52px; display: grid; place-items: center; color: var(--muted); font-size: 12px; font-weight: 700; text-decoration: none; }
+    .bottom-nav a[aria-current="page"] { background: var(--accent); color: var(--accent-on); }
+
+    /* drill */
+    .drill-stage { display: grid; grid-template-columns: minmax(280px, .8fr) minmax(0, 1.5fr); min-height: calc(100dvh - 72px); }
+    .briefing { position: relative; padding: clamp(32px, 5vw, 70px); border-right: 1px solid var(--line-strong); overflow: hidden; }
+    .briefing .problem { margin-top: 52px; font-size: clamp(24px, 3vw, 42px); line-height: 1.32; }
+    .previous { margin-top: 26px; padding-left: 18px; border-left: 3px solid var(--accent); color: var(--muted); }
+    .workspace { position: relative; padding: clamp(32px, 5vw, 70px); }
+    .progress-label { display: flex; justify-content: space-between; margin-bottom: 28px; color: var(--muted); font-size: 14px; }
+    .proof-flow { position: relative; display: grid; gap: 18px; padding-left: 48px; }
+    .proof-flow::before { content: ''; position: absolute; left: 13px; top: 18px; bottom: 30px; width: 2px; background: var(--line-strong); }
+    .step { position: relative; padding: 26px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--surface-text); }
+    .step::before { content: attr(data-step); position: absolute; left: -48px; top: 20px; width: 30px; height: 30px; display: grid; place-items: center; background: var(--bg); color: var(--text); border: 2px solid var(--line-strong); font-family: var(--display); font-weight: 800; }
+    .step.active { border-color: var(--accent); }
+    .step.active::before { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+    .step.locked { opacity: .46; background: transparent; color: var(--muted); }
+    .answer-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-top: 24px; }
+    .answer-row input { min-width: 0; min-height: 56px; padding: 0 18px; border: 1px solid var(--input-line); background: var(--input-bg); color: var(--input-text); }
+
+    /* srez */
+    .srez-stage { min-height: calc(100dvh - 72px); display: grid; grid-template-columns: .65fr 1.35fr; }
+    .srez-index { position: relative; display: flex; flex-direction: column; justify-content: space-between; padding: clamp(34px, 6vw, 84px); border-right: 1px solid var(--line-strong); overflow: hidden; }
+    .srez-number { font-family: var(--display); font-size: clamp(96px, 18vw, 260px); line-height: .72; letter-spacing: -.08em; color: var(--accent); }
+    .srez-work { min-width: 0; display: grid; align-content: center; padding: clamp(36px, 8vw, 120px); }
+    .question { max-width: 850px; margin-bottom: 44px; overflow-wrap: anywhere; font-size: clamp(30px, 4vw, 58px); line-height: 1.2; letter-spacing: -.035em; }
+    .srez-form { max-width: 720px; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+    .srez-form label { grid-column: 1 / -1; color: var(--muted); font-size: 14px; }
+    .srez-form input { min-width: 0; min-height: 62px; padding: 0 20px; border: 1px solid var(--input-line); background: var(--input-bg); color: var(--input-text); }
+
+    /* concept A: saturated optical stage */
+    .concept-a { --bg:#1829c8; --text:#f5f2e8; --muted:#c2cafc; --line:rgba(255,255,255,.16); --line-strong:rgba(255,255,255,.34); --accent:#dfff35; --accent-ink:#dfff35; --accent-on:#131928; --surface:#f5f2e8; --surface-text:#141a2b; --button:#dfff35; --button-text:#131928; --button-border:#dfff35; --focus:#ff8a4c; --nav-bg:#101b91; --input-bg:#fffef8; --input-text:#131928; --input-line:#10152b; --display:Tektur,sans-serif; --body:Onest,sans-serif; }
+    .concept-a .app::before { content:''; position:fixed; z-index:-1; inset:0; opacity:.32; background: radial-gradient(circle at 82% 8%, #7183ff 0 12%, transparent 31%), linear-gradient(125deg, transparent 0 48%, rgba(255,255,255,.08) 48.2% 48.5%, transparent 48.7%); }
+    .concept-a .hero { grid-template-columns: 1.1fr .9fr; min-height: 660px; border-bottom:1px solid var(--line-strong); }
+    .concept-a .hero-copy { display:flex; flex-direction:column; justify-content:center; }
+    .concept-a h1 { max-width: 790px; font-stretch: 75%; }
+    .concept-a .visual-field { background: #f5f2e8; clip-path: polygon(15% 0,100% 0,100% 100%,0 100%); }
+    .concept-a .visual-field::before { content:'2'; position:absolute; right:-1vw; bottom:-10vw; color:#1829c8; font-family:Tektur; font-weight:900; font-size:clamp(240px,35vw,600px); line-height:.75; opacity:.14; }
+    .concept-a .trace-svg { transform:scale(1.08); }
+    .concept-a .trace-svg path { stroke:#1829c8; stroke-width:5; }
+    .concept-a .trace-svg circle { fill:#dfff35; stroke:#1829c8; }
+    .concept-a .question, .concept-a .step h2 { font-family:Onest,sans-serif; font-weight:760; line-height:1.08; letter-spacing:-.04em; }
+    .concept-a .task:first-child { background:linear-gradient(90deg, rgba(223,255,53,.12),transparent 68%); }
+    .concept-a .coach { margin-top:46px; background:#101b91; }
+    .concept-a .briefing { background:#101b91; }
+    .concept-a .workspace { background:#1829c8; }
+    .concept-a .srez-index { background:#dfff35; color:#131928; }
+    .concept-a .srez-index .srez-number { color:#1829c8; }
+    .concept-a .srez-index .eyebrow, .concept-a .srez-index .section-note { color:#273364; }
+
+    /* concept B: proof canvas */
+    .concept-b { --bg:#f3eee5; --text:#211d1a; --muted:#6b625a; --line:#ded5c9; --line-strong:#211d1a; --accent:#2345ff; --accent-ink:#2345ff; --accent-on:#fffdf9; --surface:#fffdf9; --surface-text:#211d1a; --button:#2345ff; --button-text:#fffdf9; --button-border:#2345ff; --focus:#ef5b4f; --nav-bg:#fffdf9; --input-bg:#fffdf9; --input-text:#211d1a; --input-line:#211d1a; --display:Literata,serif; --body:Onest,sans-serif; }
+    .concept-b .topbar { border-bottom:3px solid var(--text); }
+    .concept-b .brand { font-family:Onest; font-weight:900; letter-spacing:-.08em; }
+    .concept-b .hero { grid-template-columns:minmax(0,1fr) minmax(260px,.38fr); min-height:620px; border-bottom:3px solid var(--text); }
+    .concept-b .hero-copy { padding-right:5vw; }
+    .concept-b h1 { max-width:930px; font-weight:680; line-height:.91; }
+    .concept-b .visual-field { border-left:3px solid var(--text); background:var(--accent); }
+    .concept-b .visual-field::before { content:'ГДЕ\A СБИЛОСЬ?'; white-space:pre; position:absolute; left:26px; bottom:28px; color:#fff; font-family:Onest; font-size:clamp(40px,6vw,90px); font-weight:900; line-height:.82; letter-spacing:-.07em; transform:rotate(-90deg) translateY(100%); transform-origin:left bottom; }
+    .concept-b .trace-svg path { stroke:#fff; stroke-width:2; }
+    .concept-b .trace-svg circle { fill:#ef5b4f; stroke:#fff; }
+    .concept-b .section { position:relative; padding-left:clamp(54px,12vw,180px); }
+    .concept-b .section::before { content:'ПОЛЕ / 01'; position:absolute; left:20px; top:108px; color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.12em; writing-mode:vertical-rl; }
+    .concept-b .task { grid-template-columns:80px minmax(0,2.2fr) minmax(150px,.7fr); }
+    .concept-b .task-index { font-family:Onest; font-weight:900; }
+    .concept-b .task:first-child::before { content:''; position:absolute; left:78px; top:20px; width:3px; height:calc(100% - 40px); background:#ef5b4f; }
+    .concept-b .coach { border-width:3px; box-shadow:12px 12px 0 var(--accent); }
+    .concept-b .briefing { background:var(--surface); border-right:3px solid var(--text); }
+    .concept-b .briefing::after { content:'('; position:absolute; right:-8px; top:24%; color:var(--accent); font-family:Literata; font-size:320px; line-height:1; }
+    .concept-b .proof-flow::before { width:3px; background:var(--text); }
+    .concept-b .step { border-width:2px; box-shadow:8px 8px 0 var(--line); }
+    .concept-b .srez-index { background:var(--text); color:#fffdf9; }
+    .concept-b .srez-number { color:#ef5b4f; font-family:Onest; font-weight:900; }
+
+    /* concept C: orbit studio */
+    .concept-c { --bg:#eaf4ff; --text:#0c1731; --muted:#45506a; --line:rgba(12,23,49,.14); --line-strong:#0c1731; --accent:#ff6547; --accent-ink:#c7371f; --accent-on:#0c1731; --surface:#fff8df; --surface-text:#0c1731; --button:#ff6547; --button-text:#0c1731; --button-border:#0c1731; --focus:#3658ff; --nav-bg:#fff8df; --input-bg:#fff; --input-text:#0c1731; --input-line:#0c1731; --display:SofiaXC,Tektur,sans-serif; --body:Onest,sans-serif; }
+    .concept-c .topbar { background:#fff8df; border-bottom:2px solid var(--text); }
+    .concept-c .hero { grid-template-columns:.82fr 1.18fr; min-height:660px; background:#3658ff; color:#fff8df; }
+    .concept-c .hero-copy { order:2; display:flex; flex-direction:column; justify-content:center; }
+    .concept-c h1 { max-width:800px; font-size:clamp(70px,10vw,144px); font-weight:850; text-transform:uppercase; }
+    .concept-c .hero .lede { color:#dfe5ff; }
+    .concept-c .hero .eyebrow { color:#fff8df; }
+    .concept-c .visual-field { order:1; min-height:660px; background:#ff6547; border-right:2px solid var(--text); clip-path:ellipse(92% 72% at 0 50%); }
+    .concept-c .visual-field::before, .concept-c .visual-field::after { content:''; position:absolute; border:3px solid #0c1731; border-radius:50%; }
+    .concept-c .visual-field::before { width:78%; aspect-ratio:1; left:-32%; top:10%; }
+    .concept-c .visual-field::after { width:48%; aspect-ratio:1; left:-12%; top:27%; background:#fff8df; }
+    .concept-c .trace-svg { z-index:2; }
+    .concept-c .trace-svg path { stroke:#0c1731; stroke-width:4; }
+    .concept-c .trace-svg circle { fill:#fff8df; stroke:#0c1731; }
+    .concept-c .section { background:#eaf4ff; }
+    .concept-c .task { grid-template-columns:90px minmax(0,2.2fr) minmax(150px,.7fr); border-top:2px solid var(--text); }
+    .concept-c .task-index { width:68px; height:68px; display:grid; place-items:center; border:2px solid var(--text); border-radius:50%; color:var(--text); }
+    .concept-c .task:first-child { background:#fff8df; padding-left:22px; padding-right:22px; }
+    .concept-c .coach { border:2px solid var(--text); border-radius:50% 50% 10px 10px; background:#fff8df; }
+    .concept-c .briefing { background:#ff6547; border-right:2px solid var(--text); }
+    .concept-c .workspace { background:#3658ff; color:#fff8df; }
+    .concept-c .workspace .progress-label { color:#dfe5ff; }
+    .concept-c .proof-flow::before { background:#fff8df; }
+    .concept-c .step { border:2px solid var(--text); border-radius:34px 8px 34px 8px; }
+    .concept-c .step::before { border-radius:50%; }
+    .concept-c .srez-stage { background:#fff8df; }
+    .concept-c .srez-index { background:#3658ff; color:#fff; border-right:2px solid var(--text); clip-path:ellipse(105% 80% at 0 50%); }
+    .concept-c .srez-number { color:#ff6547; }
+
+    @media (max-width: 720px) {
+      .topbar { min-height:60px; padding:12px 18px; }
+      .desktop-nav { display:none; }
+      .bottom-nav { display:grid; }
+      .screen { padding-bottom:100px; }
+      .hero, .concept-a .hero, .concept-b .hero, .concept-c .hero { min-height:auto; grid-template-columns:1fr; }
+      .hero-copy { padding:42px 18px 32px; }
+      h1 { font-size:clamp(54px,18vw,76px); }
+      .hero-actions { align-items:stretch; flex-direction:column; }
+      .button { width:100%; }
+      .visual-field, .concept-c .visual-field { min-height:280px; order:initial; clip-path:none; border:0; }
+      .concept-a .visual-field { clip-path:polygon(0 14%,100% 0,100% 100%,0 100%); }
+      .concept-b .visual-field { min-height:220px; border-left:0; border-top:3px solid var(--text); }
+      .concept-c .hero-copy { order:1; }
+      .concept-c .visual-field { order:2; min-height:290px; clip-path:ellipse(82% 80% at 10% 50%); }
+      .section, .concept-b .section { padding:52px 18px; }
+      .section-head { align-items:start; flex-direction:column; }
+      .task, .concept-b .task, .concept-c .task { grid-template-columns:48px 1fr; gap:14px; padding:24px 0; }
+      .task-index { font-size:32px; }
+      .task-meta { grid-column:2; justify-self:start; text-align:left; }
+      .concept-b .task:first-child::before { left:46px; }
+      .concept-c .task:first-child { padding:22px 14px; }
+      .concept-c .task-index { width:44px; height:44px; }
+      .coach { padding:18px; }
+      .drill-stage { grid-template-columns:1fr; }
+      .briefing { padding:34px 18px 42px; border-right:0; border-bottom:1px solid var(--line-strong); }
+      .concept-b .briefing, .concept-c .briefing { border-right:0; border-bottom:2px solid var(--text); }
+      .briefing .problem { margin-top:32px; font-size:26px; }
+      .workspace { padding:38px 18px 72px; }
+      .proof-flow { padding-left:38px; }
+      .step { padding:20px 18px; }
+      .step::before { left:-38px; width:28px; height:28px; }
+      .answer-row { grid-template-columns:1fr; }
+      .srez-stage { grid-template-columns:1fr; }
+      .srez-index { min-height:250px; padding:30px 18px; border-right:0; border-bottom:1px solid var(--line-strong); }
+      .concept-c .srez-index { clip-path:ellipse(110% 92% at 25% 0); min-height:310px; }
+      .srez-number { font-size:126px; }
+      .srez-work { width:100%; min-width:0; padding:46px 18px 80px; }
+      .question { font-size:32px; }
+      .srez-form { grid-template-columns:1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <template id="hub">
+    <div class="app">
+      <header class="topbar"><a class="brand" href="#">KODI<span class="brand-dot">.</span></a><nav class="desktop-nav" aria-label="Основная"><a href="#" aria-current="page">Сегодня</a><a href="#">Прогресс</a></nav></header>
+      <main class="screen">
+        <section class="hero">
+          <div class="hero-copy"><p class="eyebrow">Сегодня · следующий разбор</p><h1><span class="count">2</span> места, где мысль сбилась</h1><p class="lede">Не повторяем всю тему. Находим один сломанный шаг, восстанавливаем его и проверяем на новой задаче.</p><div class="hero-actions"><a class="button" href="#">Начать с процентов <span>↗</span></a><span class="section-note">Сложное — первым.<br>Кёди рядом, ответ — твой.</span></div></div>
+          <div class="visual-field" aria-hidden="true"><svg class="trace-svg" viewBox="0 0 560 650"><path d="M35 580 C150 500 80 405 235 350 S420 290 320 180 S390 75 535 36"/><circle cx="35" cy="580" r="11"/><circle cx="235" cy="350" r="14"/><circle cx="535" cy="36" r="11"/></svg></div>
+        </section>
+        <section class="section"><div class="section-head"><div><p class="eyebrow">Фокус сессии</p><h2>С чего начнём</h2></div><p class="section-note">Это ошибки из твоих решений. Здесь нет рейтинга и случайных задач.</p></div>
+          <ol class="task-list"><li class="task"><span class="task-index">01</span><div class="task-copy"><h3>Проценты</h3><p>Цена товара 1200 ₸ выросла на 15%, а затем снизилась на 10%.</p></div><div class="task-meta">Последний ответ: 1230<br><a class="task-link" href="#">Разобрать →</a></div></li><li class="task"><span class="task-index">02</span><div class="task-copy"><h3>Дроби</h3><p>Вычислите 3/4 + 5/6. Сбой возник при выборе общего знаменателя.</p></div><div class="task-meta">Последний ответ: 13/12<br><a class="task-link" href="#">Разобрать →</a></div></li></ol>
+          <div class="coach"><div class="kodi" role="img" aria-label="Кёди улыбается"><span></span></div><div><strong>Начнём с одного шага.</strong><br><span class="section-note">Если не получится — упростим, но ответ не подскажем.</span></div></div>
+        </section>
+      </main>
+      <nav class="bottom-nav" aria-label="Основная"><a href="#" aria-current="page">Сегодня</a><a href="#">Прогресс</a></nav>
+    </div>
+  </template>
+
+  <template id="drill">
+    <div class="app"><header class="topbar"><a class="brand" href="#">KODI<span class="brand-dot">.</span></a><nav class="desktop-nav" aria-label="Навигация разбора"><a href="#">← К сегодняшнему плану</a></nav></header>
+      <main class="screen drill-stage"><aside class="briefing"><p class="eyebrow">Работа над ошибкой</p><h1>Проценты</h1><p class="problem">Цена товара 1200 ₸ выросла на 15%, а затем снизилась на 10%. Найдите итоговую цену.</p><p class="previous">В прошлый раз получилось <strong>1230</strong>. Сейчас найдём точное место сбоя.</p></aside>
+        <section class="workspace"><div class="progress-label"><span>Ход решения</span><strong>Шаг 1 из 3</strong></div><div class="proof-flow"><article class="step active" data-step="1"><p class="eyebrow">Процент от числа</p><h2>Сколько тенге составляет рост на 15% от 1200?</h2><div class="answer-row"><input aria-label="Твой ответ" placeholder="Твой ответ"><button class="button">Проверить <span>↗</span></button></div></article><article class="step locked" data-step="2"><h3>Цена после роста</h3><p>Откроется после первого шага.</p></article><article class="step locked" data-step="3"><h3>Новая база процента</h3><p>Откроется после второго шага.</p></article></div><div class="coach"><div class="kodi" role="img" aria-label="Кёди думает"><span></span></div><div><strong>Застрял?</strong><br><span class="section-note">Посмотрим метод или разберём вопрос вместе.</span></div></div></section></main>
+      </div>
+  </template>
+
+  <template id="srez">
+    <div class="app"><header class="topbar"><a class="brand" href="#">KODI<span class="brand-dot">.</span></a><nav class="desktop-nav" aria-label="Навигация проверки"><a href="#">← К сегодняшнему плану</a></nav></header>
+      <main class="screen srez-stage"><aside class="srez-index"><div><p class="eyebrow">Независимая проверка</p><p class="section-note">Без подсказок. Один вопрос за раз.</p></div><div class="srez-number">01</div><p class="section-note">из 12 · Цифры числа</p></aside><section class="srez-work"><p class="eyebrow">Вопрос 1</p><h1 class="question">Найдите двузначное число, если оно равно удвоенному произведению своих цифр.</h1><form class="srez-form"><label for="answer">Твой ответ</label><input id="answer" autocomplete="off" inputmode="decimal" placeholder="Введи число"><button class="button" type="button">Проверить <span>↗</span></button></form></section></main>
+      </div>
+  </template>
+  <script>
+    const params = new URLSearchParams(location.search)
+    const concept = ['a','b','c'].includes(params.get('concept')) ? params.get('concept') : 'a'
+    const screen = ['hub','drill','srez'].includes(params.get('screen')) ? params.get('screen') : 'hub'
+    document.body.className = `concept-${concept}`
+    document.getElementById('root').append(document.getElementById(screen).content.cloneNode(true))
+    document.title = `Kodi concept ${concept.toUpperCase()} · ${screen}`
+  </script>
+</body>
+</html>

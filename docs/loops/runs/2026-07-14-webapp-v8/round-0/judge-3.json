@@ -1,0 +1,19 @@
+{
+  "review_order": ["B", "C", "A"],
+  "winner": "A",
+  "ranking": ["A", "B", "C"],
+  "scores": {
+    "A": {"typography": 7, "color": 7, "composition": 5, "motion": 3, "signature": 3, "craft": 6, "brief_fit": 6, "punch": 7, "avg": 5.50},
+    "B": {"typography": 6, "color": 6, "composition": 4, "motion": 3, "signature": 3, "craft": 4, "brief_fit": 4, "punch": 6, "avg": 4.50},
+    "C": {"typography": 3, "color": 4, "composition": 4, "motion": 3, "signature": 4, "craft": 4, "brief_fit": 5, "punch": 7, "avg": 4.25}
+  },
+  "verdict": "NOT_YET",
+  "required_deltas": [
+    "Не переносить общий prototype DOM как reskin: строить отдельные product compositions.",
+    "Заменить декоративный spline на data-backed proof trace во всех flows.",
+    "Не снижать opacity функционального locked text; обеспечить AA.",
+    "Ослабить acid/esports интонацию.",
+    "Использовать staged reveal и стабильный reduced-motion state."
+  ],
+  "verification": {"images_reviewed": 18, "hash_entries_ok": 20, "overflow": 0, "console_errors": 0, "min_target": 44}
+}

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <defs>
+    <filter id="paper" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="2" seed="41" result="noise"/>
+      <feColorMatrix in="noise" type="saturate" values="0" result="gray"/>
+      <feComponentTransfer in="gray" result="faint">
+        <feFuncA type="table" tableValues="0 0.035"/>
+      </feComponentTransfer>
+      <feBlend in="SourceGraphic" in2="faint" mode="multiply"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="1500" fill="#f8f5e9" filter="url(#paper)"/>
+  <g stroke="#b6d1df" stroke-width="2" opacity="0.65">
+    <path d="M0 210H1200M0 330H1200M0 450H1200M0 570H1200M0 690H1200M0 810H1200M0 930H1200M0 1050H1200M0 1170H1200M0 1290H1200M0 1410H1200"/>
+  </g>
+  <path d="M150 0V1500" stroke="#df9d9d" stroke-width="3" opacity="0.72"/>
+  <g transform="rotate(-0.4 600 750)" fill="#203f76" font-family="DejaVu Sans, sans-serif" font-style="italic">
+    <text x="205" y="155" font-size="46">Смеси и концентрации</text>
+    <text x="205" y="292" font-size="50">1) m соли = 25% · 300 г</text>
+    <text x="250" y="405" font-size="66">0,25 · 300 = 75 г</text>
+    <path d="M245 430 C440 445 725 438 995 426" fill="none" stroke="#203f76" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <text x="205" y="642" font-size="50">2) m нового раствора:</text>
+    <text x="250" y="755" font-size="66">300 + 200 = 400 г</text>
+    <path d="M245 780 C470 793 730 788 1015 776" fill="none" stroke="#203f76" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <text x="205" y="992" font-size="50">3) процент соли:</text>
+    <text x="250" y="1105" font-size="66">75 : 400 · 100% = 18,75%</text>
+    <path d="M245 1132 C475 1148 735 1143 1050 1128" fill="none" stroke="#203f76" stroke-width="5" stroke-linecap="round" opacity="0.7"/>
+    <text x="205" y="1325" font-size="58">Ответ: 18,75%</text>
+  </g>
+</svg>

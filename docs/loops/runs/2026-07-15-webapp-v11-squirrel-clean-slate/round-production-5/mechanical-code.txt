@@ -1,0 +1,13 @@
+PASS
+
+- `npm run lint`: exit 0; 3 известных non-blocking warnings (`only-export-components` ×2, stale dependency в legacy route hook).
+- `npm run lint:design`: exit 0; 100 source files, нарушений нет.
+- `npx tsc -b`: exit 0, output empty.
+- `npx vitest run`: exit 0; 12 files, 72 tests passed.
+- `npm run build`: exit 0; Vite transformed 133 modules; PWA precache 64 entries, 1450.19 KiB.
+- `render_matrix.py`: exit 0; 44 production states at 375×844 plus seven 1280×900 baselines.
+- Browser aggregate: horizontal overflow 0; unexpected console/request/API errors 0; min touch target 44 px; min input font 16 px; exactly one main landmark in all states.
+- Input preservation: Closure network `1377`; Srez network `84`.
+- Motion: normal solved node `routeNodeLock 0.42s`; reduced motion `animationName: none`, same final state.
+- Keyboard: first Tab reveals skip-link with 3 px solid focus outline; after Drill step transition focus moves to the next mathematical instruction.
+- Loaded bundle contains no `aiplus-logo-lockup`, costume `mascot-*` or Literata asset.

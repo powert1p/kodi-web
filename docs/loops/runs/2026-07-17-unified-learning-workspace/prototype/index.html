@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Kodi — единое пространство задачи</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#task-title">К условию задачи</a>
+
+    <div class="page-frame">
+      <header class="topbar" aria-label="Учебная сессия">
+        <a class="brand" href="#task-title" aria-label="AiPlus, к текущей задаче">
+          <span class="brand-seed" aria-hidden="true">a+</span>
+          <span class="brand-name">практика</span>
+        </a>
+        <div class="session-state">
+          <span class="save-dot" aria-hidden="true"></span>
+          <span>Прогресс сохранён</span>
+        </div>
+        <button class="quiet-action top-exit" type="button">Выйти</button>
+      </header>
+
+      <main class="workspace" data-testid="workspace">
+        <aside class="session-strip" aria-label="Контекст темы">
+          <div class="session-kicker">Тема</div>
+          <div class="session-topic">Доли от оставшейся части</div>
+          <div class="session-progress" aria-label="Этап темы">
+            <span class="progress-index">03</span>
+            <span class="progress-copy">самостоятельная<br />практика</span>
+          </div>
+          <div class="mode-pill">
+            <span class="mode-dot" aria-hidden="true"></span>
+            <span>Самостоятельно</span>
+          </div>
+        </aside>
+
+        <article class="task-anchor" aria-labelledby="task-title">
+          <div class="task-meta">
+            <span class="task-number">Задача 3</span>
+            <span class="task-mode">Самостоятельно</span>
+          </div>
+
+          <h1 id="task-title">Найди долю всех книг</h1>
+
+          <p class="statement">
+            В школьной библиотеке <span class="math">3/8</span> всех книг — приключения.
+            <mark class="evidence-phrase">Из оставшихся книг</mark>
+            <span class="math">2/5</span> — научно-популярные. Какая доля всех книг относится к
+            научно-популярным?
+          </p>
+
+          <div class="work-surface" aria-label="Текущая работа ученика">
+            <div class="work-heading">
+              <span id="work-label">Твоя работа</span>
+              <span class="work-format">на бумаге · весь ход</span>
+            </div>
+            <div class="attempt" id="task-attempt" hidden>
+              <span class="attempt-label">На фото распознано</span>
+              <span class="attempt-value">2/5</span>
+            </div>
+            <div class="paper-prompt" id="paper-prompt">
+              <span class="paper-line" aria-hidden="true"></span>
+              <span>Сначала реши задачу полностью. Затем отправь одно фото страницы.</span>
+            </div>
+          </div>
+        </article>
+
+        <section class="contextual-layer" aria-labelledby="context-title">
+          <div class="context-marker" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="context-head">
+            <div>
+              <div class="context-kicker" id="context-kicker">Перед отправкой</div>
+              <h2 id="context-title">Проверь, что виден весь ход</h2>
+            </div>
+            <button class="icon-action context-close" type="button" aria-label="Закрыть помощника" hidden>
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="context-body" id="context-body" aria-live="polite"></div>
+        </section>
+
+        <section class="response-dock" aria-labelledby="response-title">
+          <div class="response-copy">
+            <div class="response-label" id="response-title">Следующее действие</div>
+            <div class="response-note" id="response-note">Фото позволяет проверить ход решения, а не только ответ.</div>
+          </div>
+          <div class="response-actions" id="response-actions"></div>
+        </section>
+      </main>
+
+      <div class="concept-stamp" aria-hidden="true">
+        <span id="concept-letter">A</span>
+        <span id="concept-name">Поля мысли</span>
+      </div>
+      <div class="action-status visually-hidden" id="action-status" aria-live="polite"></div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

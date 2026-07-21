@@ -1,0 +1,411 @@
+{
+  "verdict": "PASS",
+  "baseOrigin": "http://127.0.0.1:8416",
+  "syntheticAccounts": 2,
+  "transitions": [
+    "registration→profile→exam_map",
+    "diagnostic→personal_route",
+    "incorrect_photo→guided_same_task→new_transfer_task",
+    "whole_photo_transfer→mastery_threshold→topic_result"
+  ],
+  "routeA": [
+    "PC06",
+    "EQ04",
+    "FR05",
+    "GE04",
+    "DA02"
+  ],
+  "routeB": [
+    "EQ04",
+    "PC06",
+    "FR05",
+    "GE04",
+    "DA02"
+  ],
+  "routesDiffer": true,
+  "exactResume": {
+    "diagnostic": true,
+    "guided": true
+  },
+  "photoResults": [
+    {
+      "fixture": "full-solution-unreadable.png",
+      "verdict": "unreadable",
+      "elapsedMs": 3892
+    },
+    {
+      "fixture": "full-solution-wrong-step1.png",
+      "verdict": "incorrect",
+      "failedStep": 1,
+      "elapsedMs": 2503
+    },
+    {
+      "fixture": "transfer-solution-correct.png",
+      "verdict": "correct",
+      "elapsedMs": 2749
+    },
+    {
+      "fixture": "reinforcement-332-correct.png",
+      "verdict": "correct",
+      "elapsedMs": 2239
+    },
+    {
+      "fixture": "reinforcement-333-correct.png",
+      "verdict": "correct",
+      "elapsedMs": 2161
+    }
+  ],
+  "guidedCountsForMastery": false,
+  "mastery": [
+    {
+      "contentIdx": 331,
+      "probability": 0.921,
+      "correct": 1,
+      "total": 2,
+      "accuracy": 0.5,
+      "reached": false
+    },
+    {
+      "contentIdx": 332,
+      "probability": 0.996,
+      "correct": 2,
+      "total": 3,
+      "accuracy": 0.667,
+      "reached": false
+    },
+    {
+      "contentIdx": 333,
+      "probability": 0.999,
+      "correct": 3,
+      "total": 4,
+      "accuracy": 0.75,
+      "reached": true
+    }
+  ],
+  "finalMastery": {
+    "contentIdx": 333,
+    "probability": 0.999,
+    "correct": 3,
+    "total": 4,
+    "accuracy": 0.75,
+    "reached": true
+  },
+  "screenshots": 19,
+  "checks": [
+    {
+      "name": "registration-phone-mobile",
+      "screenshot": "registration-phone-mobile-375x844.png",
+      "sha256": "38a39d32bce44770c6bd2d49424fcd843c70854a54cb082b6b79940092adbeb6",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Привет! Введи номер",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "INPUT",
+      "activeText": null,
+      "activeIsHeading": false,
+      "smallTargets": []
+    },
+    {
+      "name": "profile-goal-mobile",
+      "screenshot": "profile-goal-mobile-375x844.png",
+      "sha256": "af3c60e1da061e5b1c6e38660d4482484fb2e7cd09b82aa587fa9c6892e2e48d",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Начнём с тебя",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Начнём с тебя",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "profile-self-report-mobile",
+      "screenshot": "profile-self-report-mobile-375x844.png",
+      "sha256": "21b8feff802d8022b5a0a969fab9da5bb7090712139298ee82e6e82ced4bc93c",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Что учесть в диагностике",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Что учесть в диагностике",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "profile-mock-result-mobile",
+      "screenshot": "profile-mock-result-mobile-375x844.png",
+      "sha256": "ec7a57273ce351335ef31bc4a2b478013386a1bc66097f728e348fd62f8c566d",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Есть результат пробника?",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Есть результат пробника?",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "exam-map-mobile",
+      "screenshot": "exam-map-mobile-375x844.png",
+      "sha256": "023d7967e7fb1074063e0b5b43ea0c3ccb8e8b3e4ba6f2b189ded726b02562a6",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Что будет на отборе NIS",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Что будет на отборе NIS",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "diagnostic-first-question-mobile",
+      "screenshot": "diagnostic-first-question-mobile-375x844.png",
+      "sha256": "7107d59e29f10afddad506e924c3e8e81280918de655d763257479bc8d879f3c",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Реши в уме или на черновике",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Реши в уме или на черновике",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "diagnostic-exact-resume-mobile",
+      "screenshot": "diagnostic-exact-resume-mobile-375x844.png",
+      "sha256": "7d909fb272b10fc58595a842f6ce45f7120691a768ffb6da5d511f0ba747f843",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Реши в уме или на черновике",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Реши в уме или на черновике",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "diagnostic-result-mobile",
+      "screenshot": "diagnostic-result-mobile-375x844.png",
+      "sha256": "9ea8d60ba86cf716bbb747cd1938b8505afeb59f4272fd64e603d8acfdcaea28",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Точка старта найдена",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Точка старта найдена",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "personal-route-mobile",
+      "screenshot": "personal-route-mobile-375x844.png",
+      "sha256": "8e1b29b96c7feb860021408a928470eb0a57b36fb2f51a5ee5ce043b865637d4",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Смеси и концентрации",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Смеси и концентрации",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "photo-first-task-mobile",
+      "screenshot": "photo-first-task-mobile-375x844.png",
+      "sha256": "c0f7e6f95528ba626642fcaca0933342c444a2e43a30be553f3bda3497c4995e",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Реши самостоятельно",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Реши самостоятельно",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "photo-consent-granted-mobile",
+      "screenshot": "photo-consent-granted-mobile-375x844.png",
+      "sha256": "1e3b5466c21df44211cbe9c745a46ec20d4e8838b50fbdcd620b38ac9d4ba60d",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Реши самостоятельно",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "BODY",
+      "activeText": "К содержаниюСменить ученикаa+AiPlusСамостоятельноСамостоятельноодно фото целого решенияСмеси и концентрации · самостояте",
+      "activeIsHeading": false,
+      "smallTargets": []
+    },
+    {
+      "name": "unreadable-recovery-mobile",
+      "screenshot": "unreadable-recovery-mobile-375x844.png",
+      "sha256": "1142d53c89466e5ee30f795e9f3fbaee75ac7ad4fa9ed9b73ae98fa40ef58b10",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Не удалось прочитать запись",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Не удалось прочитать запись",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "first-math-error-mobile",
+      "screenshot": "first-math-error-mobile-375x844.png",
+      "sha256": "bb077cfad924e7faf9eedfa319f4a8d69b4dc0cbba8f4cff162fb00bcd174101",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Исправь одно место",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Исправь одно место",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "guided-start-mobile",
+      "screenshot": "guided-start-mobile-375x844.png",
+      "sha256": "d8d75be16c58f70ac3d0d13e62af5d8dbdd51a1215c4a8fddc7cdcd17c2d6de6",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Разберём эту же задачу",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Разберём эту же задачу",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "guided-exact-resume-mobile",
+      "screenshot": "guided-exact-resume-mobile-375x844.png",
+      "sha256": "aad6f51eacf8a57b3b5593c4e681a8d66b380369f6fdaa241ab109446553b239",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Разберём эту же задачу",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Разберём эту же задачу",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "new-transfer-task-mobile",
+      "screenshot": "new-transfer-task-mobile-375x844.png",
+      "sha256": "c4a79b9da26ecedcbcb14c2e023c33ff9ac156ca33c4588ac94803147be5777e",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Проверка переноса",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка переноса",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "mastery-reached-mobile",
+      "screenshot": "mastery-reached-mobile-375x844.png",
+      "sha256": "622f9203a2a77f249778b54e041f1f1cdecfdc6de28fee08768aa972986d690a",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Ход решения сошёлся",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Ход решения сошёлся",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "topic-result-mobile",
+      "screenshot": "topic-result-mobile-375x844.png",
+      "sha256": "08d5ab3c5e8682eb7f7dfdd4ff7b11df6b02274329e15f77f627f6f000bb538a",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Навык подтверждён",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Навык подтверждён",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "topic-result-desktop",
+      "screenshot": "topic-result-desktop-1280x900.png",
+      "sha256": "3881fdd90b9c937231559114fade9855979b415f48a111134d9401e2f870d95b",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "heading": "Навык подтверждён",
+      "headingFont": "\"Alumni Sans\", Onest, system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Навык подтверждён",
+      "activeIsHeading": true,
+      "smallTargets": []
+    }
+  ],
+  "interaction": {
+    "skipLink": {
+      "beforeTop": -80,
+      "activeText": "К содержанию",
+      "top": 16,
+      "height": 48,
+      "transitionDuration": "0s"
+    },
+    "reducedMotion": {
+      "matches": true,
+      "maxAnimation": 1e-05,
+      "maxTransition": 1e-05
+    }
+  },
+  "assets": [
+    "ApButton-BO1foUD2.js",
+    "ApTextField-BJ-D0ILr.js",
+    "JourneyPage-C3PYxPmB.js",
+    "LoginPage-BrsjzYz8.js",
+    "MathText-BxRNkeQn.js",
+    "api-BotziTpX.js",
+    "image-vL1XAJmx.js",
+    "index-CZBgCc40.js",
+    "index-xYJ-FCKp.css",
+    "workbox-window.prod.es5-Bd17z0YL.js"
+  ],
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestErrors": [],
+  "apiErrors": []
+}

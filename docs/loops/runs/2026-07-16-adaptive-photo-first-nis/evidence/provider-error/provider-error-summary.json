@@ -1,0 +1,109 @@
+{
+  "verdict": "PASS",
+  "phase": "provider-error",
+  "photoResponse": {
+    "method": "POST",
+    "path": "/api/journey/photo",
+    "status": 503,
+    "elapsedMs": 3211
+  },
+  "expectedApiErrors": [
+    "POST /api/journey/photo -> 503"
+  ],
+  "screens": [
+    {
+      "name": "provider-outage-task-mobile",
+      "screenshot": "provider-outage-task-mobile-375x844.png",
+      "sha256": "46b82073adf4f786cb1a7d2c09124fb8733bb0acaaab163340b140490c1d6c31",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Проверка переноса",
+      "headingFont": "Onest, \"Golos Text\", system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка переноса",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "provider-outage-recovery-mobile",
+      "screenshot": "provider-outage-recovery-mobile-375x844.png",
+      "sha256": "89ced097a6f3ad0ff65d23108efb7678fcdbc92230d778b7143cfd673f30d107",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Проверка на паузе",
+      "headingFont": "Onest, \"Golos Text\", system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка на паузе",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "provider-outage-reload-mobile",
+      "screenshot": "provider-outage-reload-mobile-375x844.png",
+      "sha256": "89ced097a6f3ad0ff65d23108efb7678fcdbc92230d778b7143cfd673f30d107",
+      "width": 375,
+      "height": 844,
+      "scrollWidth": 375,
+      "overflow": 0,
+      "heading": "Проверка на паузе",
+      "headingFont": "Onest, \"Golos Text\", system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка на паузе",
+      "activeIsHeading": true,
+      "smallTargets": []
+    },
+    {
+      "name": "provider-outage-recovery-desktop",
+      "screenshot": "provider-outage-recovery-desktop-1280x900.png",
+      "sha256": "a9eca42f98b8fe84ff142536e1154b461bf0649408adbf7a9d37c1a8f4cbeef9",
+      "width": 1280,
+      "height": 900,
+      "scrollWidth": 1280,
+      "overflow": 0,
+      "heading": "Проверка на паузе",
+      "headingFont": "Onest, \"Golos Text\", system-ui, sans-serif",
+      "activeTag": "H1",
+      "activeText": "Проверка на паузе",
+      "activeIsHeading": true,
+      "smallTargets": []
+    }
+  ],
+  "assets": [
+    "ApButton-CNpHBRDH.js",
+    "ApTextField-CSlUTxQO.js",
+    "JourneyPage-DmXkHuxR.js",
+    "LoginPage-vV5zXHS6.js",
+    "MathText-DxY09KHz.js",
+    "api-C0SOdu6f.js",
+    "image-vL1XAJmx.js",
+    "index-CxyVLgam.css",
+    "index-XZrS1W65.js",
+    "workbox-window.prod.es5-Bd17z0YL.js"
+  ],
+  "interaction": {
+    "skipLink": {
+      "beforeTop": -80,
+      "activeText": "К содержанию",
+      "top": 16,
+      "height": 48,
+      "transitionDuration": "0s"
+    },
+    "reducedMotion": {
+      "matches": true,
+      "maxAnimation": 1e-05,
+      "maxTransition": 1e-05
+    }
+  },
+  "baseOrigin": "http://127.0.0.1:8414",
+  "fixture": "reinforcement-332-correct.png",
+  "consoleErrors": [],
+  "pageErrors": [],
+  "requestErrors": [],
+  "apiErrors": [
+    "POST /api/journey/photo -> 503"
+  ]
+}
