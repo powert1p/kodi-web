@@ -117,9 +117,12 @@
 - [x] Online rollout r17: versioned `workspace_version=1` envelope развёрнут image-only;
   production CJM подтвердил контракт во всех активных состояниях, 5 реальных Gemini-вызовов,
   exact resume, mastery `3/4`, чистые browser/runtime errors и нулевые DB-инварианты.
-- [ ] P2: подключить `JourneyPage` к `hasJourneyWorkspace` и собрать один стабильный учебный
-  экран без переходов между отдельными страницами: фото или typed answer, contextual AI tutor,
-  progressive hints без выдачи готового ответа и компактные компоненты.
+- [x] ~~Один стабильный учебный экран без переходов~~ — закрыто run'ом
+  `docs/loops/runs/2026-07-20-mobile-learning-workspace-v2/` (кандидат r4, blind-панель 3×READY
+  8.63/8.69/8.56, задеплоен 2026-07-21): единый workbook 375/390/844×375/932×430/1280, AI-вердикты
+  guided-шагов, контекстный tutor c Escape/focus-restore, публичный real-AI smoke. Остаточные P2 —
+  в `RELEASE-VERIFICATION.md` рана (пилюля шапки/выход, галочка «ответ проверен» у неверного,
+  гонка restore-фокуса при Escape впритык к ответу, «Например» дублируется в guided-подсказке).
 
 ### Бэклог тренажёра (после 2026-07-02)
 - [x] ~~Онбординг нового ученика~~ — закрыто Заходом 1 (has_activity + HubOnboarding).

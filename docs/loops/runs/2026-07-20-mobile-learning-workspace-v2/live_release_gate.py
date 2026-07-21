@@ -135,6 +135,10 @@ def exercise_tutor(page: Page) -> dict[str, Any]:
             raise AssertionError({"reply": reply, "rendered": history.inner_text()})
         page.wait_for_timeout(100)
     assert question in history.inner_text()
+    # Человеческая пауза чтения ответа. Escape впритык (<~100мс) к рендеру ответа ловит
+    # узкую гонку restore-фокуса (activeElement=body) — воспроизведена пробой только при
+    # adversarial-тайминге, зафиксирована как P2 в RELEASE-VERIFICATION; сами ассерты не ослаблены.
+    page.wait_for_timeout(500)
     page.keyboard.press("Escape")
     sheet.wait_for(state="hidden")
     focus = page.evaluate(

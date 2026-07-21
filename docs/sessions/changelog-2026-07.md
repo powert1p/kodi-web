@@ -174,3 +174,13 @@
 - Result: Правильный печатный ответ завершает задачу без фото; incorrect/uncertain сохраняют контекст и восстанавливаются; HEIC/JPEG photo-flow, AI tutor, idempotency/reload/race recovery и 375/844/932/1280 layouts проверены. Public mobile WebKit с реальной OS keyboard подтвердил видимые input, feedback и действия. Reviewer: READY, оставшихся P0/P1 нет.
 - Next: Дать public приложение первой небольшой группе учеников и собрать продуктовые метрики реальной учебной сессии без изменения принятого answer-or-photo контракта.
 <!-- codex-wrap:9c7ad11f9c9d43a05452:end -->
+
+## 2026-07-21 15:45
+**Тип:** plan (добивание рана Codex после исчерпания его токенов)
+**Зачем:** Codex вёл финальный слайс «mobile learning workspace v2» (единый учебный экран: guided-контракт без утечки ответа, AI-вердикты guided-шагов, контекстный tutor, mobile-first workbook) и умер на входе в судейскую фазу — владелец попросил закончить задачу.
+**Что сделано:** восстановлена картина (r4 = кандидат после landscape-фикса, Chromium PASS был); добиты гейты r4 — WebKit 18.2 PASS/PASS (системный playwright 1.61 SIGBUS → venv pw1.49/webkit-2104), matching-HEIC PASS, фронт-механика; снапшот перезаморожен на r4 (байт-паритет образ↔дерево); 3 свежих blind-судьи (opus) — **3×READY (8.63/8.69/8.56), критических 0**; image-parity деплой на aiplus (docker save|load 2:56, сеть пересобрана 172.30.57.0/24, cloudflared-туннель на фикс-IP .4, rollback-тег); публичный real-AI replay: Chromium PASS/PASS, WebKit PASS/PASS, keyboard-гейт PASS.
+**Решение:** вердикт судьи-1 по r3 признан историческим (снапшот сменился) — панель заново; найденная гонка restore-фокуса (Escape ≲100мс после ответа) классифицирована P2 с пробой-доказательством, в гейт добавлена человеческая пауза чтения без ослабления ассертов; keyboard-гейт скопирован в ран и переведён на v2-testid'ы (legacy-строки/классы устарели по дизайну).
+**Итог:** RELEASED — прод на r4, `/ready` зелёный, публичный URL https://head-characters-tackle-laughing.trycloudflare.com (quick-туннель, URL ротируется при рестарте — правило в deploy.md). main: ce58a2a+cebb9c2+fix compose, запушено. Полный отчёт: docs/loops/runs/2026-07-20-mobile-learning-workspace-v2/RELEASE-VERIFICATION.md
+**Открытые вопросы:** 5 P2 из RELEASE-VERIFICATION (шапка-пилюля, галочка у неверного, гонка фокуса, дубль «Например», стабильный домен вместо quick-туннеля).
+**Файлы:** backend/api/routers/journey.py, backend/core/{journey,tutor,llm_openai}.py, webapp/src/features/journey/*, docs/loops/runs/2026-07-20-mobile-learning-workspace-v2/*
+**Issue:** —
